@@ -42,4 +42,17 @@
     .badge-slate {
         @apply bg-slate-100 text-slate-500;
     }
+
+    /* The course-builder views (and the x-text-input component) style fields
+       with the border-app-border palette but never set real padding, unlike
+       .form-input above — this project has no @tailwindcss/forms reset, so
+       those fields were rendering at cramped browser-default size. One rule
+       fixes every current and future field in that palette instead of
+       patching padding into each view individually. Width is left alone —
+       several fields (points, minutes/seconds) are intentionally narrow. */
+    select[class*="border-app-border"],
+    textarea[class*="border-app-border"],
+    input[class*="border-app-border"]:not([type="checkbox"]):not([type="radio"]) {
+        @apply px-3.5 py-2.5;
+    }
 }

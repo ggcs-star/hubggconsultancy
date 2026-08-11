@@ -1,10 +1,22 @@
 <?php
 
+use App\Http\Controllers\Admin\CertificateController as AdminCertificateController;
 use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\CourseController as AdminCourseController;
+use App\Http\Controllers\Admin\CourseLessonController;
+use App\Http\Controllers\Admin\CourseModuleController;
+use App\Http\Controllers\Admin\CourseModuleQuizController;
+use App\Http\Controllers\Admin\CourseQuizCheckpointController;
+use App\Http\Controllers\Admin\CourseQuizQuestionController;
+use App\Http\Controllers\Admin\CourseQuizReviewController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PlaceholderController as AdminPlaceholderController;
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\User\CertificateController as UserCertificateController;
+use App\Http\Controllers\User\CourseController as UserCourseController;
+use App\Http\Controllers\User\CourseLessonProgressController;
+use App\Http\Controllers\User\CourseQuizAnswerController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\PlaceholderController as UserPlaceholderController;
 use App\Http\Controllers\User\ProfileController;
@@ -39,8 +51,46 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/salesperson-applications/{user}/approve', [AdminSalespersonApplicationController::class, 'approve'])->name('salesperson-applications.approve');
         Route::post('/salesperson-applications/{user}/reject', [AdminSalespersonApplicationController::class, 'reject'])->name('salesperson-applications.reject');
 
-        Route::get('/courses', [AdminPlaceholderController::class, 'courses'])->name('courses');
-        Route::get('/certificates', [AdminPlaceholderController::class, 'certificates'])->name('certificates');
+        Route::prefix('courses')->name('courses.')->group(function () {
+            Route::get('/', [AdminCourseController::class, 'index'])->name('index');
+            Route::post('/', [AdminCourseController::class, 'store'])->name('store');
+            Route::get('/{course}', [AdminCourseController::class, 'show'])->name('show');
+            Route::put('/{course}', [AdminCourseController::class, 'update'])->name('update');
+            Route::delete('/{course}', [AdminCourseController::class, 'destroy'])->name('destroy');
+            Route::patch('/{course}/publish-toggle', [AdminCourseController::class, 'togglePublish'])->name('publish.toggle');
+            Route::get('/{course}/preview', [AdminCourseController::class, 'preview'])->name('preview');
+            Route::put('/{course}/certificate', [AdminCourseController::class, 'updateCertificate'])->name('certificate.update');
+        });
+
+        Route::post('/courses/{course}/modules', [CourseModuleController::class, 'store'])->name('course-modules.store');
+        Route::post('/courses/{course}/modules/reorder', [CourseModuleController::class, 'reorder'])->name('course-modules.reorder');
+        Route::put('/course-modules/{module}', [CourseModuleController::class, 'update'])->name('course-modules.update');
+        Route::delete('/course-modules/{module}', [CourseModuleController::class, 'destroy'])->name('course-modules.destroy');
+        Route::post('/course-modules/{module}/items/reorder', [CourseModuleController::class, 'reorderItems'])->name('course-modules.items.reorder');
+
+        Route::get('/course-modules/{courseModule}/lessons/create', [CourseLessonController::class, 'create'])->name('course-lessons.create');
+        Route::post('/course-modules/{courseModule}/lessons', [CourseLessonController::class, 'store'])->name('course-lessons.store');
+        Route::get('/course-lessons/{lesson}/edit', [CourseLessonController::class, 'edit'])->name('course-lessons.edit');
+        Route::put('/course-lessons/{lesson}', [CourseLessonController::class, 'update'])->name('course-lessons.update');
+        Route::delete('/course-lessons/{lesson}', [CourseLessonController::class, 'destroy'])->name('course-lessons.destroy');
+
+        Route::post('/course-lessons/{lesson}/checkpoints', [CourseQuizCheckpointController::class, 'store'])->name('course-quiz-checkpoints.store');
+        Route::put('/course-quiz-checkpoints/{checkpoint}', [CourseQuizCheckpointController::class, 'update'])->name('course-quiz-checkpoints.update');
+        Route::delete('/course-quiz-checkpoints/{checkpoint}', [CourseQuizCheckpointController::class, 'destroy'])->name('course-quiz-checkpoints.destroy');
+
+        Route::post('/course-modules/{module}/quizzes', [CourseModuleQuizController::class, 'store'])->name('course-module-quizzes.store');
+        Route::get('/course-module-quizzes/{quiz}/edit', [CourseModuleQuizController::class, 'edit'])->name('course-module-quizzes.edit');
+        Route::put('/course-module-quizzes/{quiz}', [CourseModuleQuizController::class, 'update'])->name('course-module-quizzes.update');
+        Route::delete('/course-module-quizzes/{quiz}', [CourseModuleQuizController::class, 'destroy'])->name('course-module-quizzes.destroy');
+
+        Route::post('/course-quiz-checkpoints/{checkpoint}/questions', [CourseQuizQuestionController::class, 'store'])->name('course-quiz-questions.store');
+        Route::put('/course-quiz-questions/{question}', [CourseQuizQuestionController::class, 'update'])->name('course-quiz-questions.update');
+        Route::delete('/course-quiz-questions/{question}', [CourseQuizQuestionController::class, 'destroy'])->name('course-quiz-questions.destroy');
+
+        Route::get('/course-quiz-answers/pending', [CourseQuizReviewController::class, 'index'])->name('course-quiz-answers.pending');
+        Route::patch('/course-quiz-answers/{answer}/grade', [CourseQuizReviewController::class, 'grade'])->name('course-quiz-answers.grade');
+
+        Route::get('/certificates', [AdminCertificateController::class, 'index'])->name('certificates');
         Route::get('/sales-manuals', [AdminPlaceholderController::class, 'manuals'])->name('manuals');
         Route::get('/social-guide', [AdminPlaceholderController::class, 'socialGuide'])->name('social-guide');
         Route::get('/settings', [AdminPlaceholderController::class, 'settings'])->name('settings');
@@ -57,8 +107,15 @@ Route::middleware(['auth', 'role:user'])
         Route::get('/apply-salesperson', [UserSalespersonApplicationController::class, 'show'])->name('apply-salesperson');
         Route::post('/apply-salesperson', [UserSalespersonApplicationController::class, 'apply'])->name('apply-salesperson.apply');
 
-        Route::get('/training', [UserPlaceholderController::class, 'training'])->name('training');
-        Route::get('/certificates', [UserPlaceholderController::class, 'certificates'])->name('certificates');
+        Route::get('/training', [UserCourseController::class, 'index'])->name('training');
+        Route::get('/courses', [UserCourseController::class, 'index'])->name('courses.index');
+        Route::get('/courses/{course}', [UserCourseController::class, 'show'])->name('courses.show');
+        Route::post('/courses/quiz-checkpoints/{checkpoint}/answers', [CourseQuizAnswerController::class, 'store'])->name('course-quiz-answers.store');
+        Route::post('/courses/lessons/{lesson}/progress', [CourseLessonProgressController::class, 'store'])->name('course-lesson-progress.store');
+
+        Route::get('/certificates', [UserCertificateController::class, 'index'])->name('certificates.index');
+        Route::get('/certificates/{certificate}', [UserCertificateController::class, 'show'])->name('certificates.show');
+
         Route::get('/sales-manuals', [UserPlaceholderController::class, 'manuals'])->name('manuals');
         Route::get('/social-guide', [UserPlaceholderController::class, 'socialGuide'])->name('social-guide');
     });

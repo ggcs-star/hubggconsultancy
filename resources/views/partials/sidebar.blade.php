@@ -15,21 +15,21 @@ $mainNav = $isAdmin
 
 $contentNav = $isAdmin
     ? [
-        ['label' => 'LMS / Courses', 'icon' => 'academic-cap', 'route' => 'admin.courses'],
+        ['label' => 'LMS / Courses', 'icon' => 'academic-cap', 'route' => 'admin.courses.index'],
         ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'admin.certificates'],
         ['label' => 'Sales Manuals', 'icon' => 'document', 'route' => 'admin.manuals'],
         ['label' => 'Social Media Guide', 'icon' => 'share', 'route' => 'admin.social-guide'],
     ]
     : [
         ['label' => 'Training / LMS', 'icon' => 'academic-cap', 'route' => 'user.training'],
-        ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'user.certificates'],
+        ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'user.certificates.index'],
         ['label' => 'Sales Manuals', 'icon' => 'document', 'route' => 'user.manuals'],
         ['label' => 'Social Media Guide', 'icon' => 'share', 'route' => 'user.social-guide'],
     ];
 @endphp
 
 <aside
-    class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:translate-x-0"
+    class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:translate-x-0 print:hidden"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
 >
     <div class="flex h-20 items-center gap-3 px-6">

@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class QuizAnswer extends Model
+{
+    protected $table = 'client_quiz_answers';
+
+    protected $fillable = [
+        'user_id',
+        'quiz_checkpoint_id',
+        'quiz_question_id',
+        'answer_text',
+        'selected_option_ids',
+        'is_correct',
+        'points_awarded',
+        'graded_by',
+        'graded_at',
+    ];
+
+    protected $casts = [
+        'selected_option_ids' => 'array',
+        'is_correct' => 'boolean',
+        'graded_at' => 'datetime',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function checkpoint(): BelongsTo
+    {
+        return $this->belongsTo(CourseQuizCheckpoint::class, 'quiz_checkpoint_id');
+    }
+
+    public function question(): BelongsTo
+    {
+        return $this->belongsTo(CourseQuizQuestion::class, 'quiz_question_id');
+    }
+
+    public function grader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'graded_by');
+    }
+}

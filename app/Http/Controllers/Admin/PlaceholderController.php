@@ -7,24 +7,6 @@ use Illuminate\View\View;
 
 class PlaceholderController extends Controller
 {
-    public function courses(): View
-    {
-        return view('admin.placeholder', [
-            'title' => 'LMS / Training Courses',
-            'description' => 'Create and manage the training courses that make up the Pre Sales School curriculum.',
-            'icon' => 'academic-cap',
-        ]);
-    }
-
-    public function certificates(): View
-    {
-        return view('admin.placeholder', [
-            'title' => 'Certificates',
-            'description' => 'Issue and track completion certificates for salespeople who finish their training.',
-            'icon' => 'badge',
-        ]);
-    }
-
     public function manuals(): View
     {
         return view('admin.placeholder', [
