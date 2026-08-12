@@ -99,39 +99,39 @@
                         </tr>
 
                         <x-modal name="assign-courses-{{ $applicant->id }}" max-width="md">
-                            <form method="POST" action="{{ route('admin.salesperson-applications.courses.update', $applicant) }}" class="p-6">
+                            <form method="POST" action="{{ route('admin.salesperson-applications.courses.update', $applicant) }}">
                                 @csrf
                                 @method('PUT')
 
-                                <div class="flex items-center justify-between">
-                                    <div>
+                                <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-5">
+                                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                                        <x-icon name="academic-cap" class="h-5 w-5" />
+                                    </span>
+                                    <div class="min-w-0">
                                         <h2 class="text-lg font-bold text-slate-800">Assign Courses</h2>
-                                        <p class="text-sm text-slate-400">{{ $applicant->name }} will only see these courses in Training / LMS</p>
+                                        <p class="truncate text-sm text-slate-400">{{ $applicant->name }} will only see these courses in Training / LMS</p>
                                     </div>
-                                    <button type="button" x-on:click="$dispatch('close')" class="text-slate-400 hover:text-slate-600">
-                                        <x-icon name="x" class="h-5 w-5" />
-                                    </button>
                                 </div>
 
-                                <div class="mt-5 max-h-80 space-y-2 overflow-y-auto">
+                                <div class="max-h-80 space-y-2 overflow-y-auto px-6 py-5">
                                     @forelse ($allCourses as $course)
-                                        <label class="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 transition hover:border-brand-200 hover:bg-brand-50/60 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50">
                                             <input
                                                 type="checkbox"
                                                 name="course_ids[]"
                                                 value="{{ $course->id }}"
                                                 @checked($applicant->assignedCourses->contains($course->id))
-                                                class="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                                class="h-4 w-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                                             >
-                                            {{ $course->title }}
+                                            <span class="font-medium">{{ $course->title }}</span>
                                         </label>
                                     @empty
-                                        <p class="text-sm text-slate-400">No published courses yet.</p>
+                                        <p class="py-4 text-center text-sm text-slate-400">No published courses yet.</p>
                                     @endforelse
                                 </div>
 
-                                <div class="mt-6 flex justify-end gap-3">
-                                    <button type="button" x-on:click="$dispatch('close')" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                                <div class="flex justify-end gap-3 border-t border-slate-100 px-6 py-4">
+                                    <button type="button" x-on:click="$dispatch('close')" class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
                                     <button type="submit" class="btn-primary">Save Courses</button>
                                 </div>
                             </form>

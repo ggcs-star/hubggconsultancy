@@ -33,6 +33,14 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
+        if (Auth::user()->isBlocked()) {
+            Auth::logout();
+
+            return back()
+                ->withErrors(['email' => 'Your account has been blocked. Please contact your administrator.'])
+                ->onlyInput('email');
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended($this->redirectPathFor(Auth::user()));
