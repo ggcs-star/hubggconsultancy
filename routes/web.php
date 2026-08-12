@@ -21,6 +21,11 @@ use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\PlaceholderController as UserPlaceholderController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\SalespersonApplicationController as UserSalespersonApplicationController;
+use App\Http\Controllers\Admin\SupportIssueTypeController;
+use App\Http\Controllers\Admin\SupportTicketController;
+use App\Http\Controllers\User\SupportTicketController as UserSupportTicketController;
+use App\Http\Controllers\Admin\SalesManualController;
+use App\Http\Controllers\User\SalesManualController as UserSalesManualController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -46,7 +51,39 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/clients', [ClientController::class, 'index'])->name('clients');
+      
+     Route::prefix('support')->name('support.')->group(function () {
 
+    // =========================
+    // SUPPORT TICKETS
+    // =========================
+
+    Route::get('/tickets', [SupportTicketController::class, 'index'])
+        ->name('tickets.index');
+
+    Route::get('/tickets/{ticket}', [SupportTicketController::class, 'show'])
+        ->name('tickets.show');
+
+    Route::post('/tickets/{ticket}/reply', [SupportTicketController::class, 'reply'])
+        ->name('tickets.reply');
+
+    Route::patch('/tickets/{ticket}/status', [SupportTicketController::class, 'updateStatus'])
+        ->name('tickets.status');
+
+
+    // =========================
+    // ISSUE TYPES
+    // =========================
+
+    Route::resource('issue-types', SupportIssueTypeController::class)
+        ->except(['show']);
+
+    Route::patch(
+        '/issue-types/{issueType}/toggle-status',
+        [SupportIssueTypeController::class, 'toggleStatus']
+    )->name('issue-types.toggle-status');
+
+});
         Route::get('/salesperson-applications', [AdminSalespersonApplicationController::class, 'index'])->name('salesperson-applications');
         Route::post('/salesperson-applications/{user}/approve', [AdminSalespersonApplicationController::class, 'approve'])->name('salesperson-applications.approve');
         Route::post('/salesperson-applications/{user}/reject', [AdminSalespersonApplicationController::class, 'reject'])->name('salesperson-applications.reject');
@@ -90,10 +127,63 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/course-quiz-answers/pending', [CourseQuizReviewController::class, 'index'])->name('course-quiz-answers.pending');
         Route::patch('/course-quiz-answers/{answer}/grade', [CourseQuizReviewController::class, 'grade'])->name('course-quiz-answers.grade');
 
-        Route::get('/certificates', [AdminCertificateController::class, 'index'])->name('certificates');
-        Route::get('/sales-manuals', [AdminPlaceholderController::class, 'manuals'])->name('manuals');
-        Route::get('/social-guide', [AdminPlaceholderController::class, 'socialGuide'])->name('social-guide');
-        Route::get('/settings', [AdminPlaceholderController::class, 'settings'])->name('settings');
+      Route::get('/certificates', [AdminCertificateController::class, 'index'])
+    ->name('certificates');
+
+
+/*
+|--------------------------------------------------------------------------
+| Sales Manuals
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('sales-manuals')
+    ->name('manuals.')
+    ->group(function () {
+
+        Route::get('/', [SalesManualController::class, 'index'])
+            ->name('index');
+
+        Route::get('/create', [SalesManualController::class, 'create'])
+            ->name('create');
+
+        Route::post('/', [SalesManualController::class, 'store'])
+            ->name('store');
+
+        Route::get('/{manual}/edit', [SalesManualController::class, 'edit'])
+            ->name('edit');
+
+        Route::get('/{manual}', [SalesManualController::class, 'show'])
+            ->name('show');
+
+        Route::put('/{manual}', [SalesManualController::class, 'update'])
+            ->name('update');
+
+        Route::delete('/{manual}', [SalesManualController::class, 'destroy'])
+            ->name('destroy');
+
+        Route::patch('/{manual}/publish', [SalesManualController::class, 'togglePublish'])
+            ->name('publish');
+
+        Route::patch('/{manual}/active', [SalesManualController::class, 'toggleActive'])
+            ->name('active');
+
+        Route::patch('/{manual}/featured', [SalesManualController::class, 'toggleFeatured'])
+            ->name('featured');
+
+        Route::patch('/{manual}/pinned', [SalesManualController::class, 'togglePinned'])
+            ->name('pinned');
+
+        Route::delete('/attachments/{attachment}', [SalesManualController::class, 'deleteAttachment'])
+            ->name('attachments.delete');
+    });
+
+
+Route::get('/social-guide', [AdminPlaceholderController::class, 'socialGuide'])
+    ->name('social-guide');
+
+Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
+    ->name('settings');
     });
 
 Route::middleware(['auth', 'role:user'])
@@ -116,6 +206,33 @@ Route::middleware(['auth', 'role:user'])
         Route::get('/certificates', [UserCertificateController::class, 'index'])->name('certificates.index');
         Route::get('/certificates/{certificate}', [UserCertificateController::class, 'show'])->name('certificates.show');
 
-        Route::get('/sales-manuals', [UserPlaceholderController::class, 'manuals'])->name('manuals');
-        Route::get('/social-guide', [UserPlaceholderController::class, 'socialGuide'])->name('social-guide');
-    });
+Route::get('/sales-manuals', [UserSalesManualController::class, 'index'])
+    ->name('manuals');
+
+Route::get('/sales-manuals/{manual}', [UserSalesManualController::class, 'show'])
+    ->name('manuals.show');
+            Route::get('/social-guide', [UserPlaceholderController::class, 'socialGuide'])->name('social-guide');
+   
+   
+   Route::prefix('support')->name('support.')->group(function () {
+
+    Route::get('/tickets', [UserSupportTicketController::class, 'index'])
+        ->name('tickets.index');
+
+    Route::get('/tickets/create', [UserSupportTicketController::class, 'create'])
+        ->name('tickets.create');
+
+    Route::post('/tickets', [UserSupportTicketController::class, 'store'])
+        ->name('tickets.store');
+
+    Route::get('/tickets/{ticket}', [UserSupportTicketController::class, 'show'])
+        ->name('tickets.show');
+
+    Route::post('/tickets/{ticket}/reply', [UserSupportTicketController::class, 'reply'])
+        ->name('tickets.reply');
+
+});
+   
+   
+        });
+
