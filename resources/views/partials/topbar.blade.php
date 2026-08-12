@@ -15,7 +15,47 @@
         <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-600"></span>
     </button>
 
-    <div class="hidden h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white sm:flex">
-        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+    <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+        <button
+            type="button"
+            @click="open = !open"
+            class="hidden h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white transition hover:opacity-90 sm:flex"
+        >
+            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+        </button>
+
+        <div
+            x-show="open"
+            x-transition
+            x-cloak
+            class="absolute right-0 top-12 z-30 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+        >
+            <div class="border-b border-slate-100 px-4 py-3">
+                <p class="truncate text-sm font-semibold text-slate-700">{{ auth()->user()->name }}</p>
+                <p class="truncate text-xs text-slate-400">{{ auth()->user()->email }}</p>
+            </div>
+
+            <div class="py-1">
+                @if (auth()->user()->isAdmin())
+                    <a href="{{ route('admin.settings') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                        <x-icon name="cog" class="h-4 w-4" />
+                        <span>Settings</span>
+                    </a>
+                @else
+                    <a href="{{ route('user.profile') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                        <x-icon name="user" class="h-4 w-4" />
+                        <span>Profile</span>
+                    </a>
+                @endif
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-50">
+                        <x-icon name="logout" class="h-4 w-4" />
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </header>
