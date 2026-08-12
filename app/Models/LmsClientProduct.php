@@ -21,7 +21,7 @@ class LmsClientProduct extends Model
 
     public function client()
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(User::class, 'client_id');
     }
 
     public function product()
