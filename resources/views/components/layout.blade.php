@@ -12,13 +12,17 @@
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/course-player.js'])
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="font-sans print:bg-white" x-data="{ sidebarOpen: false }">
+<body
+    class="font-sans print:bg-white"
+    x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebar-collapsed') === '1' }"
+    x-init="$watch('sidebarCollapsed', value => localStorage.setItem('sidebar-collapsed', value ? '1' : '0'))"
+>
 
     <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-30 bg-slate-900/40 lg:hidden" @click="sidebarOpen = false"></div>
 
     @include('partials.sidebar')
 
-    <div class="flex min-h-screen flex-col lg:pl-72 print:pl-0">
+    <div class="flex min-h-screen flex-col transition-[padding] duration-200 print:pl-0" :class="sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'">
         @include('partials.topbar', ['title' => $title ?? null, 'subtitle' => $subtitle ?? null])
 
         <main class="flex-1 px-4 py-6 lg:px-8 lg:py-8 print:p-0">
