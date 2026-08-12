@@ -55,6 +55,10 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/clients', [ClientController::class, 'index'])->name('clients');
+        Route::get('/clients/{client}', [ClientController::class, 'show'])->name('clients.show');
+        Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
+        Route::patch('/clients/{client}/status', [ClientController::class, 'updateStatus'])->name('clients.status.update');
+        Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
       
      Route::prefix('support')->name('support.')->group(function () {
 

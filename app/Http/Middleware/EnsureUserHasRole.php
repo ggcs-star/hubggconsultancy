@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserHasRole
@@ -14,6 +15,14 @@ class EnsureUserHasRole
 
         if (! $user || $user->role !== $role) {
             abort(403, 'You do not have access to this area.');
+        }
+
+        if ($user->isBlocked()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            abort(403, 'Your account has been blocked. Please contact your administrator.');
         }
 
         return $next($request);

@@ -8,14 +8,19 @@ use App\Models\Course;
 use App\Models\CourseLessonProgress;
 use App\Models\QuizAnswer;
 use App\Services\CoursePlayerPayloadBuilder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CourseController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+
+        if ($user->isInactive()) {
+            return redirect()->route('user.dashboard')->with('status', 'Your account is inactive. Contact your administrator for course access.');
+        }
 
         $courses = $user->assignedCourses()
             ->where('is_published', true)
@@ -33,9 +38,13 @@ class CourseController extends Controller
         ]);
     }
 
-    public function show(Request $request, Course $course, CoursePlayerPayloadBuilder $payloadBuilder): View
+    public function show(Request $request, Course $course, CoursePlayerPayloadBuilder $payloadBuilder): View|RedirectResponse
     {
         $user = $request->user();
+
+        if ($user->isInactive()) {
+            return redirect()->route('user.dashboard')->with('status', 'Your account is inactive. Contact your administrator for course access.');
+        }
 
         abort_unless($course->is_published, 404);
         abort_unless($user->assignedCourses()->where('courses.id', $course->id)->exists(), 404);
