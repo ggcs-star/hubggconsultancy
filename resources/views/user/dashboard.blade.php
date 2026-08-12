@@ -4,7 +4,7 @@
         <p class="text-sm text-brand-100">Welcome back,</p>
         <h2 class="text-2xl font-extrabold">{{ $user->name }}</h2>
         <p class="mt-2 max-w-xl text-sm text-brand-100">
-            Complete your profile, apply to become a salesperson, and work through your training to get certified.
+            Complete your profile, take the onboarding assessment, and work through your training to get certified.
         </p>
     </div>
 
@@ -12,7 +12,7 @@
         $steps = [
             ['label' => 'Onboard', 'done' => true],
             ['label' => 'Complete Profile', 'done' => $user->profile_completed],
-            ['label' => 'Apply as Salesperson', 'done' => in_array($user->salesperson_status, ['pending', 'approved'])],
+            ['label' => 'Take Assessment', 'done' => $assessmentScore->attempted],
             ['label' => 'Get Approved', 'done' => $user->salesperson_status === 'approved'],
         ];
     @endphp
@@ -45,10 +45,18 @@
             <p class="mt-4 font-semibold text-slate-800">My Profile</p>
             <p class="text-sm text-slate-400">{{ $user->profile_completed ? 'Completed' : 'Complete your profile' }}</p>
         </a>
-        <a href="{{ route('user.apply-salesperson') }}" class="card p-5 transition hover:border-brand-200 hover:shadow-md">
-            <span class="rounded-xl bg-amber-50 p-2.5 text-amber-600 inline-flex"><x-icon name="briefcase" /></span>
-            <p class="mt-4 font-semibold text-slate-800">Apply as Salesperson</p>
-            <p class="text-sm text-slate-400">Status: {{ ucfirst($user->salesperson_status) }}</p>
+        @php
+            $assessmentStatusLabels = [
+                'not_started' => 'Not started',
+                'pending_review' => 'Pending review',
+                'passed' => 'Passed',
+                'failed' => 'Not passed',
+            ];
+        @endphp
+        <a href="{{ route('user.onboarding-assessment.index') }}" class="card p-5 transition hover:border-brand-200 hover:shadow-md">
+            <span class="rounded-xl bg-amber-50 p-2.5 text-amber-600 inline-flex"><x-icon name="check-circle" /></span>
+            <p class="mt-4 font-semibold text-slate-800">Onboarding Assessment</p>
+            <p class="text-sm text-slate-400">Status: {{ $assessmentStatusLabels[$assessmentScore->status] }}</p>
         </a>
         <a href="{{ route('user.training') }}" class="card p-5 transition hover:border-brand-200 hover:shadow-md">
             <span class="rounded-xl bg-sky-50 p-2.5 text-sky-600 inline-flex"><x-icon name="academic-cap" /></span>

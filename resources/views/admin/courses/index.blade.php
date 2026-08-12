@@ -118,7 +118,7 @@
                                     <x-icon name="eye" class="w-3.5 h-3.5" />
                                 </a>
                                 <form method="POST" action="{{ route('admin.courses.destroy', $course) }}"
-                                    onsubmit="return confirm('Delete this course and everything under it?');">
+                                    x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete this course and everything under it?', target: $el })">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" title="Delete Course"

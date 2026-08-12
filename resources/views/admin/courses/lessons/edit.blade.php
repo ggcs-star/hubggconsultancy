@@ -84,7 +84,7 @@
                                     class="rounded-md p-1.5 text-primary hover:bg-primary-light" title="Add Question">
                                     <x-icon name="plus" class="w-3.5 h-3.5" />
                                 </button>
-                                <form method="POST" action="{{ route('admin.course-quiz-checkpoints.destroy', $checkpoint) }}" onsubmit="return confirm('Delete this checkpoint and its questions?');">
+                                <form method="POST" action="{{ route('admin.course-quiz-checkpoints.destroy', $checkpoint) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete this checkpoint and its questions?', target: $el })">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="rounded-md p-1.5 text-secondary hover:bg-danger-light hover:text-danger" title="Delete checkpoint">
@@ -120,7 +120,7 @@
                                                 class="rounded-md p-1.5 text-secondary hover:bg-surface-alt hover:text-secondary-dark" title="Edit question">
                                                 <x-icon name="edit" class="w-3.5 h-3.5" />
                                             </button>
-                                            <form method="POST" action="{{ route('admin.course-quiz-questions.destroy', $question) }}" onsubmit="return confirm('Delete this question?');">
+                                            <form method="POST" action="{{ route('admin.course-quiz-questions.destroy', $question) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete this question?', target: $el })">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="rounded-md p-1.5 text-secondary hover:bg-danger-light hover:text-danger" title="Delete question">

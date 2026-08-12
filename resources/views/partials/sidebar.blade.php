@@ -4,16 +4,23 @@ $isAdmin = auth()->user()->isAdmin();
 $mainNav = $isAdmin
     ? [
         ['label' => 'Dashboard', 'icon' => 'grid', 'route' => 'admin.dashboard'],
-        ['label' => 'Clients', 'icon' => 'users', 'route' => 'admin.clients'],
-        ['label' => 'Salesperson Applications', 'icon' => 'briefcase', 'route' => 'admin.salesperson-applications'],
     ]
     : [
         ['label' => 'Dashboard', 'icon' => 'grid', 'route' => 'user.dashboard'],
         ['label' => 'My Profile', 'icon' => 'user', 'route' => 'user.profile'],
-        ['label' => 'Apply to be Salesperson', 'icon' => 'briefcase', 'route' => 'user.apply-salesperson'],
+        ['label' => 'Onboarding Assessment', 'icon' => 'check-circle', 'route' => 'user.onboarding-assessment.index'],
     ];
 
 $contentNav = $isAdmin
+    ? [
+        ['label' => 'Users', 'icon' => 'users', 'route' => 'admin.clients'],
+        ['label' => 'SaaS Products', 'icon' => 'folder', 'route' => 'admin.saas-products.index'],
+        ['label' => 'Onboarding Assessment', 'icon' => 'check-circle', 'route' => 'admin.onboarding-assessment.index'],
+        ['label' => 'Salesperson Applications', 'icon' => 'briefcase', 'route' => 'admin.salesperson-applications'],
+    ]
+    : [];
+
+$learningNav = $isAdmin
     ? [
         ['label' => 'LMS / Courses', 'icon' => 'academic-cap', 'route' => 'admin.courses.index'],
         ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'admin.certificates'],
@@ -67,10 +74,29 @@ $contentNav = $isAdmin
             @endforeach
         </div>
 
+        @if (! empty($contentNav))
+            <div>
+                <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400" x-show="!sidebarCollapsed" x-transition.opacity>Content</p>
+                <div class="space-y-1">
+                    @foreach ($contentNav as $item)
+                        <a
+                            href="{{ route($item['route']) }}"
+                            title="{{ $item['label'] }}"
+                            class="sidebar-link {{ request()->routeIs($item['route']) ? 'active' : '' }}"
+                            :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
+                        >
+                            <x-icon :name="$item['icon']" class="h-5 w-5 shrink-0" />
+                            <span x-show="!sidebarCollapsed" x-transition.opacity>{{ $item['label'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <div>
-            <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400" x-show="!sidebarCollapsed" x-transition.opacity>{{ $isAdmin ? 'Content' : 'Learning' }}</p>
+            <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400" x-show="!sidebarCollapsed" x-transition.opacity>Learning</p>
             <div class="space-y-1">
-                @foreach ($contentNav as $item)
+                @foreach ($learningNav as $item)
                     <a
                         href="{{ route($item['route']) }}"
                         title="{{ $item['label'] }}"
@@ -83,23 +109,6 @@ $contentNav = $isAdmin
                 @endforeach
             </div>
         </div>
-
-        @if ($isAdmin)
-            <div>
-                <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400" x-show="!sidebarCollapsed" x-transition.opacity>Operations</p>
-                <div class="space-y-1">
-                    <a
-                        href="{{ route('admin.settings') }}"
-                        title="Settings"
-                        class="sidebar-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"
-                        :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
-                    >
-                        <x-icon name="cog" class="h-5 w-5 shrink-0" />
-                        <span x-show="!sidebarCollapsed" x-transition.opacity>Settings</span>
-                    </a>
-                </div>
-            </div>
-        @endif
     </nav>
 
     <div class="border-t border-brand-100 p-4">

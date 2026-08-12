@@ -33,7 +33,7 @@
             </a>
         @empty
             <div class="col-span-full rounded-xl border border-dashed border-app-border bg-white p-10 text-center text-sm text-secondary">
-                No courses published yet.
+                No courses have been assigned to you yet.
             </div>
         @endforelse
     </div>

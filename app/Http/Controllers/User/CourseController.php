@@ -17,7 +17,8 @@ class CourseController extends Controller
     {
         $user = $request->user();
 
-        $courses = Course::where('is_published', true)
+        $courses = $user->assignedCourses()
+            ->where('is_published', true)
             ->withCount('lessons')
             ->orderBy('title')
             ->get()
@@ -34,9 +35,10 @@ class CourseController extends Controller
 
     public function show(Request $request, Course $course, CoursePlayerPayloadBuilder $payloadBuilder): View
     {
-        abort_unless($course->is_published, 404);
-
         $user = $request->user();
+
+        abort_unless($course->is_published, 404);
+        abort_unless($user->assignedCourses()->where('courses.id', $course->id)->exists(), 404);
 
         $course->load('modules.lessons.checkpoints.questions', 'modules.moduleQuizzes.questions');
 
