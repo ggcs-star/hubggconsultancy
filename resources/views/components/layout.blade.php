@@ -36,5 +36,7 @@
         </main>
     </div>
 
+    <x-confirm-modal />
+
 </body>
 </html>

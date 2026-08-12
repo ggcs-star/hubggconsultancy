@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -25,7 +27,15 @@ class User extends Authenticatable
         'profile_completed',
         'salesperson_status',
         'phone',
+        'address',
         'city',
+        'highest_qualification',
+        'institution_name',
+        'field_of_study',
+        'education_year',
+        'pincode',
+        'state',
+        'country',
     ];
 
     /**
@@ -51,5 +61,20 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function interests(): BelongsToMany
+    {
+        return $this->belongsToMany(SaasProduct::class, 'saas_product_user')->withTimestamps();
+    }
+
+    public function onboardingAssessmentAnswers(): HasMany
+    {
+        return $this->hasMany(OnboardingAssessmentAnswer::class);
+    }
+
+    public function assignedCourses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_user')->withTimestamps();
     }
 }
