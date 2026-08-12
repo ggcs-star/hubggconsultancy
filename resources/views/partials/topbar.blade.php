@@ -10,6 +10,15 @@
         @endisset
     </div>
 
+    @unless (auth()->user()->isAdmin())
+        @php $lmsPoints = auth()->user()->lmsPoints(); @endphp
+        <div class="hidden items-center gap-1.5 rounded-full bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 sm:flex" title="Points earned across your LMS course quizzes">
+            <x-icon name="trending-up" class="h-4 w-4" />
+            <span>{{ $lmsPoints->earned }}/{{ $lmsPoints->total }}</span>
+            <span class="text-xs font-medium text-amber-500">pts</span>
+        </div>
+    @endunless
+
     <button type="button" class="relative rounded-full p-2.5 text-slate-500 hover:bg-slate-100">
         <x-icon name="bell" class="h-5 w-5" />
         <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-600"></span>
