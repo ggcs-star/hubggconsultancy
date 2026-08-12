@@ -4,6 +4,7 @@
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
+
             <h1 class="text-2xl font-semibold text-secondary-dark">
                 Sales Manuals
             </h1>
@@ -11,13 +12,19 @@
             <p class="mt-1 text-sm text-secondary">
                 Manage sales guides, cheat sheets, scripts, FAQs and other sales resources.
             </p>
+
         </div>
+
 
         <a
             href="{{ route('admin.manuals.create') }}"
             class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90"
         >
-            <x-icon name="plus" class="h-4 w-4" />
+            <x-icon
+                name="plus"
+                class="h-4 w-4"
+            />
+
             Create Manual
         </a>
 
@@ -26,35 +33,43 @@
 
     {{-- Success Message --}}
     @if (session('success'))
+
         <div class="mt-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
             {{ session('success') }}
         </div>
+
     @endif
 
 
     {{-- Error Message --}}
     @if (session('error'))
+
         <div class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {{ session('error') }}
         </div>
+
     @endif
 
 
     {{-- Validation Errors --}}
     @if ($errors->any())
+
         <div class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
 
             <ul class="list-disc space-y-1 pl-5 text-sm text-red-700">
 
                 @foreach ($errors->all() as $error)
+
                     <li>
                         {{ $error }}
                     </li>
+
                 @endforeach
 
             </ul>
 
         </div>
+
     @endif
 
 
@@ -230,7 +245,6 @@
     {{-- Manuals Table --}}
     <div class="mt-6 rounded-xl border border-app-border bg-white">
 
-        {{-- Table Header --}}
         <div class="border-b border-app-border px-5 py-4">
 
             <h2 class="text-base font-semibold text-secondary-dark">
@@ -238,8 +252,11 @@
             </h2>
 
             <p class="mt-1 text-xs text-secondary">
+
                 {{ $manuals->total() }}
+
                 total manual{{ $manuals->total() == 1 ? '' : 's' }}
+
             </p>
 
         </div>
@@ -294,6 +311,7 @@
 
                             <tr class="transition hover:bg-surface-alt/50">
 
+
                                 {{-- Manual --}}
                                 <td class="px-5 py-4">
 
@@ -330,7 +348,6 @@
                                                 </p>
 
 
-                                                {{-- Pinned --}}
                                                 @if ($manual->is_pinned)
 
                                                     <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
@@ -347,7 +364,6 @@
                                                 @endif
 
 
-                                                {{-- Featured --}}
                                                 @if ($manual->is_featured)
 
                                                     <span class="inline-flex items-center gap-1 rounded-full bg-primary-light px-2 py-0.5 text-[10px] font-semibold text-primary">
@@ -406,6 +422,7 @@
 
                                     @endphp
 
+
                                     <div class="flex items-center gap-2">
 
                                         <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-secondary">
@@ -416,6 +433,7 @@
                                             />
 
                                         </span>
+
 
                                         <span class="text-sm text-secondary-dark">
                                             {{ $typeLabels[$manual->type] ?? ucfirst($manual->type) }}
@@ -535,11 +553,12 @@
 
                                     <div class="flex items-center justify-end gap-1">
 
-                                        {{-- View --}}
+
+                                        {{-- Preview --}}
                                         <a
                                             href="{{ route('admin.manuals.show', $manual) }}"
                                             title="Preview"
-                                            class="rounded-lg p-2 text-secondary transition hover:bg-surface-alt hover:text-primary"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
                                         >
 
                                             <x-icon
@@ -554,7 +573,7 @@
                                         <a
                                             href="{{ route('admin.manuals.edit', $manual) }}"
                                             title="Edit"
-                                            class="rounded-lg p-2 text-secondary transition hover:bg-surface-alt hover:text-primary"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-violet-200 bg-violet-50 text-violet-600 transition hover:bg-violet-100"
                                         >
 
                                             <x-icon
@@ -577,7 +596,7 @@
                                             <button
                                                 type="submit"
                                                 title="{{ $manual->status === 'published' ? 'Move to Draft' : 'Publish' }}"
-                                                class="rounded-lg p-2 text-secondary transition hover:bg-surface-alt hover:text-primary"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-green-200 bg-green-50 text-green-600 transition hover:bg-green-100"
                                             >
 
                                                 @if ($manual->status === 'published')
@@ -613,20 +632,20 @@
                                             <button
                                                 type="submit"
                                                 title="{{ $manual->is_active ? 'Deactivate' : 'Activate' }}"
-                                                class="rounded-lg p-2 text-secondary transition hover:bg-surface-alt hover:text-primary"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 text-cyan-600 transition hover:bg-cyan-100"
                                             >
 
                                                 @if ($manual->is_active)
 
                                                     <x-icon
-                                                        name="toggle-right"
+                                                        name="eye"
                                                         class="h-4 w-4"
                                                     />
 
                                                 @else
 
                                                     <x-icon
-                                                        name="toggle-left"
+                                                        name="eye-off"
                                                         class="h-4 w-4"
                                                     />
 
@@ -649,7 +668,7 @@
                                             <button
                                                 type="submit"
                                                 title="{{ $manual->is_featured ? 'Remove Featured' : 'Make Featured' }}"
-                                                class="rounded-lg p-2 text-secondary transition hover:bg-surface-alt hover:text-amber-600"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100"
                                             >
 
                                                 <x-icon
@@ -674,7 +693,7 @@
                                             <button
                                                 type="submit"
                                                 title="{{ $manual->is_pinned ? 'Unpin' : 'Pin' }}"
-                                                class="rounded-lg p-2 text-secondary transition hover:bg-surface-alt hover:text-amber-600"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-orange-200 bg-orange-50 text-orange-600 transition hover:bg-orange-100"
                                             >
 
                                                 <x-icon
@@ -700,7 +719,7 @@
                                             <button
                                                 type="submit"
                                                 title="Delete"
-                                                class="rounded-lg p-2 text-secondary transition hover:bg-red-50 hover:text-red-600"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
                                             >
 
                                                 <x-icon

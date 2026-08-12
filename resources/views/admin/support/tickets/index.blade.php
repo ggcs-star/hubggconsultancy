@@ -1,6 +1,9 @@
 <x-layout title="Support Tickets">
 
-    {{-- Header --}}
+    {{-- ========================================================= --}}
+    {{-- HEADER --}}
+    {{-- ========================================================= --}}
+
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
         <div>
@@ -18,27 +21,40 @@
     </div>
 
 
-    {{-- Success Message --}}
+    {{-- ========================================================= --}}
+    {{-- SUCCESS MESSAGE --}}
+    {{-- ========================================================= --}}
+
     @if (session('success'))
 
         <div class="mt-5 rounded-lg border border-success/20 bg-success-light px-4 py-3 text-sm text-success">
+
             {{ session('success') }}
+
         </div>
 
     @endif
 
 
-    {{-- Error Message --}}
+    {{-- ========================================================= --}}
+    {{-- ERROR MESSAGE --}}
+    {{-- ========================================================= --}}
+
     @if (session('error'))
 
         <div class="mt-5 rounded-lg border border-danger/20 bg-danger-light px-4 py-3 text-sm text-danger">
+
             {{ session('error') }}
+
         </div>
 
     @endif
 
 
-    {{-- Stats --}}
+    {{-- ========================================================= --}}
+    {{-- STATS --}}
+    {{-- ========================================================= --}}
+
     <div class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
 
         {{-- Total --}}
@@ -113,11 +129,15 @@
     </div>
 
 
-    {{-- Filters --}}
+    {{-- ========================================================= --}}
+    {{-- FILTERS --}}
+    {{-- ========================================================= --}}
+
     <form
         method="GET"
         action="{{ route('admin.support.tickets.index') }}"
-        class="mt-6 rounded-xl border border-app-border bg-white p-4">
+        class="mt-6 rounded-xl border border-app-border bg-white p-4"
+    >
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
 
@@ -126,18 +146,18 @@
             <div class="min-w-0 lg:col-span-4">
 
                 <label
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-secondary">
-
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-secondary"
+                >
                     Search Ticket
-
                 </label>
 
                 <input
                     type="text"
                     name="search"
                     value="{{ request('search') }}"
-                    placeholder="Ticket ID, user name, email..."
-                    class="w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary">
+                    placeholder="Ticket ID, user name, email, product..."
+                    class="w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary"
+                >
 
             </div>
 
@@ -146,15 +166,15 @@
             <div class="min-w-0 lg:col-span-3">
 
                 <label
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-secondary">
-
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-secondary"
+                >
                     Status
-
                 </label>
 
                 <select
                     name="status"
-                    class="w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary">
+                    class="w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary"
+                >
 
                     <option value="">
                         All Statuses
@@ -162,31 +182,36 @@
 
                     <option
                         value="open"
-                        @selected(request('status') === 'open')>
+                        @selected(request('status') === 'open')
+                    >
                         Open
                     </option>
 
                     <option
                         value="in_progress"
-                        @selected(request('status') === 'in_progress')>
+                        @selected(request('status') === 'in_progress')
+                    >
                         In Progress
                     </option>
 
                     <option
                         value="waiting_for_user"
-                        @selected(request('status') === 'waiting_for_user')>
+                        @selected(request('status') === 'waiting_for_user')
+                    >
                         Waiting for User
                     </option>
 
                     <option
                         value="resolved"
-                        @selected(request('status') === 'resolved')>
+                        @selected(request('status') === 'resolved')
+                    >
                         Resolved
                     </option>
 
                     <option
                         value="closed"
-                        @selected(request('status') === 'closed')>
+                        @selected(request('status') === 'closed')
+                    >
                         Closed
                     </option>
 
@@ -199,15 +224,15 @@
             <div class="min-w-0 lg:col-span-3">
 
                 <label
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-secondary">
-
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-secondary"
+                >
                     Priority
-
                 </label>
 
                 <select
                     name="priority"
-                    class="w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary">
+                    class="w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary"
+                >
 
                     <option value="">
                         All Priorities
@@ -215,25 +240,29 @@
 
                     <option
                         value="urgent"
-                        @selected(request('priority') === 'urgent')>
+                        @selected(request('priority') === 'urgent')
+                    >
                         Urgent
                     </option>
 
                     <option
                         value="high"
-                        @selected(request('priority') === 'high')>
+                        @selected(request('priority') === 'high')
+                    >
                         High
                     </option>
 
                     <option
                         value="medium"
-                        @selected(request('priority') === 'medium')>
+                        @selected(request('priority') === 'medium')
+                    >
                         Medium
                     </option>
 
                     <option
                         value="low"
-                        @selected(request('priority') === 'low')>
+                        @selected(request('priority') === 'low')
+                    >
                         Low
                     </option>
 
@@ -247,11 +276,13 @@
 
                 <button
                     type="submit"
-                    class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90">
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90"
+                >
 
                     <x-icon
                         name="filter"
-                        class="h-4 w-4" />
+                        class="h-4 w-4"
+                    />
 
                     Filter
 
@@ -264,7 +295,10 @@
     </form>
 
 
-    {{-- Tickets Table --}}
+    {{-- ========================================================= --}}
+    {{-- TICKETS TABLE --}}
+    {{-- ========================================================= --}}
+
     <div class="mt-6 overflow-x-auto rounded-xl border border-app-border bg-white">
 
         <table class="min-w-full divide-y divide-app-border text-sm">
@@ -279,6 +313,10 @@
 
                     <th class="px-4 py-3">
                         Client
+                    </th>
+
+                    <th class="px-4 py-3">
+                        Product
                     </th>
 
                     <th class="px-4 py-3">
@@ -317,12 +355,16 @@
                     <tr class="hover:bg-surface-alt">
 
 
-                        {{-- Ticket --}}
+                        {{-- ================================================= --}}
+                        {{-- TICKET --}}
+                        {{-- ================================================= --}}
+
                         <td class="px-4 py-3">
 
                             <a
                                 href="{{ route('admin.support.tickets.show', $ticket) }}"
-                                class="font-semibold text-primary hover:underline">
+                                class="font-semibold text-primary hover:underline"
+                            >
 
                                 #{{ $ticket->ticket_number }}
 
@@ -331,7 +373,10 @@
                         </td>
 
 
-                        {{-- Client --}}
+                        {{-- ================================================= --}}
+                        {{-- CLIENT --}}
+                        {{-- ================================================= --}}
+
                         <td class="px-4 py-3">
 
                             <div>
@@ -354,17 +399,88 @@
                         </td>
 
 
-                        {{-- Issue --}}
+                        {{-- ================================================= --}}
+                        {{-- PRODUCT --}}
+                        {{-- ================================================= --}}
+
+                        <td class="px-4 py-3">
+
+                            @if ($ticket->product)
+
+                                <div class="flex items-center gap-2.5">
+
+                                    {{-- Product Logo --}}
+                                    @if (!empty($ticket->product->logo))
+
+                                        <img
+                                            src="{{ asset('storage/' . ltrim($ticket->product->logo, '/')) }}"
+                                            alt="{{ $ticket->product->name }}"
+                                            class="h-9 w-9 rounded-lg border border-app-border bg-white object-contain p-1"
+                                        >
+
+                                    @else
+
+                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary">
+
+                                            <x-icon
+                                                name="cube"
+                                                class="h-4 w-4"
+                                            />
+
+                                        </div>
+
+                                    @endif
+
+
+                                    <div class="min-w-0">
+
+                                        <p
+                                            class="max-w-[160px] truncate font-medium text-secondary-dark"
+                                            title="{{ $ticket->product->name }}"
+                                        >
+                                            {{ $ticket->product->name }}
+                                        </p>
+
+
+                                        @if (!empty($ticket->product->category))
+
+                                            <p class="mt-0.5 text-xs text-secondary">
+                                                {{ $ticket->product->category }}
+                                            </p>
+
+                                        @endif
+
+                                    </div>
+
+                                </div>
+
+                            @else
+
+                                <span class="text-xs text-secondary">
+                                    Product unavailable
+                                </span>
+
+                            @endif
+
+                        </td>
+
+
+                        {{-- ================================================= --}}
+                        {{-- ISSUE --}}
+                        {{-- ================================================= --}}
+
                         <td class="px-4 py-3">
 
                             <div class="flex items-center gap-2">
 
                                 <span
-                                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary">
+                                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary"
+                                >
 
                                     <x-icon
                                         name="{{ $ticket->issueType->icon ?? 'help-circle' }}"
-                                        class="h-4 w-4" />
+                                        class="h-4 w-4"
+                                    />
 
                                 </span>
 
@@ -380,7 +496,10 @@
                         </td>
 
 
-                        {{-- Module --}}
+                        {{-- ================================================= --}}
+                        {{-- MODULE --}}
+                        {{-- ================================================= --}}
+
                         <td class="px-4 py-3 text-secondary-dark">
 
                             @if ($ticket->issueType?->module)
@@ -398,16 +517,17 @@
                         </td>
 
 
-                        {{-- Priority --}}
+                        {{-- ================================================= --}}
+                        {{-- PRIORITY --}}
+                        {{-- ================================================= --}}
+
                         <td class="px-4 py-3">
 
                             @php
 
                                 $priorityClasses = match ($ticket->priority) {
 
-                                    'urgent' =>
-                                        'bg-danger-light text-danger',
-
+                                    'urgent',
                                     'high' =>
                                         'bg-danger-light text-danger',
 
@@ -423,7 +543,8 @@
 
 
                             <span
-                                class="rounded-full px-2.5 py-1 text-xs font-medium {{ $priorityClasses }}">
+                                class="rounded-full px-2.5 py-1 text-xs font-medium {{ $priorityClasses }}"
+                            >
 
                                 {{ ucfirst($ticket->priority) }}
 
@@ -432,7 +553,10 @@
                         </td>
 
 
-                        {{-- Status --}}
+                        {{-- ================================================= --}}
+                        {{-- STATUS --}}
+                        {{-- ================================================= --}}
+
                         <td class="px-4 py-3">
 
                             @php
@@ -492,7 +616,8 @@
 
 
                             <span
-                                class="rounded-full px-2.5 py-1 text-xs font-medium {{ $statusClasses }}">
+                                class="rounded-full px-2.5 py-1 text-xs font-medium {{ $statusClasses }}"
+                            >
 
                                 {{ $statusLabel }}
 
@@ -501,7 +626,10 @@
                         </td>
 
 
-                        {{-- Created --}}
+                        {{-- ================================================= --}}
+                        {{-- CREATED --}}
+                        {{-- ================================================= --}}
+
                         <td class="px-4 py-3 text-secondary">
 
                             {{ $ticket->created_at?->diffForHumans() }}
@@ -509,7 +637,10 @@
                         </td>
 
 
-                        {{-- Action --}}
+                        {{-- ================================================= --}}
+                        {{-- ACTION --}}
+                        {{-- ================================================= --}}
+
                         <td class="px-4 py-3">
 
                             <div class="flex justify-end">
@@ -517,11 +648,13 @@
                                 <a
                                     href="{{ route('admin.support.tickets.show', $ticket) }}"
                                     title="View Ticket"
-                                    class="inline-flex items-center justify-center rounded-md border border-primary/30 bg-primary-light p-1.5 text-primary hover:border-primary/60">
+                                    class="inline-flex items-center justify-center rounded-md border border-primary/30 bg-primary-light p-1.5 text-primary hover:border-primary/60"
+                                >
 
                                     <x-icon
                                         name="eye"
-                                        class="h-3.5 w-3.5" />
+                                        class="h-3.5 w-3.5"
+                                    />
 
                                 </a>
 
@@ -537,8 +670,9 @@
                     <tr>
 
                         <td
-                            colspan="8"
-                            class="px-4 py-12 text-center">
+                            colspan="9"
+                            class="px-4 py-12 text-center"
+                        >
 
                             <div class="flex flex-col items-center">
 
@@ -546,22 +680,19 @@
 
                                     <x-icon
                                         name="inbox"
-                                        class="h-6 w-6" />
+                                        class="h-6 w-6"
+                                    />
 
                                 </div>
 
 
                                 <p class="mt-3 text-sm font-semibold text-secondary-dark">
-
                                     No support tickets found
-
                                 </p>
 
 
                                 <p class="mt-1 text-xs text-secondary">
-
                                     Tickets raised by clients will appear here.
-
                                 </p>
 
                             </div>
@@ -579,7 +710,10 @@
     </div>
 
 
-    {{-- Pagination --}}
+    {{-- ========================================================= --}}
+    {{-- PAGINATION --}}
+    {{-- ========================================================= --}}
+
     @if ($tickets->hasPages())
 
         <div class="mt-5">

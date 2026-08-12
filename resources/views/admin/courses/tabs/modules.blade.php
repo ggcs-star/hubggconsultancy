@@ -37,7 +37,7 @@
                             Edit Module
                         </button>
                         <form method="POST" action="{{ route('admin.course-modules.destroy', $module) }}"
-                            onsubmit="return confirm('Delete this module and all of its lessons?');">
+                            x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete this module and all of its lessons?', target: $el })">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-danger hover:bg-danger-light">
@@ -77,7 +77,7 @@
                                     class="rounded-md p-1.5 text-secondary hover:bg-surface-alt hover:text-secondary-dark" title="Edit lesson">
                                     <x-icon name="edit" class="w-3.5 h-3.5" />
                                 </a>
-                                <form method="POST" action="{{ route('admin.course-lessons.destroy', $lesson) }}" onsubmit="return confirm('Delete this lesson?');">
+                                <form method="POST" action="{{ route('admin.course-lessons.destroy', $lesson) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete this lesson?', target: $el })">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="rounded-md p-1.5 text-secondary hover:bg-danger-light hover:text-danger" title="Delete lesson">
@@ -107,7 +107,7 @@
                                     class="rounded-md p-1.5 text-secondary hover:bg-surface-alt hover:text-secondary-dark" title="Manage quiz">
                                     <x-icon name="edit" class="w-3.5 h-3.5" />
                                 </a>
-                                <form method="POST" action="{{ route('admin.course-module-quizzes.destroy', $quiz) }}" onsubmit="return confirm('Delete this quiz and its questions?');">
+                                <form method="POST" action="{{ route('admin.course-module-quizzes.destroy', $quiz) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete this quiz and its questions?', target: $el })">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="rounded-md p-1.5 text-secondary hover:bg-danger-light hover:text-danger" title="Delete quiz">

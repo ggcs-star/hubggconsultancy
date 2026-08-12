@@ -10,7 +10,11 @@ use App\Http\Controllers\Admin\CourseQuizCheckpointController;
 use App\Http\Controllers\Admin\CourseQuizQuestionController;
 use App\Http\Controllers\Admin\CourseQuizReviewController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\OnboardingAssessmentAnswerController as AdminOnboardingAssessmentAnswerController;
+use App\Http\Controllers\Admin\OnboardingAssessmentController as AdminOnboardingAssessmentController;
+use App\Http\Controllers\Admin\OnboardingAssessmentQuestionController;
 use App\Http\Controllers\Admin\PlaceholderController as AdminPlaceholderController;
+use App\Http\Controllers\Admin\SaasProductController;
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\User\CertificateController as UserCertificateController;
@@ -18,9 +22,9 @@ use App\Http\Controllers\User\CourseController as UserCourseController;
 use App\Http\Controllers\User\CourseLessonProgressController;
 use App\Http\Controllers\User\CourseQuizAnswerController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\User\OnboardingAssessmentController as UserOnboardingAssessmentController;
 use App\Http\Controllers\User\PlaceholderController as UserPlaceholderController;
 use App\Http\Controllers\User\ProfileController;
-use App\Http\Controllers\User\SalespersonApplicationController as UserSalespersonApplicationController;
 use App\Http\Controllers\Admin\SupportIssueTypeController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\User\SupportTicketController as UserSupportTicketController;
@@ -87,6 +91,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/salesperson-applications', [AdminSalespersonApplicationController::class, 'index'])->name('salesperson-applications');
         Route::post('/salesperson-applications/{user}/approve', [AdminSalespersonApplicationController::class, 'approve'])->name('salesperson-applications.approve');
         Route::post('/salesperson-applications/{user}/reject', [AdminSalespersonApplicationController::class, 'reject'])->name('salesperson-applications.reject');
+        Route::put('/salesperson-applications/{user}/courses', [AdminSalespersonApplicationController::class, 'updateCourses'])->name('salesperson-applications.courses.update');
 
         Route::prefix('courses')->name('courses.')->group(function () {
             Route::get('/', [AdminCourseController::class, 'index'])->name('index');
@@ -184,6 +189,25 @@ Route::get('/social-guide', [AdminPlaceholderController::class, 'socialGuide'])
 
 Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
     ->name('settings');
+
+        Route::prefix('saas-products')->name('saas-products.')->group(function () {
+            Route::get('/', [SaasProductController::class, 'index'])->name('index');
+            Route::post('/', [SaasProductController::class, 'store'])->name('store');
+            Route::put('/{saasProduct}', [SaasProductController::class, 'update'])->name('update');
+            Route::patch('/{saasProduct}/toggle-status', [SaasProductController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{saasProduct}', [SaasProductController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('onboarding-assessment')->name('onboarding-assessment.')->group(function () {
+            Route::get('/', [AdminOnboardingAssessmentController::class, 'index'])->name('index');
+            Route::put('/settings', [AdminOnboardingAssessmentController::class, 'updateSettings'])->name('settings.update');
+            Route::get('/results/{user}', [AdminOnboardingAssessmentController::class, 'resultShow'])->name('results.show');
+            Route::delete('/results/{user}/retake', [AdminOnboardingAssessmentController::class, 'retake'])->name('results.retake');
+            Route::post('/questions', [OnboardingAssessmentQuestionController::class, 'store'])->name('questions.store');
+            Route::put('/questions/{question}', [OnboardingAssessmentQuestionController::class, 'update'])->name('questions.update');
+            Route::delete('/questions/{question}', [OnboardingAssessmentQuestionController::class, 'destroy'])->name('questions.destroy');
+            Route::patch('/answers/{answer}/grade', [AdminOnboardingAssessmentAnswerController::class, 'grade'])->name('answers.grade');
+        });
     });
 
 Route::middleware(['auth', 'role:user'])
@@ -194,8 +218,8 @@ Route::middleware(['auth', 'role:user'])
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-        Route::get('/apply-salesperson', [UserSalespersonApplicationController::class, 'show'])->name('apply-salesperson');
-        Route::post('/apply-salesperson', [UserSalespersonApplicationController::class, 'apply'])->name('apply-salesperson.apply');
+        Route::get('/onboarding-assessment', [UserOnboardingAssessmentController::class, 'index'])->name('onboarding-assessment.index');
+        Route::post('/onboarding-assessment/submit', [UserOnboardingAssessmentController::class, 'submit'])->name('onboarding-assessment.submit');
 
         Route::get('/training', [UserCourseController::class, 'index'])->name('training');
         Route::get('/courses', [UserCourseController::class, 'index'])->name('courses.index');

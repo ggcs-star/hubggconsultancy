@@ -11,6 +11,7 @@ class SupportTicket extends Model
     protected $fillable = [
         'ticket_number',
         'user_id',
+        'product_id',
         'issue_type_id',
         'priority',
         'status',
@@ -23,11 +24,38 @@ class SupportTicket extends Model
         'resolved_at' => 'datetime',
     ];
 
+
+    /**
+     * Ticket owner
+     */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(
+            User::class,
+            'user_id'
+        );
     }
 
+
+    /**
+     * SaaS Product
+     *
+     * support_tickets.product_id
+     *        ↓
+     * saas_products.id
+     */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(
+            SaasProduct::class,
+            'product_id'
+        );
+    }
+
+
+    /**
+     * Support Issue Type
+     */
     public function issueType(): BelongsTo
     {
         return $this->belongsTo(
@@ -36,8 +64,15 @@ class SupportTicket extends Model
         );
     }
 
+
+    /**
+     * Ticket Messages
+     */
     public function messages(): HasMany
     {
-        return $this->hasMany(SupportTicketMessage::class, 'ticket_id');
+        return $this->hasMany(
+            SupportTicketMessage::class,
+            'ticket_id'
+        );
     }
 }

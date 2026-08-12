@@ -13,13 +13,15 @@ class SalesManualController extends Controller
      */
     public function index(Request $request)
     {
-        $query = SalesManual::with('attachments')
+        $query = SalesManual::query()
+            ->with('attachments')
             ->where('status', 'published')
             ->where('is_active', true)
             ->orderByDesc('is_pinned')
             ->orderByDesc('is_featured')
             ->orderBy('sort_order')
             ->latest();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -29,16 +31,45 @@ class SalesManualController extends Controller
 
         if ($request->filled('search')) {
 
-            $search = $request->search;
+            $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
 
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('category', 'like', "%{$search}%");
+                // Manual title
+                $q->where(
+                    'title',
+                    'like',
+                    "%{$search}%"
+                )
+
+                // Description
+                ->orWhere(
+                    'description',
+                    'like',
+                    "%{$search}%"
+                )
+
+                // Category
+                ->orWhere(
+                    'category',
+                    'like',
+                    "%{$search}%"
+                )
+
+                // Uploaded file name
+                ->orWhereHas('attachments', function ($attachmentQuery) use ($search) {
+
+                    $attachmentQuery->where(
+                        'file_name',
+                        'like',
+                        "%{$search}%"
+                    );
+
+                });
 
             });
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -54,6 +85,7 @@ class SalesManualController extends Controller
             );
         }
 
+
         /*
         |--------------------------------------------------------------------------
         | Manuals
@@ -63,6 +95,7 @@ class SalesManualController extends Controller
         $manuals = $query
             ->paginate(12)
             ->withQueryString();
+
 
         return view(
             'user.sales-manuals.index',
@@ -78,7 +111,7 @@ class SalesManualController extends Controller
     {
         /*
         |--------------------------------------------------------------------------
-        | Only Published + Active Resources
+        | Only Published + Active Manuals
         |--------------------------------------------------------------------------
         */
 
@@ -88,6 +121,12 @@ class SalesManualController extends Controller
             404
         );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load Attachments
+        |--------------------------------------------------------------------------
+        */
 
         $manual->load('attachments');
 

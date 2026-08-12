@@ -1,11 +1,11 @@
-<x-layout title="Clients" subtitle="Everyone who has registered on Pre Sales School">
+<x-layout title="Users" subtitle="Everyone who has registered on Pre Sales School">
 
     <div class="card">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead>
                     <tr class="text-xs uppercase tracking-wider text-slate-400">
-                        <th class="px-5 py-3 font-semibold">Client</th>
+                        <th class="px-5 py-3 font-semibold">User</th>
                         <th class="px-5 py-3 font-semibold">Email</th>
                         <th class="px-5 py-3 font-semibold">Phone</th>
                         <th class="px-5 py-3 font-semibold">Profile</th>
@@ -41,7 +41,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-8 text-center text-slate-400">No clients have registered yet.</td>
+                            <td colspan="6" class="px-5 py-8 text-center text-slate-400">No users have registered yet.</td>
                         </tr>
                     @endforelse
                 </tbody>

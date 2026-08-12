@@ -3,62 +3,171 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SaasProduct;
 use App\Models\SupportIssueType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class SupportIssueTypeController extends Controller
 {
+    /**
+     * Admin: All support issue types
+     */
     public function index(Request $request)
-{
-    $query = SupportIssueType::query();
+    {
+        $query = SupportIssueType::with('product');
 
-    // Search
-    if ($request->filled('search')) {
-        $search = $request->search;
+        /*
+        |--------------------------------------------------------------------------
+        | Search
+        |--------------------------------------------------------------------------
+        */
 
-        $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")
-                ->orWhere('module', 'like', "%{$search}%");
-        });
-    }
+        if ($request->filled('search')) {
 
-    // Module filter
-    if ($request->filled('module')) {
-        $query->where('module', $request->module);
-    }
+            $search = $request->search;
 
-    // Status filter
-    if ($request->filled('status')) {
-        $query->where(
-            'status',
-            $request->status
+            $query->where(function ($q) use ($search) {
+
+                $q->where(
+                    'name',
+                    'like',
+                    "%{$search}%"
+                )
+
+                ->orWhere(
+                    'description',
+                    'like',
+                    "%{$search}%"
+                )
+
+                ->orWhere(
+                    'module',
+                    'like',
+                    "%{$search}%"
+                )
+
+                ->orWhereHas('product', function ($productQuery) use ($search) {
+
+                    $productQuery->where(
+                        'name',
+                        'like',
+                        "%{$search}%"
+                    );
+
+                });
+
+            });
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SaaS Product Filter
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('saas_product_id')) {
+
+            $query->where(
+                'saas_product_id',
+                $request->saas_product_id
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Module Filter
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('module')) {
+
+            $query->where(
+                'module',
+                $request->module
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Status Filter
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('status')) {
+
+            $query->where(
+                'status',
+                $request->status
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Issue Types
+        |--------------------------------------------------------------------------
+        */
+
+        $issueTypes = $query
+            ->orderBy('sort_order')
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SaaS Products
+        |--------------------------------------------------------------------------
+        */
+
+        $products = SaasProduct::query()
+            ->orderBy('name')
+            ->get();
+
+
+        return view(
+            'admin.support.issue-types.index',
+            compact(
+                'issueTypes',
+                'products'
+            )
         );
     }
 
-    $issueTypes = $query
-        ->orderBy('sort_order')
-        ->orderByDesc('id')
-        ->paginate(15)
-        ->withQueryString();
 
-    return view(
-        'admin.support.issue-types.index',
-        compact('issueTypes')
-    );
-}
-
-
+    /**
+     * Admin: Create issue type
+     */
     public function create()
     {
-        return view('admin.support.issue-types.create');
+        $products = SaasProduct::query()
+            ->orderBy('name')
+            ->get();
+
+        return view(
+            'admin.support.issue-types.create',
+            compact('products')
+        );
     }
 
 
+    /**
+     * Admin: Store issue type
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
+
+            'saas_product_id' => [
+                'required',
+                'exists:saas_products,id',
+            ],
+
             'name' => [
                 'required',
                 'string',
@@ -97,32 +206,76 @@ class SupportIssueTypeController extends Controller
                 'integer',
                 'min:0',
             ],
+
         ]);
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Verify SaaS Product
+        |--------------------------------------------------------------------------
+        */
+
+        $product = SaasProduct::find(
+            $validated['saas_product_id']
+        );
+
+
+        if (!$product) {
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'saas_product_id' =>
+                        'Selected SaaS product is unavailable.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Issue Type
+        |--------------------------------------------------------------------------
+        */
+
         SupportIssueType::create([
-            'name' => $validated['name'],
 
-            'slug' => Str::slug(
-                $validated['name']
-            ),
+            'saas_product_id' =>
+                $validated['saas_product_id'],
 
-            'description' => $validated['description'] ?? null,
+            'name' =>
+                $validated['name'],
 
-            'module' => $validated['module'] ?? null,
+            'slug' =>
+                Str::slug(
+                    $validated['name']
+                ),
 
-            'icon' => $validated['icon'] ?? null,
+            'description' =>
+                $validated['description'] ?? null,
 
-            'default_priority' => $validated['default_priority'],
+            'module' =>
+                $validated['module'] ?? null,
 
-            'status' => $request->boolean('status'),
+            'icon' =>
+                $validated['icon'] ?? null,
 
-            'sort_order' => $validated['sort_order'] ?? 0,
+            'default_priority' =>
+                $validated['default_priority'],
+
+            'status' =>
+                $request->boolean('status'),
+
+            'sort_order' =>
+                $validated['sort_order'] ?? 0,
+
         ]);
 
 
         return redirect()
-            ->route('admin.support.issue-types.index')
+            ->route(
+                'admin.support.issue-types.index'
+            )
             ->with(
                 'success',
                 'Support issue type created successfully.'
@@ -130,20 +283,40 @@ class SupportIssueTypeController extends Controller
     }
 
 
-    public function edit(SupportIssueType $issueType)
-    {
+    /**
+     * Admin: Edit issue type
+     */
+    public function edit(
+        SupportIssueType $issueType
+    ) {
+        $products = SaasProduct::query()
+            ->orderBy('name')
+            ->get();
+
         return view(
             'admin.support.issue-types.edit',
-            compact('issueType')
+            compact(
+                'issueType',
+                'products'
+            )
         );
     }
 
 
+    /**
+     * Admin: Update issue type
+     */
     public function update(
         Request $request,
         SupportIssueType $issueType
     ) {
         $validated = $request->validate([
+
+            'saas_product_id' => [
+                'required',
+                'exists:saas_products,id',
+            ],
+
             'name' => [
                 'required',
                 'string',
@@ -182,32 +355,76 @@ class SupportIssueTypeController extends Controller
                 'integer',
                 'min:0',
             ],
+
         ]);
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Verify SaaS Product
+        |--------------------------------------------------------------------------
+        */
+
+        $product = SaasProduct::find(
+            $validated['saas_product_id']
+        );
+
+
+        if (!$product) {
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'saas_product_id' =>
+                        'Selected SaaS product is unavailable.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Issue Type
+        |--------------------------------------------------------------------------
+        */
+
         $issueType->update([
-            'name' => $validated['name'],
 
-            'slug' => Str::slug(
-                $validated['name']
-            ),
+            'saas_product_id' =>
+                $validated['saas_product_id'],
 
-            'description' => $validated['description'] ?? null,
+            'name' =>
+                $validated['name'],
 
-            'module' => $validated['module'] ?? null,
+            'slug' =>
+                Str::slug(
+                    $validated['name']
+                ),
 
-            'icon' => $validated['icon'] ?? null,
+            'description' =>
+                $validated['description'] ?? null,
 
-            'default_priority' => $validated['default_priority'],
+            'module' =>
+                $validated['module'] ?? null,
 
-            'status' => $request->boolean('status'),
+            'icon' =>
+                $validated['icon'] ?? null,
 
-            'sort_order' => $validated['sort_order'] ?? 0,
+            'default_priority' =>
+                $validated['default_priority'],
+
+            'status' =>
+                $request->boolean('status'),
+
+            'sort_order' =>
+                $validated['sort_order'] ?? 0,
+
         ]);
 
 
         return redirect()
-            ->route('admin.support.issue-types.index')
+            ->route(
+                'admin.support.issue-types.index'
+            )
             ->with(
                 'success',
                 'Support issue type updated successfully.'
@@ -215,8 +432,12 @@ class SupportIssueTypeController extends Controller
     }
 
 
-    public function destroy(SupportIssueType $issueType)
-    {
+    /**
+     * Admin: Delete issue type
+     */
+    public function destroy(
+        SupportIssueType $issueType
+    ) {
         /*
         |--------------------------------------------------------------------------
         | Prevent deleting issue type if tickets already use it
@@ -224,6 +445,7 @@ class SupportIssueTypeController extends Controller
         */
 
         if ($issueType->tickets()->exists()) {
+
             return back()->with(
                 'error',
                 'This issue type cannot be deleted because tickets are already using it.'
@@ -235,7 +457,9 @@ class SupportIssueTypeController extends Controller
 
 
         return redirect()
-            ->route('admin.support.issue-types.index')
+            ->route(
+                'admin.support.issue-types.index'
+            )
             ->with(
                 'success',
                 'Support issue type deleted successfully.'
@@ -243,10 +467,17 @@ class SupportIssueTypeController extends Controller
     }
 
 
-    public function toggleStatus(SupportIssueType $issueType)
-    {
+    /**
+     * Admin: Toggle issue type status
+     */
+    public function toggleStatus(
+        SupportIssueType $issueType
+    ) {
         $issueType->update([
-            'status' => !$issueType->status,
+
+            'status' =>
+                !$issueType->status,
+
         ]);
 
 

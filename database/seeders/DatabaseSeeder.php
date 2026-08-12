@@ -32,5 +32,7 @@ class DatabaseSeeder extends Seeder
                 'role' => 'user',
             ]
         );
+
+        $this->call(SaasProductSeeder::class);
     }
 }
