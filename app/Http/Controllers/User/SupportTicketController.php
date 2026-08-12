@@ -114,7 +114,6 @@ class SupportTicketController extends Controller
             ->orderBy(
                 'saas_products.name'
             )
-            ->distinct()
             ->get();
 
 
