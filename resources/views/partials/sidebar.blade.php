@@ -7,7 +7,6 @@
         ]
         : [
             ['label' => 'Dashboard', 'icon' => 'grid', 'route' => 'user.dashboard'],
-            ['label' => 'My Profile', 'icon' => 'user', 'route' => 'user.profile'],
             ['label' => 'Onboarding Assessment', 'icon' => 'check-circle', 'route' => 'user.onboarding-assessment.index'],
         ];
 
@@ -25,13 +24,11 @@
             ['label' => 'LMS / Courses', 'icon' => 'academic-cap', 'route' => 'admin.courses.index'],
             ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'admin.certificates'],
             ['label' => 'Sales Manuals', 'icon' => 'document', 'route' => 'admin.manuals.index'],
-            ['label' => 'Social Media Guide', 'icon' => 'share', 'route' => 'admin.social-guide'],
         ]
         : [
             ['label' => 'Training / LMS', 'icon' => 'academic-cap', 'route' => 'user.training'],
             ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'user.certificates.index'],
             ['label' => 'Sales Manuals', 'icon' => 'document', 'route' => 'user.manuals'],
-            ['label' => 'Social Media Guide', 'icon' => 'share', 'route' => 'user.social-guide'],
         ];
 @endphp
 
