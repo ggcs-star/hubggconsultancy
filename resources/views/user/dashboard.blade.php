@@ -18,34 +18,10 @@
     @endphp
 
     <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-brand-50 p-2.5 text-brand-700"><x-icon name="academic-cap" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['enrolled_courses'] }}</p>
-            <p class="text-sm text-slate-400">Enrolled Courses</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-sky-50 p-2.5 text-sky-600"><x-icon name="check-circle" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['overall_completion'] }}%</p>
-            <p class="text-sm text-slate-400">Overall Completion</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-emerald-50 p-2.5 text-emerald-600"><x-icon name="badge" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['certificates'] }}</p>
-            <p class="text-sm text-slate-400">Certificates Earned</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-amber-50 p-2.5 text-amber-600"><x-icon name="briefcase" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['assessment_percent'] }}%</p>
-            <p class="text-sm text-slate-400">Assessment Score</p>
-        </div>
+        <x-stat-card icon="academic-cap" color="primary" :value="$stats['enrolled_courses']" label="Enrolled Courses" />
+        <x-stat-card icon="check-circle" color="chart-4" :value="$stats['overall_completion'] . '%'" label="Overall Completion" :trend="$activityChart['data']" />
+        <x-stat-card icon="badge" color="success" :value="$stats['certificates']" label="Certificates Earned" />
+        <x-stat-card icon="briefcase" color="warning" :value="$stats['assessment_percent'] . '%'" label="Assessment Score" />
     </div>
 
     <div class="card mt-6 p-6">

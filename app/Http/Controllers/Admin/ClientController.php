@@ -8,6 +8,7 @@ use App\Services\OnboardingAssessmentScorer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -15,6 +16,8 @@ class ClientController extends Controller
 {
     public function index(Request $request): View
     {
+        $stats = $this->clientStats();
+
         $search = trim((string) $request->query('search'));
         $status = (string) $request->query('status');
         $profileStatus = (string) $request->query('profile_status');
@@ -61,7 +64,43 @@ class ClientController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('admin.clients', ['clients' => $paginated]);
+        return view('admin.clients', ['clients' => $paginated, 'stats' => $stats]);
+    }
+
+    private function clientStats(): array
+    {
+        $totalUsers = User::where('role', 'user')->count();
+        $activeUsers = User::where('role', 'user')->where('status', 'active')->count();
+        $completedProfiles = User::where('role', 'user')->where('profile_completed', true)->count();
+
+        $totalEarned = (int) DB::table('client_quiz_answers')
+            ->join('users', 'users.id', '=', 'client_quiz_answers.user_id')
+            ->where('users.role', 'user')
+            ->whereNotNull('client_quiz_answers.points_awarded')
+            ->sum('client_quiz_answers.points_awarded');
+
+        $avgPoints = $totalUsers > 0 ? round($totalEarned / $totalUsers, 1) : 0;
+
+        $start = now()->subDays(6)->startOfDay();
+        $counts = User::where('role', 'user')
+            ->where('created_at', '>=', $start)
+            ->get()
+            ->groupBy(fn ($user) => $user->created_at->format('Y-m-d'))
+            ->map->count();
+
+        $signupsTrend = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $key = now()->subDays($i)->format('Y-m-d');
+            $signupsTrend[] = (int) ($counts[$key] ?? 0);
+        }
+
+        return [
+            'total_users' => $totalUsers,
+            'active_users' => $activeUsers,
+            'completed_profiles' => $completedProfiles,
+            'avg_points' => $avgPoints,
+            'signups_trend' => $signupsTrend,
+        ];
     }
 
     public function show(User $client, OnboardingAssessmentScorer $scorer): View

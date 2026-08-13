@@ -1,4 +1,4 @@
-<x-layout title="SaaS Products" subtitle="The product catalog salespeople and clients can express interest in">
+<x-layout title="SaaS Products" title-icon="sparkles" subtitle="The product catalog salespeople and clients can express interest in">
 
     @php
         $accentColors = [
@@ -12,6 +12,18 @@
             'bg-red-50 text-red-600',
             'bg-blue-50 text-blue-600',
             'bg-indigo-50 text-indigo-600',
+        ];
+        $blobColors = [
+            'bg-orange-200',
+            'bg-emerald-200',
+            'bg-violet-200',
+            'bg-amber-200',
+            'bg-sky-200',
+            'bg-fuchsia-200',
+            'bg-rose-200',
+            'bg-red-200',
+            'bg-blue-200',
+            'bg-indigo-200',
         ];
     @endphp
 
@@ -31,52 +43,62 @@
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($saasProducts as $index => $product)
-            <div class="card flex flex-col p-5">
-                <div class="flex items-start justify-between">
-                    @if ($product->logoUrl())
-                        <img src="{{ $product->logoUrl() }}" alt="" class="h-11 w-11 shrink-0 rounded-xl object-cover">
-                    @else
-                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-bold {{ $accentColors[$index % count($accentColors)] }}">
-                            {{ strtoupper(substr($product->name, 0, 1)) }}
-                        </span>
-                    @endif
+            <div class="card relative flex flex-col overflow-hidden p-5">
+                <div class="pointer-events-none absolute -bottom-8 -right-8 h-28 w-28 rounded-full opacity-25 blur-2xl {{ $blobColors[$index % count($blobColors)] }}"></div>
 
-                    <div class="flex items-center gap-1.5">
-                        <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'edit-product-{{ $product->id }}')" title="Edit" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-brand-50 hover:text-brand-700">
-                            <x-icon name="pencil" class="h-4 w-4" />
-                        </button>
-                        <form method="POST" action="{{ route('admin.saas-products.destroy', $product) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete {{ $product->name }}? This removes it from everyone\'s interests too.', target: $el })">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" title="Delete" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600">
-                                <x-icon name="trash" class="h-4 w-4" />
+                <div class="relative flex flex-1 flex-col">
+                    <div class="flex items-start justify-between">
+                        @if ($product->logoUrl())
+                            <img src="{{ $product->logoUrl() }}" alt="" class="h-11 w-11 shrink-0 rounded-xl object-cover">
+                        @else
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-bold {{ $accentColors[$index % count($accentColors)] }}">
+                                {{ strtoupper(substr($product->name, 0, 1)) }}
+                            </span>
+                        @endif
+
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'edit-product-{{ $product->id }}')" title="Edit" class="rounded-lg bg-primary-light p-1.5 text-primary transition hover:bg-brand-200">
+                                <x-icon name="pencil" class="h-4 w-4" />
                             </button>
-                        </form>
+                            <form method="POST" action="{{ route('admin.saas-products.destroy', $product) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete {{ $product->name }}? This removes it from everyone\'s interests too.', target: $el })">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" title="Delete" class="rounded-lg bg-danger-light p-1.5 text-danger transition hover:bg-red-200">
+                                    <x-icon name="trash" class="h-4 w-4" />
+                                </button>
+                            </form>
+                        </div>
                     </div>
+
+                    <p class="mt-3 font-bold text-slate-800">{{ $product->name }}</p>
+
+                    <div class="mt-2 flex flex-wrap gap-1.5">
+                        @if ($product->category)
+                            <span class="badge badge-slate">{{ $product->category }}</span>
+                        @endif
+                        @if ($product->emi_available)
+                            <span class="badge badge-green">EMI Available</span>
+                        @endif
+                    </div>
+
+                    <p class="mt-3 flex-1 text-sm text-slate-500 line-clamp-3">{{ $product->description }}</p>
+
+                    <form method="POST" action="{{ route('admin.saas-products.toggle-status', $product) }}" class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="active" value="{{ $product->active ? '0' : '1' }}">
+                        <span class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                            <x-icon name="eye" class="h-3.5 w-3.5" />
+                            {{ $product->active ? 'Visible to salespeople' : 'Hidden' }}
+                        </span>
+                        <button type="submit" class="badge {{ $product->active ? 'badge-green' : 'badge-slate' }}">
+                            @if ($product->active)
+                                <x-icon name="check-circle" class="h-3.5 w-3.5" />
+                            @endif
+                            {{ $product->active ? 'Active' : 'Inactive' }}
+                        </button>
+                    </form>
                 </div>
-
-                <p class="mt-3 font-bold text-slate-800">{{ $product->name }}</p>
-
-                <div class="mt-2 flex flex-wrap gap-1.5">
-                    @if ($product->category)
-                        <span class="badge badge-slate">{{ $product->category }}</span>
-                    @endif
-                    @if ($product->emi_available)
-                        <span class="badge badge-green">EMI Available</span>
-                    @endif
-                </div>
-
-                <p class="mt-3 flex-1 text-sm text-slate-500 line-clamp-3">{{ $product->description }}</p>
-
-                <form method="POST" action="{{ route('admin.saas-products.toggle-status', $product) }}" class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                    @csrf
-                    @method('PATCH')
-                    <input type="hidden" name="active" value="{{ $product->active ? '0' : '1' }}">
-                    <span class="text-xs font-medium text-slate-400">{{ $product->active ? 'Visible to salespeople' : 'Hidden' }}</span>
-                    <button type="submit" class="badge {{ $product->active ? 'badge-green' : 'badge-slate' }}">
-                        {{ $product->active ? 'Active' : 'Inactive' }}
-                    </button>
-                </form>
             </div>
 
             <x-modal name="edit-product-{{ $product->id }}" :show="false" max-width="lg">

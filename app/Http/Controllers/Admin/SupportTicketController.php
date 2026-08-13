@@ -141,12 +141,32 @@ class SupportTicketController extends Controller
 
         ];
 
+        /*
+        |--------------------------------------------------------------------------
+        | Total ticket volume, last 7 days (sparkline on the "Total" stat card)
+        |--------------------------------------------------------------------------
+        */
+
+        $start = now()->subDays(6)->startOfDay();
+
+        $counts = SupportTicket::where('created_at', '>=', $start)
+            ->get()
+            ->groupBy(fn ($ticket) => $ticket->created_at->format('Y-m-d'))
+            ->map->count();
+
+        $totalTrend = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $key = now()->subDays($i)->format('Y-m-d');
+            $totalTrend[] = (int) ($counts[$key] ?? 0);
+        }
 
         return view(
             'admin.support.tickets.index',
             compact(
                 'tickets',
-                'stats'
+                'stats',
+                'totalTrend'
             )
         );
     }

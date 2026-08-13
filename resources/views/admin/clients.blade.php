@@ -3,10 +3,19 @@
     @php
         $clientFilterFields = ['search', 'status', 'profile_status', 'salesperson_status', 'min_points', 'max_points'];
         $salespersonMap = ['none' => 'badge-slate', 'pending' => 'badge-amber', 'approved' => 'badge-green', 'rejected' => 'badge-slate'];
-        $statusMap = ['active' => 'badge-green', 'inactive' => 'badge-slate', 'blocked' => 'bg-red-50 text-red-600'];
+        $statusMap = ['active' => 'badge-green', 'inactive' => 'badge-slate', 'blocked' => 'bg-danger-light text-danger'];
     @endphp
 
-    <form method="GET" class="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <x-stat-card icon="users" color="primary" :value="$stats['total_users']" label="Total Users" description="All registered users" :trend="$stats['signups_trend']" />
+        <x-stat-card icon="check-circle" color="success" :value="$stats['active_users']" label="Active Users" description="Currently active" />
+        <x-stat-card icon="star" color="chart-4" :value="$stats['completed_profiles']" label="Completed Profiles" description="Profile completion" />
+        <x-stat-card icon="trending-up" color="warning" :value="$stats['avg_points']" label="Avg. Points" description="Average earning" />
+    </div>
+
+    <div class="mt-4 rounded-2xl border border-primary/20 bg-primary-light/40 p-5">
+        <h2 class="mb-4 text-base font-bold text-primary">Filter Users</h2>
+        <form method="GET" class="flex flex-wrap items-end gap-4">
         <div class="w-full sm:w-52">
             <label class="form-label">Search</label>
             <div class="relative">
@@ -55,12 +64,19 @@
             <input type="number" name="max_points" min="0" value="{{ request('max_points') }}" placeholder="—" class="form-input">
         </div>
 
-        <button type="submit" class="btn-primary">Apply Filters</button>
+        <button type="submit" class="btn-primary">
+            <x-icon name="filter" class="h-4 w-4" />
+            Apply Filters
+        </button>
 
         @if (request()->anyFilled($clientFilterFields))
-            <a href="{{ route('admin.clients') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset Filters</a>
+            <a href="{{ route('admin.clients') }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                <x-icon name="refresh-cw" class="h-4 w-4" />
+                Reset
+            </a>
         @endif
-    </form>
+        </form>
+    </div>
 
     <div class="mt-4 card">
         <div class="overflow-x-auto">
@@ -119,13 +135,19 @@
                             </td>
                             <td class="px-5 py-3.5 text-slate-400">{{ $client->created_at->format('d M Y') }}</td>
                             <td class="px-5 py-3.5 text-right">
-                                <div class="flex items-center justify-end gap-3">
-                                    <a href="{{ route('admin.clients.show', $client) }}" class="text-sm font-semibold text-brand-700 hover:text-brand-800">View</a>
-                                    <button type="button" x-data="" x-on:click="$dispatch('open-modal', 'edit-client-{{ $client->id }}')" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Edit</button>
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <a href="{{ route('admin.clients.show', $client) }}" title="View" class="rounded-lg bg-primary-light p-1.5 text-primary transition hover:bg-brand-200">
+                                        <x-icon name="eye" class="h-4 w-4" />
+                                    </a>
+                                    <button type="button" x-data="" x-on:click="$dispatch('open-modal', 'edit-client-{{ $client->id }}')" title="Edit" class="rounded-lg bg-primary-light p-1.5 text-primary transition hover:bg-brand-200">
+                                        <x-icon name="pencil" class="h-4 w-4" />
+                                    </button>
                                     <form method="POST" action="{{ route('admin.clients.destroy', $client) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete {{ $client->name }}? This permanently removes their account and all related data.', target: $el })">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-sm font-semibold text-red-500 hover:text-red-700">Delete</button>
+                                        <button type="submit" title="Delete" class="rounded-lg bg-danger-light p-1.5 text-danger transition hover:bg-red-200">
+                                            <x-icon name="trash" class="h-4 w-4" />
+                                        </button>
                                     </form>
                                 </div>
                             </td>
