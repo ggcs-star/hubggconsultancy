@@ -8,7 +8,6 @@ use App\Models\SupportIssueType;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SupportTicketController extends Controller
@@ -69,8 +68,11 @@ class SupportTicketController extends Controller
     /**
      * User: Create ticket page
      *
-     * Only products assigned to the logged-in user
+     * Only products assigned/purchased by the logged-in user
      * from saas_product_user will be shown.
+     *
+     * Issue types for those products are loaded so the Blade
+     * can filter them when the user changes the product.
      */
     public function create()
     {
@@ -81,8 +83,8 @@ class SupportTicketController extends Controller
         | User Products
         |--------------------------------------------------------------------------
         |
-        | saas_products = master product table
-        | saas_product_user = user's assigned/purchased products
+        | saas_products       = master product table
+        | saas_product_user   = user's assigned/purchased products
         |
         */
 
@@ -99,32 +101,38 @@ class SupportTicketController extends Controller
             )
             ->where(
                 'saas_products.active',
-                1
+                true
             )
             ->select(
                 'saas_products.id',
                 'saas_products.name',
                 'saas_products.slug',
                 'saas_products.category',
-                'saas_products.logo'
-            )
-            ->orderBy(
+                'saas_products.logo',
                 'saas_products.sort_order'
             )
-            ->orderBy(
-                'saas_products.name'
-            )
+            ->distinct()
+            ->orderBy('saas_products.sort_order')
+            ->orderBy('saas_products.name')
             ->get();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Active Issue Types
+        | Issue Types
         |--------------------------------------------------------------------------
+        |
+        | Only active issues belonging to products assigned to
+        | the current user are loaded.
+        |
         */
 
         $issueTypes = SupportIssueType::query()
             ->where('status', true)
+            ->whereIn(
+                'saas_product_id',
+                $products->pluck('id')->toArray()
+            )
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
@@ -146,7 +154,6 @@ class SupportTicketController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-
             'product_id' => [
                 'required',
                 'integer',
@@ -155,6 +162,7 @@ class SupportTicketController extends Controller
 
             'issue_type_id' => [
                 'required',
+                'integer',
                 'exists:support_issue_types,id',
             ],
 
@@ -170,7 +178,6 @@ class SupportTicketController extends Controller
                 'mimes:jpg,jpeg,png,pdf',
                 'max:10240',
             ],
-
         ]);
 
 
@@ -179,10 +186,8 @@ class SupportTicketController extends Controller
         | Verify Product Belongs To Logged-in User
         |--------------------------------------------------------------------------
         |
-        | This is very important.
-        |
-        | User cannot simply change product_id manually
-        | and raise a ticket for another user's product.
+        | User cannot manually change product_id and create a ticket
+        | for a product which is not assigned to their account.
         |
         */
 
@@ -203,7 +208,7 @@ class SupportTicketController extends Controller
             )
             ->where(
                 'saas_products.active',
-                1
+                true
             )
             ->select(
                 'saas_products.*'
@@ -224,14 +229,34 @@ class SupportTicketController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Verify Issue Type Is Active
+        | Verify Issue Type
         |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        | The selected issue MUST belong to the selected product.
+        |
+        | Example:
+        |
+        | LocalPulse
+        |     -> Login Issue
+        |     -> Business Profile Issue
+        |
+        | PharmaSphere
+        |     -> Inventory Issue
+        |     -> Prescription Issue
+        |
+        | A LocalPulse ticket can NEVER submit a PharmaSphere issue.
+        |
         */
 
         $issueType = SupportIssueType::query()
             ->where(
                 'id',
                 $validated['issue_type_id']
+            )
+            ->where(
+                'saas_product_id',
+                $product->id
             )
             ->where(
                 'status',
@@ -246,7 +271,7 @@ class SupportTicketController extends Controller
                 ->withInput()
                 ->withErrors([
                     'issue_type_id' =>
-                        'This support issue is currently unavailable.',
+                        'The selected issue does not belong to the selected product.',
                 ]);
         }
 
@@ -300,22 +325,29 @@ class SupportTicketController extends Controller
 
         $ticket = SupportTicket::create([
 
-            'ticket_number' => $ticketNumber,
+            'ticket_number' =>
+                $ticketNumber,
 
-            'user_id' => auth()->id(),
+            'user_id' =>
+                auth()->id(),
 
-            'product_id' => $product->id,
+            'product_id' =>
+                $product->id,
 
-            'issue_type_id' => $issueType->id,
+            'issue_type_id' =>
+                $issueType->id,
 
-            'priority' => $issueType->default_priority,
+            'priority' =>
+                $issueType->default_priority,
 
-            'status' => 'open',
+            'status' =>
+                'open',
 
-            'description' => $validated['description'],
+            'description' =>
+                $validated['description'],
 
-            'attachment' => $attachmentPath,
-
+            'attachment' =>
+                $attachmentPath,
         ]);
 
 
@@ -327,16 +359,20 @@ class SupportTicketController extends Controller
 
         SupportTicketMessage::create([
 
-            'ticket_id' => $ticket->id,
+            'ticket_id' =>
+                $ticket->id,
 
-            'user_id' => auth()->id(),
+            'user_id' =>
+                auth()->id(),
 
-            'sender_type' => 'user',
+            'sender_type' =>
+                'user',
 
-            'message' => $validated['description'],
+            'message' =>
+                $validated['description'],
 
-            'attachment' => $attachmentPath,
-
+            'attachment' =>
+                $attachmentPath,
         ]);
 
 
@@ -426,7 +462,8 @@ class SupportTicketController extends Controller
                 [
                     'resolved',
                     'closed',
-                ]
+                ],
+                true
             )
         ) {
 
@@ -488,15 +525,20 @@ class SupportTicketController extends Controller
 
         SupportTicketMessage::create([
 
-            'ticket_id' => $ticket->id,
+            'ticket_id' =>
+                $ticket->id,
 
-            'user_id' => auth()->id(),
+            'user_id' =>
+                auth()->id(),
 
-            'sender_type' => 'user',
+            'sender_type' =>
+                'user',
 
-            'message' => $validated['message'],
+            'message' =>
+                $validated['message'],
 
-            'attachment' => $attachmentPath,
+            'attachment' =>
+                $attachmentPath,
 
         ]);
 
@@ -509,9 +551,11 @@ class SupportTicketController extends Controller
 
         $ticket->update([
 
-            'status' => 'open',
+            'status' =>
+                'open',
 
-            'resolved_at' => null,
+            'resolved_at' =>
+                null,
 
         ]);
 
