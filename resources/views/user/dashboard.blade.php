@@ -17,6 +17,37 @@
         ];
     @endphp
 
+    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="card p-5">
+            <div class="flex items-center justify-between">
+                <span class="rounded-xl bg-brand-50 p-2.5 text-brand-700"><x-icon name="academic-cap" /></span>
+            </div>
+            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['enrolled_courses'] }}</p>
+            <p class="text-sm text-slate-400">Enrolled Courses</p>
+        </div>
+        <div class="card p-5">
+            <div class="flex items-center justify-between">
+                <span class="rounded-xl bg-sky-50 p-2.5 text-sky-600"><x-icon name="check-circle" /></span>
+            </div>
+            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['overall_completion'] }}%</p>
+            <p class="text-sm text-slate-400">Overall Completion</p>
+        </div>
+        <div class="card p-5">
+            <div class="flex items-center justify-between">
+                <span class="rounded-xl bg-emerald-50 p-2.5 text-emerald-600"><x-icon name="badge" /></span>
+            </div>
+            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['certificates'] }}</p>
+            <p class="text-sm text-slate-400">Certificates Earned</p>
+        </div>
+        <div class="card p-5">
+            <div class="flex items-center justify-between">
+                <span class="rounded-xl bg-amber-50 p-2.5 text-amber-600"><x-icon name="briefcase" /></span>
+            </div>
+            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['assessment_percent'] }}%</p>
+            <p class="text-sm text-slate-400">Assessment Score</p>
+        </div>
+    </div>
+
     <div class="card mt-6 p-6">
         <h3 class="font-bold text-slate-800">Your Progress</h3>
         <div class="mt-6 flex items-center">
@@ -36,6 +67,77 @@
                     <div class="-mt-6 h-0.5 flex-1 {{ $step['done'] ? 'bg-brand-700' : 'bg-slate-200' }}"></div>
                 @endif
             @endforeach
+        </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div class="card p-5 lg:col-span-2">
+            <h3 class="font-bold text-slate-800">Progress by Course</h3>
+            <div class="mt-4 h-64">
+                <canvas id="courseProgressChart"></canvas>
+            </div>
+        </div>
+        <div class="card p-5">
+            <h3 class="font-bold text-slate-800">Quiz Performance</h3>
+            <div class="mt-4 h-64">
+                <canvas id="quizChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-6 p-5">
+        <h3 class="font-bold text-slate-800">Learning Activity (Last 14 Days)</h3>
+        <div class="mt-4 h-56">
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card mt-6">
+        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+            <h2 class="font-bold text-slate-800">My Courses</h2>
+            <a href="{{ route('user.training') }}" class="text-sm font-semibold text-brand-700 hover:text-brand-800">View all</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="text-xs uppercase tracking-wider text-slate-400">
+                        <th class="px-5 py-3 font-semibold">Course</th>
+                        <th class="px-5 py-3 font-semibold">Modules / Lessons</th>
+                        <th class="px-5 py-3 font-semibold">Progress</th>
+                        <th class="px-5 py-3 font-semibold">Status</th>
+                        <th class="px-5 py-3 font-semibold"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse ($courseProgress as $cp)
+                        <tr>
+                            <td class="px-5 py-3.5 font-medium text-slate-700">{{ $cp->course->title }}</td>
+                            <td class="px-5 py-3.5 text-slate-500">{{ $cp->modules_count }} modules · {{ $cp->completed_lessons }}/{{ $cp->total_lessons }} lessons</td>
+                            <td class="px-5 py-3.5">
+                                <div class="flex items-center gap-2">
+                                    <div class="h-2 w-28 overflow-hidden rounded-full bg-slate-100">
+                                        <div class="h-full rounded-full bg-brand-600" style="width: {{ $cp->percent }}%"></div>
+                                    </div>
+                                    <span class="text-xs font-semibold text-slate-500">{{ $cp->percent }}%</span>
+                                </div>
+                            </td>
+                            <td class="px-5 py-3.5">
+                                @php
+                                    $courseStatusMap = ['Not started' => 'badge-slate', 'In progress' => 'badge-amber', 'Completed' => 'badge-green'];
+                                @endphp
+                                <span class="badge {{ $courseStatusMap[$cp->status] }}">{{ $cp->status }}</span>
+                            </td>
+                            <td class="px-5 py-3.5 text-right">
+                                <a href="{{ route('user.courses.show', $cp->course) }}" class="text-sm font-semibold text-brand-700 hover:text-brand-800">Continue</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-5 py-8 text-center text-slate-400">You are not enrolled in any courses yet.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -69,5 +171,17 @@
             <p class="text-sm text-slate-400">PPTs & documents</p>
         </a>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                PSSCharts.renderBarChart('courseProgressChart', @json($progressChart['labels']), @json($progressChart['data']), { color: PSSCharts.PALETTE.brand });
+                PSSCharts.renderLineChart('activityChart', @json($activityChart['labels']), @json($activityChart['data']), { label: 'Lessons completed' });
+                PSSCharts.renderDoughnutChart('quizChart', @json($quizChart['labels']), @json($quizChart['data']), {
+                    colors: [PSSCharts.PALETTE.success, PSSCharts.PALETTE.danger, PSSCharts.PALETTE.slate],
+                });
+            });
+        </script>
+    @endpush
 
 </x-layout>
