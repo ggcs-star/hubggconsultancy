@@ -61,7 +61,11 @@
                         <div data-sortable-item draggable="true" data-sortable-id="lesson-{{ $lesson->id }}" class="cursor-move select-none flex items-center justify-between gap-3 px-4 py-2.5 pl-11" title="Drag to reorder">
                             <span class="flex items-center gap-2 text-sm text-secondary-dark">
                                 <x-icon name="grip" class="w-3.5 h-3.5 shrink-0 text-secondary/60" />
-                                <x-icon name="{{ $lesson->video_source === 'youtube' ? 'video' : 'play-circle' }}" class="w-4 h-4 text-secondary" />
+                                @if ($lesson->thumbnail)
+                                    <img src="{{ $lesson->thumbnailUrl() }}" alt="" class="h-7 w-11 shrink-0 rounded object-cover">
+                                @else
+                                    <x-icon name="{{ $lesson->video_source === 'youtube' ? 'video' : 'play-circle' }}" class="w-4 h-4 text-secondary" />
+                                @endif
                                 {{ $lesson->title }}
                                 <span class="text-xs text-secondary">
                                     {{ $lesson->checkpoints->count() }} {{ Str::plural('checkpoint', $lesson->checkpoints->count()) }},

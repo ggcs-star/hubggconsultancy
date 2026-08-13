@@ -20,6 +20,7 @@ class CourseLesson extends Model
         'video_source',
         'video_path',
         'video_url',
+        'thumbnail',
         'duration',
         'sort_order',
     ];
@@ -37,6 +38,11 @@ class CourseLesson extends Model
     public function checkpoints(): HasMany
     {
         return $this->hasMany(CourseQuizCheckpoint::class)->orderBy('timestamp_seconds');
+    }
+
+    public function thumbnailUrl(): ?string
+    {
+        return $this->thumbnail ? Storage::disk('public')->url($this->thumbnail) : null;
     }
 
     public function videoSrc(): ?string
