@@ -19,7 +19,8 @@
             <div class="rounded-xl border border-app-border bg-white p-6">
                 <h2 class="text-sm font-semibold uppercase tracking-wide text-secondary">Lesson Details</h2>
                 <form method="POST" action="{{ route('admin.course-lessons.update', $lesson) }}" enctype="multipart/form-data"
-                    x-data="{ source: '{{ old('video_source', $lesson->video_source) }}' }" class="mt-4 space-y-5">
+                    x-data="{ source: '{{ old('video_source', $lesson->video_source) }}', uploading: false }"
+                    x-on:submit="uploading = true" class="mt-4 space-y-5">
                     @csrf
                     @method('PUT')
 
@@ -45,7 +46,10 @@
                     </div>
 
                     <div class="flex justify-end">
-                        <x-primary-button>Save Lesson</x-primary-button>
+                        <x-primary-button x-bind:disabled="uploading">
+                            <span x-show="!uploading">Save Lesson</span>
+                            <span x-show="uploading" x-cloak>Uploading&hellip; please wait, this can take a while for large videos.</span>
+                        </x-primary-button>
                     </div>
                 </form>
             </div>

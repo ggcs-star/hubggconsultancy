@@ -11,7 +11,9 @@
     <p class="text-sm text-secondary">You'll be able to add quiz checkpoints once the lesson is created.</p>
 
     <div class="mt-6 max-w-2xl rounded-xl border border-app-border bg-white p-6">
-        <form method="POST" action="{{ route('admin.course-lessons.store', $courseModule) }}" enctype="multipart/form-data" x-data="{ source: '{{ old('video_source', 'upload') }}' }" class="space-y-5">
+        <form method="POST" action="{{ route('admin.course-lessons.store', $courseModule) }}" enctype="multipart/form-data"
+            x-data="{ source: '{{ old('video_source', 'upload') }}', uploading: false }"
+            x-on:submit="uploading = true" class="space-y-5">
             @csrf
 
             <div>
@@ -39,7 +41,10 @@
                 <a href="{{ route('admin.courses.show', ['course' => $courseModule->course, 'tab' => 'modules']) }}">
                     <x-secondary-button type="button">Cancel</x-secondary-button>
                 </a>
-                <x-primary-button>Create Lesson</x-primary-button>
+                <x-primary-button x-bind:disabled="uploading">
+                    <span x-show="!uploading">Create Lesson</span>
+                    <span x-show="uploading" x-cloak>Uploading&hellip; please wait, this can take a while for large videos.</span>
+                </x-primary-button>
             </div>
         </form>
     </div>

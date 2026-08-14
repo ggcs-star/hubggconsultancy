@@ -31,17 +31,3 @@
     <p class="mt-1 text-xs text-secondary">Accepts a plain URL or a full pasted embed code — the link is extracted automatically.</p>
     <x-input-error :messages="$errors->get('video_url')" class="mt-2" />
 </div>
-
-<div>
-    <x-input-label for="thumbnail" value="Thumbnail" class="uppercase text-xs tracking-wide" />
-    @isset($lesson)
-        @if ($lesson->thumbnail)
-            <img src="{{ $lesson->thumbnailUrl() }}" alt="Current thumbnail" class="mt-1.5 mb-2 h-20 w-36 rounded-lg border border-app-border object-cover">
-            <p class="mb-2 text-xs text-secondary">Uploading a new image replaces the current thumbnail.</p>
-        @endif
-    @endisset
-    <input id="thumbnail" name="thumbnail" type="file" accept="image/*"
-        class="w-full rounded-lg border-app-border text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-surface-alt file:px-3 file:py-1.5 file:text-sm" />
-    <p class="mt-1 text-xs text-secondary">JPG/PNG/WebP, up to 5MB.</p>
-    <x-input-error :messages="$errors->get('thumbnail')" class="mt-2" />
-</div>

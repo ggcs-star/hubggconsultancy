@@ -30,10 +30,6 @@ class CourseLessonController extends Controller
             $data['video_path'] = $this->fileUploadService->store($request->file('video'), 'course-lessons');
         }
 
-        if ($request->hasFile('thumbnail')) {
-            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'course-lessons/thumbnails');
-        }
-
         $lesson = CourseLesson::create($data);
 
         return redirect()->route('admin.course-lessons.edit', $lesson)->with('status', 'Lesson created — add quiz checkpoints below.');
@@ -56,11 +52,6 @@ class CourseLessonController extends Controller
         if ($data['video_source'] === 'upload' && $request->hasFile('video')) {
             $this->fileUploadService->delete($lesson->video_path);
             $data['video_path'] = $this->fileUploadService->store($request->file('video'), 'course-lessons');
-        }
-
-        if ($request->hasFile('thumbnail')) {
-            $this->fileUploadService->delete($lesson->thumbnail);
-            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'course-lessons/thumbnails');
         }
 
         $lesson->update($data);
@@ -89,7 +80,6 @@ class CourseLessonController extends Controller
             'video' => ['nullable', 'file', 'mimes:mp4,webm,ogg', 'max:307200'],
             'video_url' => ['nullable', 'string', 'max:2000'],
             'duration' => ['nullable', 'string', 'max:20'],
-            'thumbnail' => ['nullable', 'image', 'max:5120'],
         ]);
 
         // The textarea accepts either a plain URL or a full pasted <iframe> embed —
