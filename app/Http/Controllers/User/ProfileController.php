@@ -42,11 +42,18 @@ class ProfileController extends Controller
         $interestIds = $data['interests'] ?? [];
         unset($data['interests']);
 
+        $user = $request->user();
+        $wasIncomplete = ! $user->profile_completed;
+
         $data['profile_completed'] = true;
 
-        $user = $request->user();
         $user->update($data);
         $user->interests()->sync($interestIds);
+
+        if ($wasIncomplete) {
+            return redirect()->route('user.onboarding-assessment.index')
+                ->with('status', 'Profile completed. You can now take the onboarding assessment.');
+        }
 
         return back()->with('status', 'Profile updated successfully.');
     }

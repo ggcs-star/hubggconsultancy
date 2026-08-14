@@ -18,7 +18,7 @@ class OnboardingAssessmentController extends Controller
         $user = $request->user();
 
         if (! $user->profile_completed) {
-            return redirect()->route('user.profile')->with('status', 'Please complete your profile before taking the onboarding assessment.');
+            return view('user.onboarding-assessment.profile-required');
         }
 
         $settings = OnboardingAssessmentSetting::current();
@@ -38,12 +38,12 @@ class OnboardingAssessmentController extends Controller
         ]);
     }
 
-    public function submit(Request $request, OnboardingAssessmentScorer $scorer): RedirectResponse
+    public function submit(Request $request, OnboardingAssessmentScorer $scorer): View|RedirectResponse
     {
         $user = $request->user();
 
         if (! $user->profile_completed) {
-            return redirect()->route('user.profile')->with('status', 'Please complete your profile before taking the onboarding assessment.');
+            return view('user.onboarding-assessment.profile-required');
         }
 
         $settings = OnboardingAssessmentSetting::current();
