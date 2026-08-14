@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Support\Facades\Storage;
 
 class Course extends Model
 {
@@ -18,8 +18,14 @@ class Course extends Model
         'slug',
         'description',
         'thumbnail',
+
+        // Legacy certificate fields
         'certificate_background',
         'certificate_fields',
+
+        // New reusable certificate template
+        'certificate_template_id',
+
         'is_published',
         'sort_order',
     ];
@@ -29,81 +35,162 @@ class Course extends Model
         'certificate_fields' => 'array',
     ];
 
-    /**
-     * Sensible layout if the admin uploads a background but never touches
-     * the position/color controls — center-anchored (each "left" is the
-     * horizontal center point, not the left edge) over a landscape image.
-     */
-    private const CERTIFICATE_FIELD_DEFAULTS = [
-        'name' => ['top' => 44, 'left' => 50, 'font_size' => 40, 'color' => '#1e293b'],
-        'course' => ['top' => 58, 'left' => 50, 'font_size' => 22, 'color' => '#1e293b'],
-        'date' => ['top' => 80, 'left' => 50, 'font_size' => 16, 'color' => '#475569'],
-        'certificate_id' => ['top' => 92, 'left' => 50, 'font_size' => 12, 'color' => '#94a3b8'],
-    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
     public function modules(): HasMany
     {
-        return $this->hasMany(CourseModule::class)->orderBy('sort_order');
+        return $this->hasMany(CourseModule::class)
+            ->orderBy('sort_order');
     }
+
 
     public function certificates(): HasMany
     {
         return $this->hasMany(Certificate::class);
     }
 
+
     public function lessons(): HasManyThrough
     {
-        return $this->hasManyThrough(CourseLesson::class, CourseModule::class);
+        return $this->hasManyThrough(
+            CourseLesson::class,
+            CourseModule::class
+        );
     }
+
 
     public function checkpoints(): HasMany
     {
         return $this->hasMany(CourseQuizCheckpoint::class);
     }
 
+
     public function assignedUsers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'course_user')->withTimestamps();
+        return $this->belongsToMany(
+            User::class,
+            'course_user'
+        )->withTimestamps();
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Certificate Template
+    |--------------------------------------------------------------------------
+    */
+
+    public function certificateTemplate(): BelongsTo
+    {
+        return $this->belongsTo(
+            CertificateTemplate::class,
+            'certificate_template_id'
+        );
+    }
+
+
+    /**
+     * Check whether a reusable certificate template
+     * has been assigned to this course.
+     */
+    public function hasCertificateTemplate(): bool
+    {
+        return ! empty($this->certificate_template_id);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Thumbnail
+    |--------------------------------------------------------------------------
+    */
 
     public function thumbnailUrl(): ?string
     {
-        return $this->thumbnail ? Storage::disk('public')->url($this->thumbnail) : null;
+        if (empty($this->thumbnail)) {
+            return null;
+        }
+
+        $path = ltrim(
+            $this->thumbnail,
+            '/'
+        );
+
+        if (str_starts_with($path, 'public/')) {
+            $path = substr($path, 7);
+        }
+
+        return asset(
+            'storage/' . $path
+        );
     }
 
-    public function hasCertificateTemplate(): bool
-    {
-        return (bool) $this->certificate_background;
-    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Legacy Certificate Background
+    |--------------------------------------------------------------------------
+    |
+    | These methods are kept temporarily so old records/pages do not break.
+    | The new certificate system uses certificateTemplate().
+    |
+    */
 
     public function certificateBackgroundUrl(): ?string
     {
-        return $this->certificate_background ? Storage::disk('public')->url($this->certificate_background) : null;
+        if (empty($this->certificate_background)) {
+            return null;
+        }
+
+        $path = ltrim(
+            $this->certificate_background,
+            '/'
+        );
+
+        if (str_starts_with($path, 'public/')) {
+            $path = substr($path, 7);
+        }
+
+        return asset(
+            'storage/' . $path
+        );
     }
 
-    /**
-     * Stored per-field overrides merged over CERTIFICATE_FIELD_DEFAULTS, so
-     * the admin only ever needs to fill in what they want to change.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Legacy Certificate Fields
+    |--------------------------------------------------------------------------
+    */
+
     public function certificateFields(): array
     {
-        $stored = $this->certificate_fields ?? [];
+        if (! is_array($this->certificate_fields)) {
+            return [];
+        }
 
-        return collect(self::CERTIFICATE_FIELD_DEFAULTS)
-            ->map(fn ($defaults, $key) => array_merge($defaults, $stored[$key] ?? []))
-            ->all();
+        return $this->certificate_fields;
     }
 
-    /**
-     * Aggregate score for a user across every question in the course
-     * (both mid-lesson checkpoint quizzes and module-level quizzes).
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Course Score
+    |--------------------------------------------------------------------------
+    */
+
     public function scoreFor(User $user): object
     {
         $questionIds = CourseQuizQuestion::whereIn(
             'quiz_checkpoint_id',
             $this->checkpoints()->pluck('id')
         )->pluck('id', 'id');
+
 
         if ($questionIds->isEmpty()) {
             return (object) [
@@ -116,19 +203,54 @@ class Course extends Model
             ];
         }
 
-        $answers = QuizAnswer::where('user_id', $user->id)
-            ->whereIn('quiz_question_id', $questionIds)
+
+        $answers = QuizAnswer::where(
+            'user_id',
+            $user->id
+        )
+            ->whereIn(
+                'quiz_question_id',
+                $questionIds
+            )
             ->get();
 
-        $pendingCount = $answers->whereNull('points_awarded')->count();
-        $graded = $answers->whereNotNull('points_awarded');
-        $gradedQuestionIds = $graded->pluck('quiz_question_id');
 
-        $gradedPoints = (int) CourseQuizQuestion::whereIn('id', $gradedQuestionIds)->sum('points');
-        $earnedPoints = (int) $graded->sum('points_awarded');
-        $correctCount = $graded->where('is_correct', true)->count();
+        $pendingCount = $answers
+            ->whereNull('points_awarded')
+            ->count();
 
-        $percent = $graded->isEmpty() ? null : (int) round($earnedPoints / max($gradedPoints, 1) * 100);
+
+        $graded = $answers
+            ->whereNotNull('points_awarded');
+
+
+        $gradedQuestionIds = $graded
+            ->pluck('quiz_question_id');
+
+
+        $gradedPoints = (int) CourseQuizQuestion::whereIn(
+            'id',
+            $gradedQuestionIds
+        )->sum('points');
+
+
+        $earnedPoints = (int) $graded
+            ->sum('points_awarded');
+
+
+        $correctCount = $graded
+            ->where('is_correct', true)
+            ->count();
+
+
+        $percent = $graded->isEmpty()
+            ? null
+            : (int) round(
+                $earnedPoints /
+                max($gradedPoints, 1) *
+                100
+            );
+
 
         return (object) [
             'percent' => $percent,
