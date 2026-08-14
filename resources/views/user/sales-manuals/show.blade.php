@@ -5,7 +5,7 @@
 
         <div>
             <a
-                href="{{ route('admin.manuals.index') }}"
+                href="{{ route('user.manuals') }}"
                 class="inline-flex items-center gap-2 text-sm text-secondary transition hover:text-secondary-dark">
 
                 <x-icon
@@ -20,22 +20,9 @@
             </h1>
 
             <p class="mt-1 text-sm text-secondary">
-                View and manage this sales resource.
+                View this sales resource.
             </p>
         </div>
-
-
-        {{-- Edit --}}
-        <a
-            href="{{ route('admin.manuals.edit', $manual) }}"
-            class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90">
-
-            <x-icon
-                name="edit"
-                class="h-4 w-4" />
-
-            Edit Manual
-        </a>
 
     </div>
 
@@ -490,20 +477,7 @@
                 <div class="space-y-2 p-4">
 
                     <a
-                        href="{{ route('admin.manuals.edit', $manual) }}"
-                        class="flex w-full items-center gap-3 rounded-lg border border-app-border px-4 py-3 text-sm font-medium text-secondary-dark transition hover:bg-surface-alt">
-
-                        <x-icon
-                            name="edit"
-                            class="h-4 w-4 text-primary" />
-
-                        Edit Manual
-
-                    </a>
-
-
-                    <a
-                        href="{{ route('admin.manuals.index') }}"
+                        href="{{ route('user.manuals') }}"
                         class="flex w-full items-center gap-3 rounded-lg border border-app-border px-4 py-3 text-sm font-medium text-secondary-dark transition hover:bg-surface-alt">
 
                         <x-icon

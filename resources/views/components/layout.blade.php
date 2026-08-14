@@ -23,7 +23,7 @@
     @include('partials.sidebar')
 
     <div class="flex min-h-screen flex-col transition-[padding] duration-200 print:pl-0" :class="sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'">
-        @include('partials.topbar', ['title' => $title ?? null, 'subtitle' => $subtitle ?? null])
+        @include('partials.topbar', ['title' => $title ?? null, 'subtitle' => $subtitle ?? null, 'titleIcon' => $titleIcon ?? null])
 
         <main class="flex-1 px-4 py-6 lg:px-8 lg:py-8 print:p-0">
             @if (session('status'))

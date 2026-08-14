@@ -1,65 +1,17 @@
 <x-layout title="Dashboard" subtitle="Overview of users, applications and training across Pre Sales School">
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-brand-50 p-2.5 text-brand-700"><x-icon name="users" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['total_users'] }}</p>
-            <p class="text-sm text-slate-400">Total Users</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-amber-50 p-2.5 text-amber-600"><x-icon name="briefcase" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['pending_applications'] }}</p>
-            <p class="text-sm text-slate-400">Pending Applications</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-emerald-50 p-2.5 text-emerald-600"><x-icon name="badge" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['approved_salespeople'] }}</p>
-            <p class="text-sm text-slate-400">Approved Salespeople</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-sky-50 p-2.5 text-sky-600"><x-icon name="check-circle" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['profile_completed'] }}</p>
-            <p class="text-sm text-slate-400">Profiles Completed</p>
-        </div>
+        <x-stat-card icon="users" color="primary" :value="$stats['total_users']" label="Total Users" :trend="$usersTrend" />
+        <x-stat-card icon="briefcase" color="warning" :value="$stats['pending_applications']" label="Pending Applications" />
+        <x-stat-card icon="badge" color="success" :value="$stats['approved_salespeople']" label="Approved Salespeople" />
+        <x-stat-card icon="check-circle" color="chart-4" :value="$stats['profile_completed']" label="Profiles Completed" />
     </div>
 
     <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-brand-50 p-2.5 text-brand-700"><x-icon name="academic-cap" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['total_courses'] }}</p>
-            <p class="text-sm text-slate-400">Courses Published</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-sky-50 p-2.5 text-sky-600"><x-icon name="users" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['total_enrollments'] }}</p>
-            <p class="text-sm text-slate-400">Course Enrollments</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-emerald-50 p-2.5 text-emerald-600"><x-icon name="badge" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['certificates_issued'] }}</p>
-            <p class="text-sm text-slate-400">Certificates Issued</p>
-        </div>
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <span class="rounded-xl bg-amber-50 p-2.5 text-amber-600"><x-icon name="briefcase" /></span>
-            </div>
-            <p class="mt-4 text-2xl font-extrabold text-slate-800">{{ $stats['open_tickets'] }}</p>
-            <p class="text-sm text-slate-400">Open Support Tickets</p>
-        </div>
+        <x-stat-card icon="academic-cap" color="primary" :value="$stats['total_courses']" label="Courses Published" />
+        <x-stat-card icon="users" color="chart-4" :value="$stats['total_enrollments']" label="Course Enrollments" :trend="$enrollmentsTrend" />
+        <x-stat-card icon="badge" color="success" :value="$stats['certificates_issued']" label="Certificates Issued" :trend="$certificatesTrend" />
+        <x-stat-card icon="briefcase" color="warning" :value="$stats['open_tickets']" label="Open Support Tickets" :trend="$ticketsTrend" />
     </div>
 
     <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">

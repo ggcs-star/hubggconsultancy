@@ -34,6 +34,11 @@ class DashboardController extends Controller
         $applicationStatus = $this->applicationStatusChart();
         $ticketStatus = $this->ticketStatusChart();
 
+        $usersTrend = $this->dailyTrend(fn ($start) => User::where('role', 'user')->where('created_at', '>=', $start)->get()->groupBy(fn ($u) => $u->created_at->format('Y-m-d'))->map->count());
+        $enrollmentsTrend = $this->dailyTrend(fn ($start) => DB::table('course_user')->where('created_at', '>=', $start)->selectRaw('DATE(created_at) as d, count(*) as c')->groupBy('d')->pluck('c', 'd'));
+        $certificatesTrend = $this->dailyTrend(fn ($start) => Certificate::where('issued_at', '>=', $start)->get()->groupBy(fn ($c) => $c->issued_at->format('Y-m-d'))->map->count());
+        $ticketsTrend = $this->dailyTrend(fn ($start) => SupportTicket::where('created_at', '>=', $start)->get()->groupBy(fn ($t) => $t->created_at->format('Y-m-d'))->map->count());
+
         return view('admin.dashboard', compact(
             'stats',
             'recentUsers',
@@ -42,8 +47,30 @@ class DashboardController extends Controller
             'signups',
             'topCourses',
             'applicationStatus',
-            'ticketStatus'
+            'ticketStatus',
+            'usersTrend',
+            'enrollmentsTrend',
+            'certificatesTrend',
+            'ticketsTrend'
         ));
+    }
+
+    /**
+     * Zero-filled daily counts for the last 7 days, given a callback that
+     * groups rows created since $start into a ['Y-m-d' => count] collection.
+     */
+    private function dailyTrend(\Closure $countsByDay): array
+    {
+        $start = now()->subDays(6)->startOfDay();
+        $counts = $countsByDay($start);
+
+        $trend = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $key = now()->subDays($i)->format('Y-m-d');
+            $trend[] = (int) ($counts[$key] ?? 0);
+        }
+
+        return $trend;
     }
 
     /**

@@ -4,7 +4,12 @@
     </button>
 
     <div class="min-w-0 flex-1">
-        <h1 class="truncate text-lg font-bold text-slate-800 sm:text-xl">{{ $title ?? 'Dashboard' }}</h1>
+        <h1 class="flex items-center gap-1.5 truncate text-lg font-bold text-slate-800 sm:text-xl">
+            {{ $title ?? 'Dashboard' }}
+            @isset($titleIcon)
+                <x-icon :name="$titleIcon" class="h-4 w-4 shrink-0 text-brand-500" />
+            @endisset
+        </h1>
         @isset($subtitle)
             <p class="hidden truncate text-sm text-slate-400 sm:block">{{ $subtitle }}</p>
         @endisset

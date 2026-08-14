@@ -56,76 +56,11 @@
     {{-- ========================================================= --}}
 
     <div class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
-
-        {{-- Total --}}
-        <div class="rounded-xl border border-app-border bg-white p-4">
-
-            <p class="text-xs font-semibold uppercase tracking-wide text-secondary">
-                Total
-            </p>
-
-            <p class="mt-2 text-2xl font-semibold text-secondary-dark">
-                {{ $stats['total'] ?? 0 }}
-            </p>
-
-        </div>
-
-
-        {{-- Open --}}
-        <div class="rounded-xl border border-app-border bg-white p-4">
-
-            <p class="text-xs font-semibold uppercase tracking-wide text-secondary">
-                Open
-            </p>
-
-            <p class="mt-2 text-2xl font-semibold text-danger">
-                {{ $stats['open'] ?? 0 }}
-            </p>
-
-        </div>
-
-
-        {{-- In Progress --}}
-        <div class="rounded-xl border border-app-border bg-white p-4">
-
-            <p class="text-xs font-semibold uppercase tracking-wide text-secondary">
-                In Progress
-            </p>
-
-            <p class="mt-2 text-2xl font-semibold text-warning">
-                {{ $stats['in_progress'] ?? 0 }}
-            </p>
-
-        </div>
-
-
-        {{-- Waiting --}}
-        <div class="rounded-xl border border-app-border bg-white p-4">
-
-            <p class="text-xs font-semibold uppercase tracking-wide text-secondary">
-                Waiting
-            </p>
-
-            <p class="mt-2 text-2xl font-semibold text-chart-4">
-                {{ $stats['waiting'] ?? 0 }}
-            </p>
-
-        </div>
-
-
-        {{-- Resolved --}}
-        <div class="rounded-xl border border-app-border bg-white p-4">
-
-            <p class="text-xs font-semibold uppercase tracking-wide text-secondary">
-                Resolved
-            </p>
-
-            <p class="mt-2 text-2xl font-semibold text-success">
-                {{ $stats['resolved'] ?? 0 }}
-            </p>
-
-        </div>
-
+        <x-stat-card icon="list" color="secondary" :value="$stats['total'] ?? 0" label="Total" :trend="$totalTrend ?? null" />
+        <x-stat-card icon="help-circle" color="danger" :value="$stats['open'] ?? 0" label="Open" />
+        <x-stat-card icon="clock" color="warning" :value="$stats['in_progress'] ?? 0" label="In Progress" />
+        <x-stat-card icon="user" color="chart-4" :value="$stats['waiting'] ?? 0" label="Waiting" />
+        <x-stat-card icon="check-circle" color="success" :value="$stats['resolved'] ?? 0" label="Resolved" />
     </div>
 
 
