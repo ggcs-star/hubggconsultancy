@@ -30,7 +30,9 @@ use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\User\SupportTicketController as UserSupportTicketController;
 use App\Http\Controllers\Admin\SalesManualController;
 use App\Http\Controllers\User\SalesManualController as UserSalesManualController;
+use App\Http\Controllers\Admin\CertificateTemplateController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -136,8 +138,41 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/course-quiz-answers/pending', [CourseQuizReviewController::class, 'index'])->name('course-quiz-answers.pending');
         Route::patch('/course-quiz-answers/{answer}/grade', [CourseQuizReviewController::class, 'grade'])->name('course-quiz-answers.grade');
 
-      Route::get('/certificates', [AdminCertificateController::class, 'index'])
+   Route::get('/certificates', [AdminCertificateController::class, 'index'])
     ->name('certificates');
+
+
+/*
+|--------------------------------------------------------------------------
+| Certificate Templates
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/certificate-templates',
+    [
+        CertificateTemplateController::class,
+        'index',
+    ]
+)->name('certificates.templates.index');
+
+
+Route::get(
+    '/courses/{course}/certificate-template',
+    [
+        CertificateTemplateController::class,
+        'assign',
+    ]
+)->name('certificates.templates.assign');
+
+
+Route::put(
+    '/courses/{course}/certificate-template',
+    [
+        CertificateTemplateController::class,
+        'updateAssignment',
+    ]
+)->name('certificates.templates.update');
 
 
 /*
@@ -233,6 +268,28 @@ Route::middleware(['auth', 'role:user'])
 
         Route::get('/certificates', [UserCertificateController::class, 'index'])->name('certificates.index');
         Route::get('/certificates/{certificate}', [UserCertificateController::class, 'show'])->name('certificates.show');
+
+/*
+|--------------------------------------------------------------------------
+| Certificate Background
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/certificate-background/{filename}', function ($filename) {
+
+    $path = 'certificates/' . $filename;
+
+    abort_unless(
+        Storage::disk('public')->exists($path),
+        404
+    );
+
+    return Storage::disk('public')->response($path);
+
+})->where('filename', '[A-Za-z0-9._-]+')
+  ->name('certificate.background');
+
+
 
 Route::get('/sales-manuals', [UserSalesManualController::class, 'index'])
     ->name('manuals');
