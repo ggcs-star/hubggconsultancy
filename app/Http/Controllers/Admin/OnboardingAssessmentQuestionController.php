@@ -5,16 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\OnboardingAssessmentOption;
 use App\Models\OnboardingAssessmentQuestion;
+use App\Models\OnboardingAssessmentQuiz;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class OnboardingAssessmentQuestionController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, OnboardingAssessmentQuiz $quiz): RedirectResponse
     {
         $data = $this->validateQuestion($request);
 
-        $question = OnboardingAssessmentQuestion::create([
+        $question = $quiz->questions()->create([
             'type' => $data['type'],
             'question_text' => $data['question_text'],
             'points' => $data['points'],
@@ -22,7 +23,9 @@ class OnboardingAssessmentQuestionController extends Controller
 
         $this->syncOptions($question, $data);
 
-        return redirect()->route('admin.onboarding-assessment.index')->with('status', 'Question added.');
+        return redirect()
+            ->route('admin.onboarding-assessment.index', ['tab' => 'quizzes', 'quiz' => $quiz->id])
+            ->with('status', 'Question added.');
     }
 
     public function update(Request $request, OnboardingAssessmentQuestion $question): RedirectResponse
@@ -38,14 +41,19 @@ class OnboardingAssessmentQuestionController extends Controller
         $question->options()->delete();
         $this->syncOptions($question, $data);
 
-        return redirect()->route('admin.onboarding-assessment.index')->with('status', 'Question updated.');
+        return redirect()
+            ->route('admin.onboarding-assessment.index', ['tab' => 'quizzes', 'quiz' => $question->onboarding_assessment_quiz_id])
+            ->with('status', 'Question updated.');
     }
 
     public function destroy(OnboardingAssessmentQuestion $question): RedirectResponse
     {
+        $quizId = $question->onboarding_assessment_quiz_id;
         $question->delete();
 
-        return redirect()->route('admin.onboarding-assessment.index')->with('status', 'Question deleted.');
+        return redirect()
+            ->route('admin.onboarding-assessment.index', ['tab' => 'quizzes', 'quiz' => $quizId])
+            ->with('status', 'Question deleted.');
     }
 
     private function validateQuestion(Request $request): array

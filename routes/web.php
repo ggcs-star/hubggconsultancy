@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OnboardingAssessmentAnswerController as AdminOnboardingAssessmentAnswerController;
 use App\Http\Controllers\Admin\OnboardingAssessmentController as AdminOnboardingAssessmentController;
 use App\Http\Controllers\Admin\OnboardingAssessmentQuestionController;
+use App\Http\Controllers\Admin\OnboardingAssessmentQuizController;
 use App\Http\Controllers\Admin\PlaceholderController as AdminPlaceholderController;
 use App\Http\Controllers\Admin\SaasProductController;
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
@@ -243,7 +244,13 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::put('/settings', [AdminOnboardingAssessmentController::class, 'updateSettings'])->name('settings.update');
             Route::get('/results/{user}', [AdminOnboardingAssessmentController::class, 'resultShow'])->name('results.show');
             Route::delete('/results/{user}/retake', [AdminOnboardingAssessmentController::class, 'retake'])->name('results.retake');
-            Route::post('/questions', [OnboardingAssessmentQuestionController::class, 'store'])->name('questions.store');
+            Route::delete('/results/{user}/quizzes/{quiz}/retake', [AdminOnboardingAssessmentController::class, 'retakeQuiz'])->name('results.retake-quiz');
+            Route::post('/quizzes', [OnboardingAssessmentQuizController::class, 'store'])->name('quizzes.store');
+            Route::post('/quizzes/reorder', [OnboardingAssessmentQuizController::class, 'reorder'])->name('quizzes.reorder');
+            Route::put('/quizzes/{quiz}', [OnboardingAssessmentQuizController::class, 'update'])->name('quizzes.update');
+            Route::patch('/quizzes/{quiz}/toggle-published', [OnboardingAssessmentQuizController::class, 'togglePublished'])->name('quizzes.toggle-published');
+            Route::delete('/quizzes/{quiz}', [OnboardingAssessmentQuizController::class, 'destroy'])->name('quizzes.destroy');
+            Route::post('/quizzes/{quiz}/questions', [OnboardingAssessmentQuestionController::class, 'store'])->name('questions.store');
             Route::put('/questions/{question}', [OnboardingAssessmentQuestionController::class, 'update'])->name('questions.update');
             Route::delete('/questions/{question}', [OnboardingAssessmentQuestionController::class, 'destroy'])->name('questions.destroy');
             Route::patch('/answers/{answer}/grade', [AdminOnboardingAssessmentAnswerController::class, 'grade'])->name('answers.grade');
@@ -259,7 +266,7 @@ Route::middleware(['auth', 'role:user'])
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
         Route::get('/onboarding-assessment', [UserOnboardingAssessmentController::class, 'index'])->name('onboarding-assessment.index');
-        Route::post('/onboarding-assessment/submit', [UserOnboardingAssessmentController::class, 'submit'])->name('onboarding-assessment.submit');
+        Route::post('/onboarding-assessment/quizzes/{quiz}/submit', [UserOnboardingAssessmentController::class, 'submit'])->name('onboarding-assessment.submit');
 
         Route::get('/training', [UserCourseController::class, 'index'])->name('training');
         Route::get('/courses', [UserCourseController::class, 'index'])->name('courses.index');

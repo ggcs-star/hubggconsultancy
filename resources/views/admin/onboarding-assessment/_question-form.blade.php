@@ -7,17 +7,21 @@
 @endphp
 
 <form method="POST"
-    action="{{ $isEdit ? route('admin.onboarding-assessment.questions.update', $question) : route('admin.onboarding-assessment.questions.store') }}"
+    action="{{ $isEdit ? route('admin.onboarding-assessment.questions.update', $question) : route('admin.onboarding-assessment.questions.store', $quiz) }}"
     x-data="{
         type: '{{ $isEdit ? $question->type : 'radio' }}',
         options: {{ \Illuminate\Support\Js::from($initialOptions) }},
+        submitting: false,
         addOption() { this.options.push({ text: '', correct: false }); },
         removeOption(index) { this.options.splice(index, 1); },
         selectSingle(index) { this.options.forEach((o, i) => o.correct = i === index); },
     }"
+    x-on:submit="submitting = true"
     class="p-6">
     @csrf
     @if ($isEdit) @method('PUT') @endif
+    <input type="hidden" name="_form" value="question">
+    <input type="hidden" name="_quiz_id" value="{{ $quiz->id }}">
 
     <div class="flex items-center justify-between">
         <h2 class="text-lg font-bold text-slate-800">{{ $isEdit ? 'Edit Question' : 'Add Question' }}</h2>
@@ -75,6 +79,8 @@
 
     <div class="mt-8 flex justify-end gap-3">
         <button type="button" x-on:click="$dispatch('close')" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-        <button type="submit" class="btn-primary">{{ $isEdit ? 'Save Changes' : 'Add Question' }}</button>
+        <button type="submit" :disabled="submitting" class="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+            <span x-text="submitting ? 'Saving…' : '{{ $isEdit ? 'Save Changes' : 'Add Question' }}'"></span>
+        </button>
     </div>
 </form>

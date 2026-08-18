@@ -5,26 +5,43 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\OnboardingAssessmentAnswer;
 use App\Models\OnboardingAssessmentQuestion;
+use App\Models\OnboardingAssessmentQuiz;
 use App\Models\OnboardingAssessmentSetting;
 use App\Models\User;
 use App\Services\OnboardingAssessmentScorer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class OnboardingAssessmentController extends Controller
 {
     public function index(Request $request, OnboardingAssessmentScorer $scorer): View
     {
-        $tabs = ['manage', 'results'];
-        $activeTab = $request->query('tab', 'manage');
+        $tabs = ['quizzes', 'settings', 'results'];
+        $activeTab = $request->query('tab', 'quizzes');
         if (! in_array($activeTab, $tabs, true)) {
-            $activeTab = 'manage';
+            $activeTab = 'quizzes';
         }
 
         $settings = OnboardingAssessmentSetting::current();
-        $questions = OnboardingAssessmentQuestion::with('options')->orderBy('sort_order')->get();
+
+        $quizzes = null;
+        $selectedQuiz = null;
+        $questionsPage = null;
+        if ($activeTab === 'quizzes') {
+            $quizzes = $this->quizzesForList($request);
+            $selectedQuiz = $this->selectedQuiz($request, $quizzes);
+
+            if ($selectedQuiz) {
+                $questionsPage = $selectedQuiz->questions()
+                    ->with('options')
+                    ->orderBy('sort_order')
+                    ->paginate(5, ['*'], 'qpage')
+                    ->withQueryString();
+            }
+        }
 
         $results = null;
         if ($activeTab === 'results') {
@@ -34,9 +51,38 @@ class OnboardingAssessmentController extends Controller
         return view('admin.onboarding-assessment.index', [
             'activeTab' => $activeTab,
             'settings' => $settings,
-            'questions' => $questions,
+            'quizzes' => $quizzes,
+            'selectedQuiz' => $selectedQuiz,
+            'questionsPage' => $questionsPage,
             'results' => $results,
         ]);
+    }
+
+    /**
+     * @return Collection<int, OnboardingAssessmentQuiz>
+     */
+    private function quizzesForList(Request $request): Collection
+    {
+        $search = trim((string) $request->query('search'));
+
+        $query = OnboardingAssessmentQuiz::withCount('questions')->withSum('questions', 'points')->ordered();
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->get();
+    }
+
+    private function selectedQuiz(Request $request, Collection $quizzes): ?OnboardingAssessmentQuiz
+    {
+        $requestedId = $request->integer('quiz');
+        $requested = $requestedId ? $quizzes->firstWhere('id', $requestedId) : null;
+
+        return $requested ?? $quizzes->first();
     }
 
     private function filteredResults(Request $request, OnboardingAssessmentScorer $scorer): LengthAwarePaginator
@@ -101,8 +147,6 @@ class OnboardingAssessmentController extends Controller
     public function updateSettings(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
             'passing_score_percent' => ['required', 'integer', 'min:1', 'max:100'],
             'is_published' => ['nullable', 'boolean'],
         ]);
@@ -116,7 +160,7 @@ class OnboardingAssessmentController extends Controller
 
     public function resultShow(User $user, OnboardingAssessmentScorer $scorer): View
     {
-        $questions = OnboardingAssessmentQuestion::with('options')->orderBy('sort_order')->get();
+        $quizzes = OnboardingAssessmentQuiz::with('questions.options')->ordered()->get();
         $answers = OnboardingAssessmentAnswer::where('user_id', $user->id)
             ->get()
             ->keyBy('onboarding_assessment_question_id');
@@ -124,17 +168,30 @@ class OnboardingAssessmentController extends Controller
         return view('admin.onboarding-assessment.results-show', [
             'student' => $user,
             'score' => $scorer->score($user),
-            'questions' => $questions,
+            'quizzes' => $quizzes,
             'answers' => $answers,
         ]);
     }
 
     public function retake(User $user): RedirectResponse
     {
-        OnboardingAssessmentAnswer::where('user_id', $user->id)->delete();
+        OnboardingAssessmentAnswer::where('user_id', $user->id)
+            ->whereIn('onboarding_assessment_question_id', OnboardingAssessmentQuestion::whereNotNull('onboarding_assessment_quiz_id')->pluck('id'))
+            ->delete();
 
         return redirect()
             ->route('admin.onboarding-assessment.index', ['tab' => 'results'])
             ->with('status', "{$user->name} can now retake the assessment.");
+    }
+
+    public function retakeQuiz(User $user, OnboardingAssessmentQuiz $quiz): RedirectResponse
+    {
+        OnboardingAssessmentAnswer::where('user_id', $user->id)
+            ->whereIn('onboarding_assessment_question_id', $quiz->questions()->pluck('id'))
+            ->delete();
+
+        return redirect()
+            ->back()
+            ->with('status', "{$user->name} can now retake \"{$quiz->title}\".");
     }
 }

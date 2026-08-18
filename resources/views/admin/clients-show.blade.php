@@ -5,6 +5,7 @@
         $statusMap = ['active' => 'badge-green', 'inactive' => 'badge-slate', 'blocked' => 'bg-red-50 text-red-600'];
         $assessmentStatusMap = [
             'not_started' => ['label' => 'Not Started', 'class' => 'badge-slate'],
+            'in_progress' => ['label' => 'In Progress', 'class' => 'badge-amber'],
             'pending_review' => ['label' => 'Pending Review', 'class' => 'badge-amber'],
             'passed' => ['label' => 'Passed', 'class' => 'badge-green'],
             'failed' => ['label' => 'Failed', 'class' => 'bg-red-50 text-red-600'],

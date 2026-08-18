@@ -4,7 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\OnboardingAssessmentAnswer;
-use App\Models\OnboardingAssessmentQuestion;
+use App\Models\OnboardingAssessmentQuiz;
 use App\Models\OnboardingAssessmentSetting;
 use App\Services\OnboardingAssessmentScorer;
 use Illuminate\Http\RedirectResponse;
@@ -23,22 +23,21 @@ class OnboardingAssessmentController extends Controller
 
         $settings = OnboardingAssessmentSetting::current();
         $score = $scorer->score($user);
-        $questions = OnboardingAssessmentQuestion::with('options')->orderBy('sort_order')->get();
+        $quizzes = OnboardingAssessmentQuiz::published()->with('questions.options')->ordered()->get();
 
-        $answers = [];
-        if ($score->attempted) {
-            $answers = $user->onboardingAssessmentAnswers()->get()->keyBy('onboarding_assessment_question_id');
-        }
+        $answers = $score->attempted
+            ? $user->onboardingAssessmentAnswers()->get()->keyBy('onboarding_assessment_question_id')
+            : collect();
 
         return view('user.onboarding-assessment.index', [
             'settings' => $settings,
             'score' => $score,
-            'questions' => $questions,
+            'quizzes' => $quizzes,
             'answers' => $answers,
         ]);
     }
 
-    public function submit(Request $request, OnboardingAssessmentScorer $scorer): View|RedirectResponse
+    public function submit(Request $request, OnboardingAssessmentQuiz $quiz): View|RedirectResponse
     {
         $user = $request->user();
 
@@ -48,15 +47,19 @@ class OnboardingAssessmentController extends Controller
 
         $settings = OnboardingAssessmentSetting::current();
 
-        if (! $settings->is_published) {
+        if (! $settings->is_published || ! $quiz->is_published) {
             return back()->with('status', 'This assessment is not available right now.');
         }
 
-        if ($scorer->score($user)->attempted) {
-            return back()->with('status', 'You have already submitted this assessment.');
-        }
+        $questions = $quiz->questions()->with('options')->get();
 
-        $questions = OnboardingAssessmentQuestion::with('options')->orderBy('sort_order')->get();
+        $alreadyAttempted = OnboardingAssessmentAnswer::where('user_id', $user->id)
+            ->whereIn('onboarding_assessment_question_id', $questions->pluck('id'))
+            ->exists();
+
+        if ($alreadyAttempted) {
+            return back()->with('status', "You have already submitted \"{$quiz->title}\".");
+        }
 
         $data = $request->validate([
             'answers' => ['required', 'array'],
@@ -89,6 +92,6 @@ class OnboardingAssessmentController extends Controller
             );
         }
 
-        return redirect()->route('user.onboarding-assessment.index')->with('status', 'Assessment submitted.');
+        return redirect()->route('user.onboarding-assessment.index')->with('status', "\"{$quiz->title}\" submitted.");
     }
 }

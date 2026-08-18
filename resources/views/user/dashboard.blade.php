@@ -126,6 +126,7 @@
         @php
             $assessmentStatusLabels = [
                 'not_started' => 'Not started',
+                'in_progress' => 'In progress',
                 'pending_review' => 'Pending review',
                 'passed' => 'Passed',
                 'failed' => 'Not passed',
