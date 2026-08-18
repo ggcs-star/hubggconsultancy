@@ -263,8 +263,6 @@ Route::middleware(['auth', 'role:user'])
         Route::get('/training', [UserCourseController::class, 'index'])->name('training');
         Route::get('/courses', [UserCourseController::class, 'index'])->name('courses.index');
         Route::get('/courses/{course}', [UserCourseController::class, 'show'])->name('courses.show');
-        Route::post('/courses/quiz-checkpoints/{checkpoint}/answers', [CourseQuizAnswerController::class, 'store'])->name('course-quiz-answers.store');
-        Route::post('/courses/lessons/{lesson}/progress', [CourseLessonProgressController::class, 'store'])->name('course-lesson-progress.store');
 
         Route::get('/certificates', [UserCertificateController::class, 'index'])->name('certificates.index');
         Route::get('/certificates/{certificate}', [UserCertificateController::class, 'show'])->name('certificates.show');
@@ -317,7 +315,16 @@ Route::get('/sales-manuals/{manual}', [UserSalesManualController::class, 'show']
         ->name('tickets.reply');
 
 });
-   
-   
+
+
         });
+
+// Shared with the admin "preview as a client" page (resources/views/user/courses/_player.blade.php),
+// so both real students and admins previewing a course can submit checkpoint answers / progress.
+Route::middleware(['auth', 'role:user,admin'])
+    ->name('user.')
+    ->group(function () {
+        Route::post('/courses/quiz-checkpoints/{checkpoint}/answers', [CourseQuizAnswerController::class, 'store'])->name('course-quiz-answers.store');
+        Route::post('/courses/lessons/{lesson}/progress', [CourseLessonProgressController::class, 'store'])->name('course-lesson-progress.store');
+    });
 

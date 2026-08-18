@@ -235,7 +235,7 @@
     }
 </script>
 
-<div id="course-player" class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12" x-data="courseCurriculumPlayer(window.coursePlayerData)" x-init="init()"
+<div id="course-player" class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12" x-data="courseCurriculumPlayer(window.coursePlayerData)"
     x-on:course:checkpoint.window="onCheckpoint($event.detail)"
     x-on:course:lesson-completed.window="onLessonCompleted()">
 
