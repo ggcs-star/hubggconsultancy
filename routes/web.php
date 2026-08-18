@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\PlaceholderController as AdminPlaceholderControll
 use App\Http\Controllers\Admin\SaasProductController;
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CourseLessonVideoController;
 use App\Http\Controllers\User\CertificateController as UserCertificateController;
 use App\Http\Controllers\User\CourseController as UserCourseController;
 use App\Http\Controllers\User\CourseLessonProgressController;
@@ -326,5 +327,6 @@ Route::middleware(['auth', 'role:user,admin'])
     ->group(function () {
         Route::post('/courses/quiz-checkpoints/{checkpoint}/answers', [CourseQuizAnswerController::class, 'store'])->name('course-quiz-answers.store');
         Route::post('/courses/lessons/{lesson}/progress', [CourseLessonProgressController::class, 'store'])->name('course-lesson-progress.store');
+        Route::get('/courses/lessons/{lesson}/video', [CourseLessonVideoController::class, 'show'])->name('course-lesson-video.show');
     });
 

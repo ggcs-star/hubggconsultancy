@@ -48,7 +48,10 @@ class CourseLesson extends Model
     public function videoSrc(): ?string
     {
         if ($this->video_source === 'upload') {
-            return $this->video_path ? Storage::disk('public')->url($this->video_path) : null;
+            // Streamed through Laravel (not the public/storage symlink directly) so
+            // HTTP Range requests work under `php artisan serve`, which is required
+            // for <video> playback/seeking — see CourseLessonVideoController.
+            return $this->video_path ? route('user.course-lesson-video.show', $this) : null;
         }
 
         return $this->video_url;
