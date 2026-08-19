@@ -16,7 +16,13 @@ class OnboardingAssessmentResultController extends Controller
             'phone' => ['required', 'string'],
         ]);
 
-        $user = User::where('phone', $validated['phone'])->first();
+        $digits = preg_replace('/\D+/', '', $validated['phone']);
+        $last10 = substr($digits, -10);
+
+        $user = User::whereRaw(
+            "REPLACE(REPLACE(REPLACE(phone, '+', ''), ' ', ''), '-', '') LIKE ?",
+            ["%{$last10}"]
+        )->first();
 
         if (! $user) {
             return response()->json([
