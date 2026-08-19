@@ -14,7 +14,7 @@ use Illuminate\View\View;
 
 class ClientController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, OnboardingAssessmentScorer $scorer): View
     {
         $stats = $this->clientStats();
 
@@ -37,8 +37,9 @@ class ClientController extends Controller
             ->when($salespersonStatus !== '', fn ($query) => $query->where('salesperson_status', $salespersonStatus))
             ->latest()
             ->get()
-            ->map(function (User $client) {
+            ->map(function (User $client) use ($scorer) {
                 $client->points = $client->lmsPoints();
+                $client->assessmentScore = $scorer->score($client);
 
                 return $client;
             });

@@ -29,11 +29,14 @@ class OnboardingAssessmentController extends Controller
             ? $user->onboardingAssessmentAnswers()->get()->keyBy('onboarding_assessment_question_id')
             : collect();
 
+        $activeQuiz = $quizzes->firstWhere('id', (int) $request->query('quiz')) ?? $quizzes->first();
+
         return view('user.onboarding-assessment.index', [
             'settings' => $settings,
             'score' => $score,
             'quizzes' => $quizzes,
             'answers' => $answers,
+            'activeQuiz' => $activeQuiz,
         ]);
     }
 
@@ -92,6 +95,6 @@ class OnboardingAssessmentController extends Controller
             );
         }
 
-        return redirect()->route('user.onboarding-assessment.index')->with('status', "\"{$quiz->title}\" submitted.");
+        return redirect()->route('user.onboarding-assessment.index', ['quiz' => $quiz->id])->with('status', "\"{$quiz->title}\" submitted.");
     }
 }

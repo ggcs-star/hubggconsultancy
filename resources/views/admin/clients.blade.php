@@ -86,10 +86,10 @@
                         <th class="px-5 py-3 font-semibold">User</th>
                         <th class="px-5 py-3 font-semibold">Phone</th>
                         <th class="px-5 py-3 font-semibold">Earning Points</th>
+                        <th class="px-5 py-3 font-semibold">Onboarding Score</th>
                         <th class="px-5 py-3 font-semibold">Profile</th>
                         <th class="px-5 py-3 font-semibold">Salesperson</th>
                         <th class="px-5 py-3 font-semibold">Status</th>
-                        <th class="px-5 py-3 font-semibold">Joined</th>
                         <th class="px-5 py-3 font-semibold"></th>
                     </tr>
                 </thead>
@@ -113,6 +113,16 @@
                                 </span>
                             </td>
                             <td class="px-5 py-3.5">
+                                @if ($client->assessmentScore->attempted)
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-primary-light px-2.5 py-1 text-xs font-semibold text-primary">
+                                        <x-icon name="check-circle" class="h-3.5 w-3.5" />
+                                        {{ $client->assessmentScore->earned_points }}/{{ $client->assessmentScore->total_points }} pts
+                                    </span>
+                                @else
+                                    <span class="badge badge-slate">Not attempted</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3.5">
                                 @if ($client->profile_completed)
                                     <span class="badge badge-green"><x-icon name="check-circle" class="h-3.5 w-3.5" /> Complete</span>
                                 @else
@@ -133,7 +143,6 @@
                                     </select>
                                 </form>
                             </td>
-                            <td class="px-5 py-3.5 text-slate-400">{{ $client->created_at->format('d M Y') }}</td>
                             <td class="px-5 py-3.5 text-right">
                                 <div class="flex items-center justify-end gap-1.5">
                                     <a href="{{ route('admin.clients.show', $client) }}" title="View" class="rounded-lg bg-primary-light p-1.5 text-primary transition hover:bg-brand-200">

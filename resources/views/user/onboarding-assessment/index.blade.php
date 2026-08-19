@@ -53,9 +53,21 @@
         @if ($quizzes->isEmpty())
             <div class="card mt-6 p-8 text-center text-sm text-slate-400">No quizzes have been added yet.</div>
         @else
-            <div class="mt-6 space-y-6">
+            <div class="mt-6 flex items-center gap-6 overflow-x-auto border-b border-slate-200">
                 @foreach ($quizzes as $quiz)
-                    @php $quizScore = $scoreByQuizId->get($quiz->id); @endphp
+                    @php $tabQuizScore = $scoreByQuizId->get($quiz->id); @endphp
+                    <x-tab-link
+                        :href="route('user.onboarding-assessment.index', ['quiz' => $quiz->id])"
+                        :active="$activeQuiz?->id === $quiz->id"
+                        :icon="$tabQuizScore && $tabQuizScore->attempted ? 'check-circle' : null"
+                    >
+                        {{ $quiz->title }}
+                    </x-tab-link>
+                @endforeach
+            </div>
+
+            @php $quiz = $activeQuiz; $quizScore = $scoreByQuizId->get($quiz->id); @endphp
+            <div class="mt-6 space-y-6">
                     <div class="card">
                         <div class="border-b border-slate-100 px-6 py-4">
                             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -142,7 +154,6 @@
                             </form>
                         @endif
                     </div>
-                @endforeach
             </div>
         @endif
     @endif
