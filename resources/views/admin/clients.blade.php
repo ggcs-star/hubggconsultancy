@@ -17,7 +17,7 @@
         <h2 class="mb-4 text-base font-bold text-primary">Filter Users</h2>
         <form method="GET" class="flex flex-wrap items-end gap-4">
         <div class="w-full sm:w-52">
-            <label class="form-label">Search</label>
+            <label class="form-label">Searchh</label>
             <div class="relative">
                 <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Name or email..." class="form-input pl-10">
