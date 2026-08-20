@@ -2,7 +2,7 @@
 
     {{-- Static "Grey to Glory" video — same click-to-play card UI as the Resources
          library, but not backed by the Resource model (fixed content, no quiz). --}}
-    <div class="card flex flex-col overflow-hidden border-brand-100 bg-brand-50 sm:flex-row"
+    <div class="card flex flex-col overflow-hidden border-brand-100 bg-brand-50 sm:flex-row sm:min-h-[30rem]"
         x-data="{
             playing: false,
             videoIds: { english: 'Jj2QrOFjbkQ', hindi: 'XTz1w3cfR_U' },
@@ -24,13 +24,13 @@
                 }
             },
         }">
-        <div id="dashboard-video-frame" class="relative aspect-video shrink-0 bg-black sm:w-96">
+        <div id="dashboard-video-frame" class="relative h-72 shrink-0 bg-black sm:h-auto sm:w-[62%] sm:self-stretch">
             <template x-if="! playing">
                 <div class="group relative h-full w-full cursor-pointer" x-on:click="play('english')">
                     <img src="https://img.youtube.com/vi/Jj2QrOFjbkQ/maxresdefault.jpg" alt="Grey to Glory" class="h-full w-full object-cover">
                     <div class="absolute inset-0 flex items-center justify-center bg-black/25 transition group-hover:bg-black/40">
-                        <span class="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-brand-700 shadow-lg transition group-hover:scale-105">
-                            <x-icon name="play-circle" class="h-9 w-9" />
+                        <span class="flex h-20 w-20 items-center justify-center rounded-full bg-white/90 text-brand-700 shadow-lg transition group-hover:scale-105">
+                            <x-icon name="play-circle" class="h-12 w-12" />
                         </span>
                     </div>
                 </div>
@@ -39,26 +39,29 @@
             <template x-if="playing">
                 <div class="relative h-full w-full">
                     <div id="resource-youtube-player" class="h-full w-full"></div>
-                    <div class="absolute right-2 top-2 z-10 flex items-center gap-1">
-                        <button type="button" x-on:click="toggleFullscreen()" title="Full screen" class="rounded-md bg-black/60 p-1.5 text-white hover:bg-black/80">
-                            <x-icon name="maximize" class="h-4 w-4" />
+                    {{-- YouTube's own title/channel overlay can't be disabled via the embed API
+                         (the old showinfo param was retired) — this masks it instead. --}}
+                    <div class="pointer-events-none absolute inset-x-0 top-0 z-[5] h-16 bg-gradient-to-b from-black/95 via-black/60 to-transparent"></div>
+                    <div class="absolute right-3 top-3 z-10 flex items-center gap-1.5">
+                        <button type="button" x-on:click="toggleFullscreen()" title="Full screen" class="rounded-md bg-black/60 p-2 text-white hover:bg-black/80">
+                            <x-icon name="maximize" class="h-5 w-5" />
                         </button>
-                        <button type="button" x-on:click="stop()" title="Close" class="rounded-md bg-black/60 p-1.5 text-white hover:bg-black/80">
-                            <x-icon name="x" class="h-4 w-4" />
+                        <button type="button" x-on:click="stop()" title="Close" class="rounded-md bg-black/60 p-2 text-white hover:bg-black/80">
+                            <x-icon name="x" class="h-5 w-5" />
                         </button>
                     </div>
                 </div>
             </template>
         </div>
 
-        <div class="flex flex-1 flex-col p-6">
-            <h3 class="text-lg font-bold text-slate-800">Grey to Glory – Our Journey of Resilience</h3>
-            <p class="mt-2 text-sm text-slate-500">
+        <div class="flex flex-1 flex-col justify-center p-8 sm:p-10">
+            <h3 class="text-2xl font-bold text-slate-800 sm:text-3xl">Grey to Glory – Our Journey of Resilience</h3>
+            <p class="mt-4 max-w-xl text-base text-slate-500">
                 From the darkest clouds to the brightest skies — Grey to Glory is the story of how our company faced storms, setbacks, and challenges, yet rose stronger than ever. It's a journey of resilience, determination, and the unwavering spirit that turned struggles into success.
             </p>
-            <div class="mt-auto flex gap-3 pt-4">
-                <button type="button" x-on:click="play('english')" class="btn-primary text-xs">▶️ English</button>
-                <button type="button" x-on:click="play('hindi')" class="btn-primary text-xs">▶️ Hindi</button>
+            <div class="mt-6 flex gap-4">
+                <button type="button" x-on:click="play('english')" class="btn-primary">▶️ English</button>
+                <button type="button" x-on:click="play('hindi')" class="btn-primary">▶️ Hindi</button>
             </div>
         </div>
     </div>

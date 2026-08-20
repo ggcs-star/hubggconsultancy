@@ -50,7 +50,11 @@ window.startResourcePlayer = function (videoId, checkpoints) {
 
         currentPlayer = new window.YT.Player('resource-youtube-player', {
             videoId,
-            playerVars: { rel: 0 },
+            // modestbranding trims the YouTube logo/branding. Note: YouTube retired the
+            // showinfo param years ago, so the title/channel overlay that briefly appears
+            // over the video on play/hover is native player chrome we can't fully suppress
+            // through the IFrame API — this is the closest supported option.
+            playerVars: { rel: 0, modestbranding: 1 },
             events: {
                 onReady: (event) => event.target.playVideo(),
                 onStateChange: (event) => {

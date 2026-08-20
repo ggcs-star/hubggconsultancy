@@ -173,23 +173,21 @@
                         <template x-if="! isPlaying({{ $resource->id }}, selectedTab)">
                             <div class="group relative h-full w-full cursor-pointer" x-on:click="openVideo({{ $resource->id }}, selectedTab)">
                                 @if ($resource->thumbnail)
-                                    <img src="{{ asset('storage/' . $resource->thumbnail) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover">
+                                    <img src="{{ asset('storage/' . $resource->thumbnail) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover transition group-hover:brightness-90">
                                 @else
                                     <div class="flex h-full w-full items-center justify-center bg-slate-800 text-slate-500">
                                         <x-icon name="video" class="h-10 w-10" />
                                     </div>
                                 @endif
-                                <div class="absolute inset-0 flex items-center justify-center bg-black/25 transition group-hover:bg-black/40">
-                                    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-brand-700 shadow-lg transition group-hover:scale-105">
-                                        <x-icon name="play-circle" class="h-9 w-9" />
-                                    </span>
-                                </div>
                             </div>
                         </template>
 
                         <template x-if="isPlaying({{ $resource->id }}, selectedTab)">
                             <div class="relative h-full w-full">
                                 <div id="resource-youtube-player" class="h-full w-full"></div>
+                                {{-- YouTube's own title/channel overlay can't be disabled via the embed API
+                                     (the old showinfo param was retired) — this masks it instead. --}}
+                                <div class="pointer-events-none absolute inset-x-0 top-0 z-[5] h-14 bg-gradient-to-b from-black/95 via-black/60 to-transparent"></div>
                                 <div class="absolute right-2 top-2 z-10 flex items-center gap-1">
                                     <button type="button" x-on:click="toggleFullscreen({{ $resource->id }})" title="Full screen" class="rounded-md bg-black/60 p-1.5 text-white hover:bg-black/80">
                                         <x-icon name="maximize" class="h-4 w-4" />
