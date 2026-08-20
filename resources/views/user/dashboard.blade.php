@@ -1,11 +1,66 @@
 <x-layout title="Dashboard" subtitle="Track your onboarding journey with GG Hub">
 
-    <div class="card bg-gradient-to-r from-brand-700 to-brand-600 p-6 text-white">
-        <p class="text-sm text-brand-100">Welcome back,</p>
-        <h2 class="text-2xl font-extrabold">{{ $user->name }}</h2>
-        <p class="mt-2 max-w-xl text-sm text-brand-100">
-            Complete your profile, take the onboarding assessment, and work through your training to get certified.
-        </p>
+    {{-- Static "Grey to Glory" video — same click-to-play card UI as the Resources
+         library, but not backed by the Resource model (fixed content, no quiz). --}}
+    <div class="card flex flex-col overflow-hidden border-brand-100 bg-brand-50 sm:flex-row"
+        x-data="{
+            playing: false,
+            videoIds: { english: 'Jj2QrOFjbkQ', hindi: 'XTz1w3cfR_U' },
+            play(language) {
+                window.stopResourcePlayer();
+                this.playing = true;
+                this.$nextTick(() => window.startResourcePlayer(this.videoIds[language], []));
+            },
+            stop() {
+                window.stopResourcePlayer();
+                this.playing = false;
+            },
+            toggleFullscreen() {
+                const el = document.getElementById('dashboard-video-frame');
+                if (! document.fullscreenElement) {
+                    el?.requestFullscreen?.();
+                } else {
+                    document.exitFullscreen?.();
+                }
+            },
+        }">
+        <div id="dashboard-video-frame" class="relative aspect-video shrink-0 bg-black sm:w-96">
+            <template x-if="! playing">
+                <div class="group relative h-full w-full cursor-pointer" x-on:click="play('english')">
+                    <img src="https://img.youtube.com/vi/Jj2QrOFjbkQ/maxresdefault.jpg" alt="Grey to Glory" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/25 transition group-hover:bg-black/40">
+                        <span class="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-brand-700 shadow-lg transition group-hover:scale-105">
+                            <x-icon name="play-circle" class="h-9 w-9" />
+                        </span>
+                    </div>
+                </div>
+            </template>
+
+            <template x-if="playing">
+                <div class="relative h-full w-full">
+                    <div id="resource-youtube-player" class="h-full w-full"></div>
+                    <div class="absolute right-2 top-2 z-10 flex items-center gap-1">
+                        <button type="button" x-on:click="toggleFullscreen()" title="Full screen" class="rounded-md bg-black/60 p-1.5 text-white hover:bg-black/80">
+                            <x-icon name="maximize" class="h-4 w-4" />
+                        </button>
+                        <button type="button" x-on:click="stop()" title="Close" class="rounded-md bg-black/60 p-1.5 text-white hover:bg-black/80">
+                            <x-icon name="x" class="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div class="flex flex-1 flex-col p-6">
+            <h3 class="text-lg font-bold text-slate-800">Grey to Glory – Our Journey of Resilience</h3>
+            <p class="mt-2 text-sm text-slate-500">
+                From the darkest clouds to the brightest skies — Grey to Glory is the story of how our company faced storms, setbacks, and challenges, yet rose stronger than ever. It's a journey of resilience, determination, and the unwavering spirit that turned struggles into success.
+            </p>
+            <div class="mt-auto flex gap-3 pt-4">
+                <button type="button" x-on:click="play('english')" class="btn-primary text-xs">▶️ English</button>
+                <button type="button" x-on:click="play('hindi')" class="btn-primary text-xs">▶️ Hindi</button>
+            </div>
+        </div>
     </div>
 
     @php

@@ -10,11 +10,15 @@ use App\Http\Controllers\Admin\CourseQuizCheckpointController;
 use App\Http\Controllers\Admin\CourseQuizQuestionController;
 use App\Http\Controllers\Admin\CourseQuizReviewController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
 use App\Http\Controllers\Admin\OnboardingAssessmentAnswerController as AdminOnboardingAssessmentAnswerController;
 use App\Http\Controllers\Admin\OnboardingAssessmentController as AdminOnboardingAssessmentController;
 use App\Http\Controllers\Admin\OnboardingAssessmentQuestionController;
 use App\Http\Controllers\Admin\OnboardingAssessmentQuizController;
 use App\Http\Controllers\Admin\PlaceholderController as AdminPlaceholderController;
+use App\Http\Controllers\Admin\ResourceCheckpointController;
+use App\Http\Controllers\Admin\ResourceController as AdminResourceController;
+use App\Http\Controllers\Admin\ResourceQuizQuestionController;
 use App\Http\Controllers\Admin\SaasProductController;
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
 use App\Http\Controllers\Auth\AuthController;
@@ -24,9 +28,13 @@ use App\Http\Controllers\User\CourseController as UserCourseController;
 use App\Http\Controllers\User\CourseLessonProgressController;
 use App\Http\Controllers\User\CourseQuizAnswerController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\User\DocumentController as UserDocumentController;
 use App\Http\Controllers\User\OnboardingAssessmentController as UserOnboardingAssessmentController;
 use App\Http\Controllers\User\PlaceholderController as UserPlaceholderController;
+use App\Http\Controllers\User\PointsController;
 use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\ResourceController as UserResourceController;
+use App\Http\Controllers\User\ResourceQuizAnswerController;
 use App\Http\Controllers\Admin\SupportIssueTypeController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\User\SupportTicketController as UserSupportTicketController;
@@ -255,6 +263,31 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::delete('/questions/{question}', [OnboardingAssessmentQuestionController::class, 'destroy'])->name('questions.destroy');
             Route::patch('/answers/{answer}/grade', [AdminOnboardingAssessmentAnswerController::class, 'grade'])->name('answers.grade');
         });
+
+        Route::prefix('resources')->name('resources.')->group(function () {
+            Route::get('/', [AdminResourceController::class, 'index'])->name('index');
+            Route::post('/', [AdminResourceController::class, 'store'])->name('store');
+            Route::get('/{resource}', [AdminResourceController::class, 'show'])->name('show');
+            Route::put('/{resource}', [AdminResourceController::class, 'update'])->name('update');
+            Route::delete('/{resource}', [AdminResourceController::class, 'destroy'])->name('destroy');
+            Route::patch('/{resource}/publish-toggle', [AdminResourceController::class, 'togglePublish'])->name('publish.toggle');
+        });
+
+        Route::post('/resources/{resource}/checkpoints', [ResourceCheckpointController::class, 'store'])->name('resource-checkpoints.store');
+        Route::put('/resource-checkpoints/{checkpoint}', [ResourceCheckpointController::class, 'update'])->name('resource-checkpoints.update');
+        Route::delete('/resource-checkpoints/{checkpoint}', [ResourceCheckpointController::class, 'destroy'])->name('resource-checkpoints.destroy');
+
+        Route::post('/resource-checkpoints/{checkpoint}/questions', [ResourceQuizQuestionController::class, 'store'])->name('resource-quiz-questions.store');
+        Route::put('/resource-quiz-questions/{question}', [ResourceQuizQuestionController::class, 'update'])->name('resource-quiz-questions.update');
+        Route::delete('/resource-quiz-questions/{question}', [ResourceQuizQuestionController::class, 'destroy'])->name('resource-quiz-questions.destroy');
+
+        Route::prefix('documents')->name('documents.')->group(function () {
+            Route::get('/', [AdminDocumentController::class, 'index'])->name('index');
+            Route::post('/', [AdminDocumentController::class, 'store'])->name('store');
+            Route::put('/{document}', [AdminDocumentController::class, 'update'])->name('update');
+            Route::delete('/{document}', [AdminDocumentController::class, 'destroy'])->name('destroy');
+            Route::patch('/{document}/publish-toggle', [AdminDocumentController::class, 'togglePublish'])->name('publish.toggle');
+        });
     });
 
 Route::middleware(['auth', 'role:user'])
@@ -267,6 +300,13 @@ Route::middleware(['auth', 'role:user'])
 
         Route::get('/onboarding-assessment', [UserOnboardingAssessmentController::class, 'index'])->name('onboarding-assessment.index');
         Route::post('/onboarding-assessment/quizzes/{quiz}/submit', [UserOnboardingAssessmentController::class, 'submit'])->name('onboarding-assessment.submit');
+
+        Route::get('/resources', [UserResourceController::class, 'index'])->name('resources.index');
+        Route::post('/resource-quiz-checkpoints/{checkpoint}/answers', [ResourceQuizAnswerController::class, 'store'])->name('resource-quiz-answers.store');
+
+        Route::get('/documents', [UserDocumentController::class, 'index'])->name('documents.index');
+
+        Route::get('/points', [PointsController::class, 'show'])->name('points.show');
 
         Route::get('/training', [UserCourseController::class, 'index'])->name('training');
         Route::get('/courses', [UserCourseController::class, 'index'])->name('courses.index');

@@ -16,12 +16,67 @@
     </div>
 
     @unless (auth()->user()->isAdmin())
-        @php $lmsPoints = auth()->user()->lmsPoints(); @endphp
-        <div class="hidden items-center gap-1.5 rounded-full bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 sm:flex" title="Points earned across your LMS course quizzes">
+        @php
+            $socialLinks = [
+                ['label' => 'Join Global Garner on WhatsApp', 'url' => 'https://chat.whatsapp.com/KvNzx3JmfkFF46QHEoFH7E', 'platform' => 'whatsapp', 'color' => 'bg-[#25D366]'],
+                ['label' => 'Join Global Garner on Telegram', 'url' => 'https://t.me/globalgarnergroup', 'platform' => 'telegram', 'color' => 'bg-[#229ED9]'],
+                ['label' => 'Join Global Garner on Instagram', 'url' => 'https://www.instagram.com/global_garner_official/', 'platform' => 'instagram', 'color' => 'bg-gradient-to-br from-[#f58529] via-[#dd2a7b] to-[#8134af]'],
+                ['label' => 'Join Our WhatsApp Group for New Prospect', 'url' => 'https://chat.whatsapp.com/B8acaayRBj3HXldl6mCvvZ?mode=ems_copy_c', 'platform' => 'whatsapp', 'color' => 'bg-[#25D366]'],
+            ];
+
+            // Toggle button shows one small circle per distinct platform below, in a
+            // stacked cluster — automatically follows whatever platforms are added above.
+            $distinctPlatforms = collect($socialLinks)->unique('platform')->values();
+        @endphp
+        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+            <button type="button" @click="open = !open" title="Join Us To Know More"
+                class="hidden items-center rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-2.5 shadow-sm transition hover:shadow-md sm:flex">
+                @foreach ($distinctPlatforms as $index => $link)
+                    <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ring-2 ring-white {{ $link['color'] }} {{ $index > 0 ? '-ml-2' : '' }}">
+                        <x-brand-icon name="{{ $link['platform'] }}" class="h-3.5 w-3.5" />
+                    </span>
+                @endforeach
+            </button>
+
+            <div x-show="open" x-transition x-cloak class="absolute right-0 top-12 z-30 w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                <p class="flex items-center gap-1.5 border-b border-slate-100 px-4 py-3 text-sm font-bold text-slate-800">
+                    <x-icon name="grid" class="h-4 w-4 text-brand-600" />
+                    Join Us To Know More
+                </p>
+                <div class="py-1">
+                    @foreach ($socialLinks as $link)
+                        <a href="{{ $link['url'] }}" target="_blank" rel="noopener" class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white {{ $link['color'] }}">
+                                <x-brand-icon name="{{ $link['platform'] }}" class="h-4 w-4" />
+                            </span>
+                            <span class="flex-1 text-sm font-medium text-slate-700">{{ $link['label'] }}</span>
+                            <x-icon name="chevron-right" class="h-4 w-4 shrink-0 text-slate-300" />
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        @php $points = auth()->user()->combinedPoints(); @endphp
+        <div class="hidden items-center gap-1.5 rounded-full bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 sm:flex" title="Points earned across your LMS course and Resource video quizzes">
             <x-icon name="trending-up" class="h-4 w-4" />
-            <span>{{ $lmsPoints->earned }}/{{ $lmsPoints->total }}</span>
+            <span><span id="topbar-points-earned">{{ $points->earned }}</span>/<span id="topbar-points-total">{{ $points->total }}</span></span>
             <span class="text-xs font-medium text-amber-500">pts</span>
         </div>
+
+        <script>
+            // Called after any client-side action that can change the user's points
+            // (e.g. answering a Resource video quiz) so the badge above updates
+            // immediately, without needing a full page reload.
+            window.refreshPointsBadge = function () {
+                window.axios.get('{{ route('user.points.show') }}').then(({ data }) => {
+                    const earnedEl = document.getElementById('topbar-points-earned');
+                    const totalEl = document.getElementById('topbar-points-total');
+                    if (earnedEl) earnedEl.textContent = data.earned;
+                    if (totalEl) totalEl.textContent = data.total;
+                });
+            };
+        </script>
     @endunless
 
     <button type="button" class="relative rounded-full p-2.5 text-slate-500 hover:bg-slate-100">

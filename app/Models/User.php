@@ -116,4 +116,49 @@ class User extends Authenticatable
             'percent' => $totalPoints > 0 ? (int) round($earnedPoints / $totalPoints * 100) : null,
         ];
     }
+
+    /**
+     * Points earned across every published Resource's video-checkpoint quizzes.
+     * Resources have no per-user assignment (unlike Courses) — every published
+     * resource counts toward every user's total.
+     */
+    public function resourcePoints(): object
+    {
+        $checkpointIds = ResourceCheckpoint::whereIn(
+            'resource_id',
+            Resource::published()->pluck('id')
+        )->pluck('id');
+
+        $totalPoints = (int) ResourceQuizQuestion::whereIn('resource_checkpoint_id', $checkpointIds)->sum('points');
+
+        $earnedPoints = (int) ResourceQuizAnswer::where('user_id', $this->id)
+            ->whereIn('resource_checkpoint_id', $checkpointIds)
+            ->whereNotNull('points_awarded')
+            ->sum('points_awarded');
+
+        return (object) [
+            'earned' => $earnedPoints,
+            'total' => $totalPoints,
+            'percent' => $totalPoints > 0 ? (int) round($earnedPoints / $totalPoints * 100) : null,
+        ];
+    }
+
+    /**
+     * LMS course points + Resource points combined into the one "pts" figure
+     * shown in the topbar.
+     */
+    public function combinedPoints(): object
+    {
+        $lms = $this->lmsPoints();
+        $resources = $this->resourcePoints();
+
+        $earned = $lms->earned + $resources->earned;
+        $total = $lms->total + $resources->total;
+
+        return (object) [
+            'earned' => $earned,
+            'total' => $total,
+            'percent' => $total > 0 ? (int) round($earned / $total * 100) : null,
+        ];
+    }
 }

@@ -7,6 +7,7 @@
         ]
         : [
             ['label' => 'Dashboard', 'icon' => 'grid', 'route' => 'user.dashboard'],
+            ['label' => 'Resources', 'icon' => 'video', 'route' => 'user.resources.index'],
             ['label' => 'Onboarding Assessment', 'icon' => 'check-circle', 'route' => 'user.onboarding-assessment.index'],
         ];
 
@@ -15,6 +16,8 @@
             ['label' => 'Users', 'icon' => 'users', 'route' => 'admin.clients'],
             ['label' => 'SaaS Products', 'icon' => 'folder', 'route' => 'admin.saas-products.index'],
             ['label' => 'Onboarding Assessment', 'icon' => 'check-circle', 'route' => 'admin.onboarding-assessment.index'],
+            ['label' => 'Resources', 'icon' => 'video', 'route' => 'admin.resources.index'],
+            ['label' => 'Documents', 'icon' => 'document', 'route' => 'admin.documents.index'],
             ['label' => 'Salesperson Applications', 'icon' => 'briefcase', 'route' => 'admin.salesperson-applications'],
         ]
         : [];
@@ -27,6 +30,7 @@
         ]
         : [
             ['label' => 'Training / LMS', 'icon' => 'academic-cap', 'route' => 'user.training'],
+            ['label' => 'Documents', 'icon' => 'document', 'route' => 'user.documents.index'],
             ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'user.certificates.index'],
             ['label' => 'Sales Manuals', 'icon' => 'document', 'route' => 'user.manuals'],
         ];
@@ -112,10 +116,15 @@
 
                 <div class="space-y-1">
                     @foreach ($contentNav as $item)
+                        @php
+                            $isActive = request()->routeIs($item['route'])
+                                || ($item['route'] === 'admin.resources.index' && request()->routeIs('admin.resources.*'))
+                                || ($item['route'] === 'admin.documents.index' && request()->routeIs('admin.documents.*'));
+                        @endphp
                         <a
                             href="{{ route($item['route']) }}"
                             title="{{ $item['label'] }}"
-                            class="sidebar-link {{ request()->routeIs($item['route']) ? 'active' : '' }}"
+                            class="sidebar-link {{ $isActive ? 'active' : '' }}"
                             :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
                         >
                             <x-icon
@@ -157,6 +166,7 @@
                         ) {
                             $isActive = true;
                         }
+
                     @endphp
 
                     <a

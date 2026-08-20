@@ -12,7 +12,7 @@
     {{-- course-player.js must load (and register its window listeners) before Alpine
          starts — Alpine's init() dispatches the first course:load-item via $nextTick,
          which resolves before any script placed later in the page would get to run. --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/course-player.js', 'resources/js/charts.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/course-player.js', 'resources/js/resource-player.js', 'resources/js/charts.js'])
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body
