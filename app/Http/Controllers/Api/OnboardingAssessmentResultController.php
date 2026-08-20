@@ -40,7 +40,7 @@ class OnboardingAssessmentResultController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'onboarding_assesment_passing_score' => $score->passing_score_percent,
+                'onboarding_assesment_passing_score' => $score->passing_score_percent.'%',
             ]);
         }
 
@@ -50,9 +50,9 @@ class OnboardingAssessmentResultController extends Controller
             'email' => $user->email,
             'phone' => $user->phone,
             'points' => $score->earned_points.'/'.$score->total_points,
-            'score_percent' => $score->percent,
+            'score_percent' => is_null($score->percent) ? null : $score->percent.'%',
             'assessment_status' => $score->status,
-            'onboarding_assesment_passing_score' => $score->passing_score_percent,
+            'onboarding_assesment_passing_score' => $score->passing_score_percent.'%',
         ]);
     }
 }
