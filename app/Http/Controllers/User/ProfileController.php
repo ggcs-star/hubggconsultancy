@@ -26,6 +26,7 @@ class ProfileController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'gg_user_id' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:1000'],
             'highest_qualification' => ['nullable', 'string', 'max:255'],
             'institution_name' => ['nullable', 'string', 'max:255'],

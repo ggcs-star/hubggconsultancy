@@ -54,8 +54,12 @@
                         <input type="email" value="{{ $user->email }}" disabled class="form-input bg-slate-50 text-slate-400">
                     </div>
                     <div>
-                        <label for="phone" class="form-label">Phone Number</label>
+                        <label for="phone" class="form-label">Phone Number (please add GG Number)</label>
                         <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="form-input" placeholder="+91 90000 00000">
+                    </div>
+                    <div>
+                        <label for="gg_user_id" class="form-label">GG UserId</label>
+                        <input id="gg_user_id" type="text" name="gg_user_id" value="{{ old('gg_user_id', $user->gg_user_id) }}" class="form-input" placeholder="GG UserId">
                     </div>
                     <div>
                         <label for="highest_qualification" class="form-label">Highest Qualification</label>
@@ -105,7 +109,7 @@
             </div>
 
             <div class="card p-6">
-                <h2 class="text-base font-bold text-slate-800">Interest</h2>
+                <h2 class="text-base font-bold text-slate-800">Payout Accelerator</h2>
                 <p class="text-sm text-slate-400">Pick the SaaS products you're interested in learning to sell</p>
 
                 <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

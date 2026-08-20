@@ -28,6 +28,7 @@ class User extends Authenticatable
         'salesperson_status',
         'status',
         'phone',
+        'gg_user_id',
         'address',
         'city',
         'highest_qualification',
