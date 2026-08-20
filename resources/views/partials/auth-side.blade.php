@@ -2,10 +2,13 @@
     <div class="relative z-10 flex h-full flex-col px-8 py-8 xl:px-12 2xl:px-16">
         <!-- Header -->
         <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white shadow-md backdrop-blur-sm">
-                <x-icon name="academic-cap" class="h-5 w-5" />
+            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white p-1.5 shadow-lg">
+                <img src="{{ asset('favicon.png') }}" alt="Global Garner Hub" class="h-full w-full object-contain" />
             </div>
-            <span class="text-lg font-bold text-white tracking-tight">Pre Sales School</span>
+            <div class="leading-tight">
+                <p class="text-lg font-bold text-white tracking-tight">Global Garner Hub</p>
+                <p class="text-xs text-white/70">Learn. Train. Certify. Grow.</p>
+            </div>
         </div>
 
         <!-- Main Content -->
@@ -56,7 +59,7 @@
         <!-- Footer -->
         <div class="mt-auto flex items-center gap-2 pt-8 text-xs text-white/50 border-t border-white/10">
             <x-icon name="lock" class="h-3.5 w-3.5" />
-            <span>&copy; {{ date('Y') }} Pre Sales School. All rights reserved.</span>
+            <span>&copy; {{ date('Y') }} Global Garner Hub. All rights reserved.</span>
         </div>
     </div>
 

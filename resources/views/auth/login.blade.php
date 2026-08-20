@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log In · Pre Sales School</title>
+    <title>Log In · GG Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -18,8 +18,8 @@
 
         <div class="flex w-full flex-col justify-center overflow-y-auto px-6 py-8 sm:px-12 lg:w-1/2 xl:w-[42%] xl:px-16">
             <div class="mx-auto w-full max-w-sm">
-                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
-                    <x-icon name="lock" class="h-7 w-7" />
+                <div class="mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-2xl border border-brand-100 bg-white p-3 shadow-sm">
+                    <img src="{{ asset('favicon.png') }}" alt="Global Garner Hub" class="h-full w-full object-contain" />
                 </div>
 
                 <h2 class="text-center text-2xl font-extrabold text-slate-800">Welcome Back!</h2>

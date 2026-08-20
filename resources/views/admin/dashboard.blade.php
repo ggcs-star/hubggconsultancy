@@ -1,4 +1,4 @@
-<x-layout title="Dashboard" subtitle="Overview of users, applications and training across Pre Sales School">
+<x-layout title="Dashboard" subtitle="Overview of users, applications and training across GG Hub">
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <x-stat-card icon="users" color="primary" :value="$stats['total_users']" label="Total Users" :trend="$usersTrend" />

@@ -42,9 +42,7 @@
         class="flex h-20 shrink-0 items-center gap-3 px-6 transition-all duration-200"
         :class="sidebarCollapsed ? 'lg:justify-center lg:px-3' : ''"
     >
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-700 text-white">
-            <x-icon name="academic-cap" class="h-6 w-6" />
-        </div>
+        <img src="{{ asset('favicon.png') }}" alt="GG Hub" class="h-11 w-11 shrink-0 object-contain" />
 
         <div
             class="min-w-0 flex-1 leading-tight"
@@ -52,7 +50,7 @@
             x-transition.opacity
         >
             <p class="truncate text-base font-bold text-slate-800">
-                Pre Sales School
+                GG Hub
             </p>
 
             <p class="truncate text-xs text-slate-400">

@@ -1,4 +1,4 @@
-<x-layout title="Users" subtitle="Everyone who has registered on Pre Sales School">
+<x-layout title="Users" subtitle="Everyone who has registered on GG Hub">
 
     @php
         $clientFilterFields = ['search', 'status', 'profile_status', 'salesperson_status', 'min_points', 'max_points'];

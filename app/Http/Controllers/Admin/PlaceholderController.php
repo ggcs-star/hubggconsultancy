@@ -29,7 +29,7 @@ class PlaceholderController extends Controller
     {
         return view('admin.placeholder', [
             'title' => 'Settings',
-            'description' => 'Platform-wide settings for Pre Sales School will live here.',
+            'description' => 'Platform-wide settings for GG Hub will live here.',
             'icon' => 'cog',
         ]);
     }

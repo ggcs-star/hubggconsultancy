@@ -29,7 +29,7 @@ class CertificateTemplateSeeder extends Seeder
 
                 'signer_name' => 'Anuj Singh',
                 'signer_designation' => 'Director',
-                'organization_name' => 'Pre Sales School',
+                'organization_name' => 'GG Hub',
 
                 'settings' => [
                     'orientation' => 'landscape',
@@ -108,7 +108,7 @@ class CertificateTemplateSeeder extends Seeder
 
                 'signer_name' => 'Anuj Singh',
                 'signer_designation' => 'Director',
-                'organization_name' => 'Pre Sales School',
+                'organization_name' => 'GG Hub',
 
                 'settings' => [
                     'orientation' => 'landscape',
@@ -187,7 +187,7 @@ class CertificateTemplateSeeder extends Seeder
 
                 'signer_name' => 'Anuj Singh',
                 'signer_designation' => 'Director',
-                'organization_name' => 'Pre Sales School',
+                'organization_name' => 'GG Hub',
 
                 'settings' => [
                     'orientation' => 'landscape',
@@ -266,7 +266,7 @@ class CertificateTemplateSeeder extends Seeder
 
                 'signer_name' => 'Anuj Singh',
                 'signer_designation' => 'Director',
-                'organization_name' => 'Pre Sales School',
+                'organization_name' => 'GG Hub',
 
                 'settings' => [
                     'orientation' => 'landscape',
@@ -345,7 +345,7 @@ class CertificateTemplateSeeder extends Seeder
 
                 'signer_name' => 'Anuj Singh',
                 'signer_designation' => 'Director',
-                'organization_name' => 'Pre Sales School',
+                'organization_name' => 'GG Hub',
 
                 'settings' => [
                     'orientation' => 'landscape',
@@ -424,7 +424,7 @@ class CertificateTemplateSeeder extends Seeder
 
                 'signer_name' => 'Anuj Singh',
                 'signer_designation' => 'Director',
-                'organization_name' => 'Pre Sales School',
+                'organization_name' => 'GG Hub',
 
                 'settings' => [
                     'orientation' => 'landscape',
@@ -503,7 +503,7 @@ class CertificateTemplateSeeder extends Seeder
 
                 'signer_name' => 'Anuj Singh',
                 'signer_designation' => 'Director',
-                'organization_name' => 'Pre Sales School',
+                'organization_name' => 'GG Hub',
 
                 'settings' => [
                     'orientation' => 'landscape',

@@ -1,4 +1,4 @@
-<x-layout title="Dashboard" subtitle="Track your onboarding journey with Pre Sales School">
+<x-layout title="Dashboard" subtitle="Track your onboarding journey with GG Hub">
 
     <div class="card bg-gradient-to-r from-brand-700 to-brand-600 p-6 text-white">
         <p class="text-sm text-brand-100">Welcome back,</p>
