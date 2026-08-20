@@ -160,7 +160,7 @@ class OnboardingAssessmentController extends Controller
 
     public function resultShow(User $user, OnboardingAssessmentScorer $scorer): View
     {
-        $quizzes = OnboardingAssessmentQuiz::with('questions.options')->ordered()->get();
+        $quizzes = $scorer->relevantQuizzes($user, withOptions: true);
         $answers = OnboardingAssessmentAnswer::where('user_id', $user->id)
             ->get()
             ->keyBy('onboarding_assessment_question_id');

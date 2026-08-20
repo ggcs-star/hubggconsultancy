@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OnboardingAssessmentQuestion extends Model
 {
-    use HasFactory, HasSortOrder;
+    use HasFactory, HasSortOrder, SoftDeletes;
 
     protected $fillable = [
         'onboarding_assessment_quiz_id',
@@ -24,9 +25,10 @@ class OnboardingAssessmentQuestion extends Model
     {
         // This app's tables are MyISAM (no FK support), so ON DELETE CASCADE in the
         // migrations is not actually enforced by the database — cascade manually.
+        // Answers are deliberately never touched here: once a user has answered a
+        // question, deleting/editing it must not affect their already-submitted result.
         static::deleting(function (self $question) {
             $question->options()->delete();
-            $question->answers()->delete();
         });
     }
 

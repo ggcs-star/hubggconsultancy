@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\OnboardingAssessmentOption;
+use App\Models\OnboardingAssessmentQuestion;
 use App\Models\OnboardingAssessmentQuiz;
 use App\Models\OnboardingAssessmentSetting;
 use App\Models\User;
@@ -20,10 +22,7 @@ class OnboardingAssessmentScorer
     {
         $settings = OnboardingAssessmentSetting::current();
 
-        // Draft quizzes aren't reachable by students, so they shouldn't factor into
-        // the combined score/pass-fail determination — only affects what's counted,
-        // not what admins can see (admin views load their own unfiltered quiz list).
-        $quizzes = OnboardingAssessmentQuiz::published()->with('questions')->ordered()->get();
+        $quizzes = $this->relevantQuizzes($user);
 
         $answersByQuestionId = $user->onboardingAssessmentAnswers()->get()
             ->keyBy('onboarding_assessment_question_id');
@@ -98,7 +97,10 @@ class OnboardingAssessmentScorer
             }
 
             $answeredCount++;
-            $totalPoints += $question->points;
+            // Use the point value the question was worth when the user answered it, not
+            // whatever it's worth now — a later points edit must not reshape their score.
+            $questionPoints = $answer->question_points ?? $question->points;
+            $totalPoints += $questionPoints;
 
             if (! $submittedAt || $answer->created_at->lt($submittedAt)) {
                 $submittedAt = $answer->created_at;
@@ -109,7 +111,7 @@ class OnboardingAssessmentScorer
                 continue;
             }
 
-            $gradedPoints += $question->points;
+            $gradedPoints += $questionPoints;
             $earnedPoints += $answer->points_awarded;
 
             if ($answer->is_correct) {
@@ -134,5 +136,91 @@ class OnboardingAssessmentScorer
             'total_question_count' => $quiz->questions->count(),
             'status' => ! $attempted ? 'not_started' : ($pendingCount > 0 ? 'pending_review' : 'graded'),
         ];
+    }
+
+    /**
+     * Quizzes relevant to this user: every live (published, non-deleted) quiz/question,
+     * plus any quiz/question the user has already answered even if it's since been
+     * deleted, unpublished, or edited — so a completed result never changes shape
+     * because of a later admin edit. A user with no answers only ever sees live content.
+     *
+     * @return Collection<int, OnboardingAssessmentQuiz>
+     */
+    public function relevantQuizzes(User $user, bool $withOptions = false): Collection
+    {
+        $liveWith = $withOptions ? ['questions.options'] : ['questions'];
+
+        $liveQuizzes = OnboardingAssessmentQuiz::published()->with($liveWith)->ordered()->get();
+
+        $answeredQuestionIds = $user->onboardingAssessmentAnswers()->pluck('onboarding_assessment_question_id');
+
+        $liveQuestionIds = $liveQuizzes->pluck('questions')->flatten()->pluck('id');
+
+        $missingAnsweredQuestions = OnboardingAssessmentQuestion::withTrashed()
+            ->whereIn('id', $answeredQuestionIds)
+            ->whereNotIn('id', $liveQuestionIds)
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('onboarding_assessment_quiz_id');
+
+        $quizzesById = $liveQuizzes->keyBy('id');
+
+        foreach ($missingAnsweredQuestions as $quizId => $questions) {
+            $quiz = $quizzesById->get($quizId) ?? OnboardingAssessmentQuiz::withTrashed()->find($quizId);
+
+            if (! $quiz) {
+                continue;
+            }
+
+            if (! $quizzesById->has($quizId)) {
+                $quiz->setRelation('questions', collect());
+                $quizzesById->put($quizId, $quiz);
+            }
+
+            $quiz->setRelation('questions', $quiz->questions->concat($questions)->sortBy('sort_order')->values());
+        }
+
+        if ($withOptions) {
+            $answersByQuestionId = $user->onboardingAssessmentAnswers()->get()->keyBy('onboarding_assessment_question_id');
+
+            foreach ($quizzesById as $quiz) {
+                foreach ($quiz->questions as $question) {
+                    $answer = $answersByQuestionId->get($question->id);
+
+                    if (! $answer) {
+                        continue;
+                    }
+
+                    // Prefer the exact option list recorded at answer time — options get
+                    // wholesale deleted+recreated on every question edit, so falling back
+                    // to the live/trashed relation for an un-snapshotted (legacy) answer
+                    // can show duplicate-looking rows if the wording didn't actually change.
+                    if ($answer->options_snapshot) {
+                        $question->setRelation(
+                            'options',
+                            collect($answer->options_snapshot)->map(fn (array $option) => (object) $option)->values()
+                        );
+                    } else {
+                        // No snapshot recorded (answer predates this fix). Best effort: the
+                        // question's current live options, plus whichever exact option was
+                        // actually selected even if it's since been trashed by an edit — not
+                        // every trashed row ever, which would show stray duplicate choices.
+                        $selectedIds = collect($answer->selected_option_ids ?? []);
+                        $liveOptions = $question->options()->orderBy('sort_order')->get();
+                        $missingSelected = OnboardingAssessmentOption::withTrashed()
+                            ->whereIn('id', $selectedIds)
+                            ->whereNotIn('id', $liveOptions->pluck('id'))
+                            ->get();
+
+                        $question->setRelation(
+                            'options',
+                            $liveOptions->concat($missingSelected)->sortBy('sort_order')->values()
+                        );
+                    }
+                }
+            }
+        }
+
+        return $quizzesById->values()->sortBy('sort_order')->values();
     }
 }

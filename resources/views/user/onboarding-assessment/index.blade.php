@@ -95,20 +95,24 @@
                                     <p class="text-sm text-slate-500">{{ $quizStatusCopy[$quizScore->status]['note'] }}</p>
                                 @endif
                                 @foreach ($quiz->questions as $question)
-                                    @php $answer = $answers->get($question->id); @endphp
+                                    @php
+                                        $answer = $answers->get($question->id);
+                                        $questionPoints = $answer?->question_points ?? $question->points;
+                                        $questionText = $answer?->question_text ?? $question->question_text;
+                                    @endphp
                                     <div class="rounded-xl border border-slate-100 p-4">
-                                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ $questionTypeLabels[$question->type] }} &middot; {{ $question->points }} {{ Str::plural('pt', $question->points) }}</span>
-                                        <p class="mt-1 font-medium text-slate-800">{{ $question->question_text }}</p>
+                                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ $questionTypeLabels[$question->type] }} &middot; {{ $questionPoints }} {{ Str::plural('pt', $questionPoints) }}</span>
+                                        <p class="mt-1 font-medium text-slate-800">{{ $questionText }}</p>
 
                                         @if ($question->type === 'text')
                                             <p class="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">{{ $answer?->answer_text ?: '—' }}</p>
                                             <p class="mt-2 text-xs italic text-slate-400">
-                                                {{ is_null($answer?->points_awarded) ? 'Awaiting review' : $answer->points_awarded . '/' . $question->points . ' pts' }}
+                                                {{ is_null($answer?->points_awarded) ? 'Awaiting review' : $answer->points_awarded . '/' . $questionPoints . ' pts' }}
                                             </p>
                                         @else
                                             <ul class="mt-2 space-y-1">
                                                 @foreach ($question->options as $option)
-                                                    @php $wasSelected = in_array($option->id, $answer->selected_option_ids ?? []); @endphp
+                                                    @php $wasSelected = $option->selected ?? in_array($option->id, $answer->selected_option_ids ?? []); @endphp
                                                     <li class="flex items-center gap-1.5 text-sm {{ $option->is_correct ? 'font-medium text-emerald-600' : ($wasSelected ? 'font-medium text-red-600' : 'text-slate-400') }}">
                                                         <x-icon name="{{ $wasSelected ? 'check-circle' : 'x' }}" class="h-3.5 w-3.5" />
                                                         {{ $option->option_text }}
@@ -116,7 +120,7 @@
                                                 @endforeach
                                             </ul>
                                             <p class="mt-2 text-sm font-medium {{ $answer?->is_correct ? 'text-emerald-600' : 'text-red-600' }}">
-                                                {{ $answer->points_awarded ?? 0 }}/{{ $question->points }} pts
+                                                {{ $answer->points_awarded ?? 0 }}/{{ $questionPoints }} pts
                                             </p>
                                         @endif
                                     </div>

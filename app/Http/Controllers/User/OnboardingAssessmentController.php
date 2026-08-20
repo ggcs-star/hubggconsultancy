@@ -23,7 +23,7 @@ class OnboardingAssessmentController extends Controller
 
         $settings = OnboardingAssessmentSetting::current();
         $score = $scorer->score($user);
-        $quizzes = OnboardingAssessmentQuiz::published()->with('questions.options')->ordered()->get();
+        $quizzes = $scorer->relevantQuizzes($user, withOptions: true);
 
         $answers = $score->attempted
             ? $user->onboardingAssessmentAnswers()->get()->keyBy('onboarding_assessment_question_id')
@@ -78,10 +78,22 @@ class OnboardingAssessmentController extends Controller
             $isCorrect = null;
             $pointsAwarded = null;
 
+            $optionsSnapshot = null;
+
             if ($question->type !== 'text') {
                 $correctOptionIds = $question->options->where('is_correct', true)->pluck('id')->sort()->values();
                 $isCorrect = $selectedIds->sort()->values()->all() === $correctOptionIds->all();
                 $pointsAwarded = $isCorrect ? $question->points : 0;
+
+                // Snapshot the exact option list as answered — options get wholesale
+                // deleted+recreated on every question edit, so this is the only reliable
+                // way to show "what the user actually saw" later, without duplicates.
+                $optionsSnapshot = $question->options->map(fn ($option) => [
+                    'id' => $option->id,
+                    'option_text' => $option->option_text,
+                    'is_correct' => $option->is_correct,
+                    'selected' => $selectedIds->contains($option->id),
+                ])->values()->all();
             }
 
             OnboardingAssessmentAnswer::updateOrCreate(
@@ -91,6 +103,9 @@ class OnboardingAssessmentController extends Controller
                     'selected_option_ids' => $selectedIds->all(),
                     'is_correct' => $isCorrect,
                     'points_awarded' => $pointsAwarded,
+                    'question_text' => $question->question_text,
+                    'question_points' => $question->points,
+                    'options_snapshot' => $optionsSnapshot,
                 ]
             );
         }

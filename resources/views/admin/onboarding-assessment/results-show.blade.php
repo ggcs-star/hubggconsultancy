@@ -79,7 +79,7 @@
                         @if ($quizScore)
                             <span class="badge {{ $quizStatusBadge[$quizScore->status]['class'] }}">{{ $quizStatusBadge[$quizScore->status]['label'] }}</span>
                         @endif
-                        @if ($quizScore && $quizScore->attempted)
+                        @if ($quizScore && $quizScore->attempted && ! $quiz->trashed())
                             <form method="POST" action="{{ route('admin.onboarding-assessment.results.retake-quiz', [$student, $quiz]) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Allow {{ $student->name }} to retake \'{{ $quiz->title }}\'? Their current answers for this quiz will be cleared.', target: $el })">
                                 @csrf
                                 @method('DELETE')
@@ -91,10 +91,14 @@
 
                 <div class="divide-y divide-slate-100">
                     @forelse ($quiz->questions as $question)
-                        @php $answer = $answers->get($question->id); @endphp
+                        @php
+                            $answer = $answers->get($question->id);
+                            $questionPoints = $answer?->question_points ?? $question->points;
+                            $questionText = $answer?->question_text ?? $question->question_text;
+                        @endphp
                         <div class="p-5">
-                            <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ $questionTypeLabels[$question->type] }} &middot; {{ $question->points }} {{ Str::plural('pt', $question->points) }}</span>
-                            <p class="mt-1 font-medium text-slate-800">{{ $question->question_text }}</p>
+                            <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ $questionTypeLabels[$question->type] }} &middot; {{ $questionPoints }} {{ Str::plural('pt', $questionPoints) }}</span>
+                            <p class="mt-1 font-medium text-slate-800">{{ $questionText }}</p>
 
                             @if (! $answer)
                                 <p class="mt-2 text-sm italic text-slate-400">Not answered.</p>
@@ -106,20 +110,20 @@
                                         @csrf
                                         @method('PATCH')
                                         <div>
-                                            <label class="form-label">Points (0–{{ $question->points }})</label>
-                                            <input type="number" name="points_awarded" min="0" max="{{ $question->points }}" required class="form-input w-32">
+                                            <label class="form-label">Points (0–{{ $questionPoints }})</label>
+                                            <input type="number" name="points_awarded" min="0" max="{{ $questionPoints }}" required class="form-input w-32">
                                         </div>
                                         <button type="submit" class="btn-primary">Save Grade</button>
                                     </form>
                                 @else
                                     <p class="mt-2 text-sm font-medium {{ $answer->is_correct ? 'text-emerald-600' : 'text-red-600' }}">
-                                        Graded: {{ $answer->points_awarded }}/{{ $question->points }} pts
+                                        Graded: {{ $answer->points_awarded }}/{{ $questionPoints }} pts
                                     </p>
                                 @endif
                             @else
                                 <ul class="mt-2 space-y-1">
                                     @foreach ($question->options as $option)
-                                        @php $wasSelected = in_array($option->id, $answer->selected_option_ids ?? []); @endphp
+                                        @php $wasSelected = $option->selected ?? in_array($option->id, $answer->selected_option_ids ?? []); @endphp
                                         <li class="flex items-center gap-1.5 text-sm {{ $option->is_correct ? 'font-medium text-emerald-600' : ($wasSelected ? 'font-medium text-red-600' : 'text-slate-400') }}">
                                             <x-icon name="{{ $wasSelected ? 'check-circle' : 'x' }}" class="h-3.5 w-3.5" />
                                             {{ $option->option_text }}
@@ -128,7 +132,7 @@
                                     @endforeach
                                 </ul>
                                 <p class="mt-2 text-sm font-medium {{ $answer->is_correct ? 'text-emerald-600' : 'text-red-600' }}">
-                                    {{ $answer->points_awarded }}/{{ $question->points }} pts
+                                    {{ $answer->points_awarded }}/{{ $questionPoints }} pts
                                 </p>
                             @endif
                         </div>

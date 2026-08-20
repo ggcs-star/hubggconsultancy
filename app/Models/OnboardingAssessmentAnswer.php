@@ -16,10 +16,14 @@ class OnboardingAssessmentAnswer extends Model
         'points_awarded',
         'graded_by',
         'graded_at',
+        'question_text',
+        'question_points',
+        'options_snapshot',
     ];
 
     protected $casts = [
         'selected_option_ids' => 'array',
+        'options_snapshot' => 'array',
         'is_correct' => 'boolean',
         'graded_at' => 'datetime',
     ];
@@ -31,7 +35,7 @@ class OnboardingAssessmentAnswer extends Model
 
     public function question(): BelongsTo
     {
-        return $this->belongsTo(OnboardingAssessmentQuestion::class, 'onboarding_assessment_question_id');
+        return $this->belongsTo(OnboardingAssessmentQuestion::class, 'onboarding_assessment_question_id')->withTrashed();
     }
 
     public function grader(): BelongsTo
