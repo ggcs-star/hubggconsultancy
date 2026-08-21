@@ -7,50 +7,50 @@
             </div>
             <div class="leading-tight">
                 <p class="text-lg font-bold text-white tracking-tight">Global Garner Hub</p>
-                <p class="text-xs text-white/70">Learn. Train. Certify. Grow.</p>
+                <p class="text-xs font-medium uppercase tracking-wider text-brand-300">Learn · Assess · Grow</p>
             </div>
         </div>
 
         <!-- Main Content -->
-        <div class="mt-8 max-w-sm 2xl:max-w-md">
-            <h1 class="text-3xl font-extrabold leading-tight text-white xl:text-4xl 2xl:text-[2.75rem]">
-                Turn every rep<br>into a <span class="text-brand-300 relative">
-                    closer.
-                    <span class="absolute -bottom-1 left-0 w-full h-1 bg-brand-400/50 rounded-full"></span>
+        <div class="mt-10 max-w-md 2xl:max-w-lg">
+            <h1 class="text-2xl font-extrabold leading-tight text-white xl:text-3xl 2xl:text-[2.25rem]">
+                Know More. Do Better.
+                <span class="relative inline-block whitespace-nowrap text-brand-300">
+                    Grow Faster.
+                    <span class="absolute -bottom-1.5 left-0 h-1 w-full rounded-full bg-brand-400/50"></span>
                 </span>
             </h1>
-            <p class="mt-4 text-sm text-white/80 leading-relaxed xl:text-base">
-                Onboard, train and certify your sales team with courses, manuals and
-                ready-to-share social content — all in one place.
+            <p class="mt-5 max-w-[26rem] text-sm leading-relaxed text-white/80 xl:text-base">
+                Learn the Global Garner ecosystem, assess your knowledge, and build the skills to grow.
             </p>
 
             <!-- Feature List -->
-            <div class="mt-8 space-y-4">
-                <div class="flex items-start gap-4 group">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white transition-all group-hover:bg-white/20 group-hover:scale-105">
-                        <x-icon name="trending-up" class="h-5 w-5" />
-                    </span>
-                    <div>
-                        <p class="font-semibold text-white">Track Progress</p>
-                        <p class="text-sm text-white/70">Follow every learner from sign-up to certification.</p>
-                    </div>
-                </div>
-                <div class="flex items-start gap-4 group">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white transition-all group-hover:bg-white/20 group-hover:scale-105">
+            <div class="mt-9 space-y-5">
+                <div class="flex items-start gap-4 border-l-2 border-white/10 pl-4 transition-colors hover:border-brand-300">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-brand-200">
                         <x-icon name="book-open" class="h-5 w-5" />
                     </span>
                     <div>
-                        <p class="font-semibold text-white">One Learning Hub</p>
-                        <p class="text-sm text-white/70">Courses, manuals and guides kept in one place.</p>
+                        <p class="font-semibold text-white">Learn</p>
+                        <p class="text-sm text-white/70">Explore GG resources.</p>
                     </div>
                 </div>
-                <div class="flex items-start gap-4 group">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white transition-all group-hover:bg-white/20 group-hover:scale-105">
-                        <x-icon name="users" class="h-5 w-5" />
+                <div class="flex items-start gap-4 border-l-2 border-white/10 pl-4 transition-colors hover:border-brand-300">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-brand-200">
+                        <x-icon name="check-circle" class="h-5 w-5" />
                     </span>
                     <div>
-                        <p class="font-semibold text-white">For Admins & Sales Team</p>
-                        <p class="text-sm text-white/70">Role-based access for every kind of user.</p>
+                        <p class="font-semibold text-white">Assess</p>
+                        <p class="text-sm text-white/70">Test your knowledge.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 border-l-2 border-white/10 pl-4 transition-colors hover:border-brand-300">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-brand-200">
+                        <x-icon name="trending-up" class="h-5 w-5" />
+                    </span>
+                    <div>
+                        <p class="font-semibold text-white">Grow</p>
+                        <p class="text-sm text-white/70">Improve and qualify.</p>
                     </div>
                 </div>
             </div>
@@ -64,7 +64,10 @@
     </div>
 
     <!-- Illustration -->
-    <div class="absolute bottom-0 right-0 z-0 w-[55%] h-auto opacity-20">
+    <div
+        class="absolute bottom-0 right-0 z-0 h-auto w-[55%] opacity-20"
+        style="-webkit-mask-image: linear-gradient(to left, black 70%, transparent 100%); mask-image: linear-gradient(to left, black 70%, transparent 100%);"
+    >
         <img
             id="auth-illustration"
             src="{{ asset('images/login.png') }}"

@@ -17,8 +17,8 @@
     </a>
 
     <div class="mt-4 card flex items-center gap-4 p-5">
-        @if ($resource->thumbnail)
-            <img src="{{ asset('storage/' . $resource->thumbnail) }}" alt="" class="h-16 w-24 shrink-0 rounded-lg object-cover">
+        @if ($resource->thumbnailFor('hindi'))
+            <img src="{{ asset('storage/' . $resource->thumbnailFor('hindi')) }}" alt="" class="h-16 w-24 shrink-0 rounded-lg object-cover">
         @else
             <div class="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-300">
                 <x-icon name="video" class="h-6 w-6" />

@@ -22,8 +22,8 @@
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($resources as $resource)
             <div class="card flex flex-col overflow-hidden">
-                @if ($resource->thumbnail)
-                    <img src="{{ asset('storage/' . $resource->thumbnail) }}" alt="" class="h-40 w-full object-cover">
+                @if ($resource->thumbnailFor('hindi'))
+                    <img src="{{ asset('storage/' . $resource->thumbnailFor('hindi')) }}" alt="" class="h-40 w-full object-cover">
                 @else
                     <div class="flex h-40 w-full items-center justify-center bg-slate-100 text-slate-300">
                         <x-icon name="video" class="h-10 w-10" />

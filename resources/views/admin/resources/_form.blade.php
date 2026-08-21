@@ -27,13 +27,26 @@
             <textarea name="description" rows="3" class="form-input" placeholder="Shown on the resource card, with a See More toggle">{{ old('description', $isEdit ? $resource->description : '') }}</textarea>
         </div>
 
-        <div>
-            <label class="form-label">Thumbnail</label>
-            @if ($isEdit && $resource->thumbnail)
-                <img src="{{ asset('storage/' . $resource->thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
-            @endif
-            <input type="file" name="thumbnail" accept="image/*" class="form-input">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+                <label class="form-label">Hindi Thumbnail</label>
+                @if ($isEdit && $resource->hindi_thumbnail)
+                    <img src="{{ asset('storage/' . $resource->hindi_thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
+                @endif
+                <input type="file" name="hindi_thumbnail" accept="image/*" class="form-input">
+                <x-input-error :messages="$errors->get('hindi_thumbnail')" class="mt-1" />
+            </div>
+
+            <div>
+                <label class="form-label">English Thumbnail</label>
+                @if ($isEdit && $resource->english_thumbnail)
+                    <img src="{{ asset('storage/' . $resource->english_thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
+                @endif
+                <input type="file" name="english_thumbnail" accept="image/*" class="form-input">
+                <x-input-error :messages="$errors->get('english_thumbnail')" class="mt-1" />
+            </div>
         </div>
+        <p class="-mt-3 text-xs text-slate-400">Shown on the resource card depending on which language tab a learner has selected. If a language's thumbnail is left blank, the other language's is used instead.</p>
 
         <div>
             <label class="form-label">Hindi YouTube Link</label>

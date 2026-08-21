@@ -2,18 +2,20 @@
 
     {{-- Static "Grey to Glory" video — same click-to-play card UI as the Resources
          library, but not backed by the Resource model (fixed content, no quiz). --}}
-    <div class="card flex flex-col overflow-hidden border-brand-100 bg-brand-50 sm:flex-row sm:min-h-[30rem]"
+    <div class="card flex flex-col overflow-hidden border-brand-100 bg-white sm:flex-row sm:min-h-[22rem]"
         x-data="{
             playing: false,
+            currentVideoId: null,
+            currentLanguage: 'english',
             videoIds: { english: 'Jj2QrOFjbkQ', hindi: 'XTz1w3cfR_U' },
             play(language) {
-                window.stopResourcePlayer();
+                this.currentLanguage = language;
+                this.currentVideoId = this.videoIds[language];
                 this.playing = true;
-                this.$nextTick(() => window.startResourcePlayer(this.videoIds[language], []));
             },
             stop() {
-                window.stopResourcePlayer();
                 this.playing = false;
+                this.currentVideoId = null;
             },
             toggleFullscreen() {
                 const el = document.getElementById('dashboard-video-frame');
@@ -24,7 +26,7 @@
                 }
             },
         }">
-        <div id="dashboard-video-frame" class="relative h-72 shrink-0 bg-black sm:h-auto sm:w-[62%] sm:self-stretch">
+        <div id="dashboard-video-frame" class="relative h-72 shrink-0 bg-black sm:h-auto sm:w-[58%] sm:self-stretch">
             <template x-if="! playing">
                 <div class="group relative h-full w-full cursor-pointer" x-on:click="play('english')">
                     <img src="https://img.youtube.com/vi/Jj2QrOFjbkQ/maxresdefault.jpg" alt="Grey to Glory" class="h-full w-full object-cover">
@@ -38,10 +40,20 @@
 
             <template x-if="playing">
                 <div class="relative h-full w-full">
-                    <div id="resource-youtube-player" class="h-full w-full"></div>
-                    {{-- YouTube's own title/channel overlay can't be disabled via the embed API
-                         (the old showinfo param was retired) — this masks it instead. --}}
-                    <div class="pointer-events-none absolute inset-x-0 top-0 z-[5] h-16 bg-gradient-to-b from-black/95 via-black/60 to-transparent"></div>
+                    {{-- controls=0 hides YouTube's own chrome so the title/channel card never
+                         appears while playing. Browsers silently block autoplay-with-sound though,
+                         which would otherwise leave the video sitting on that same title/channel
+                         "not started" cover screen — so it starts muted (always allowed to autoplay)
+                         and is unmuted a beat later via the player postMessage API once it's live. --}}
+                    <iframe
+                        x-ref="videoIframe"
+                        :src="'https://www.youtube-nocookie.com/embed/' + currentVideoId + '?autoplay=1&mute=1&controls=0&rel=0&modestbranding=1&iv_load_policy=3&cc_load_policy=0&disablekb=1&enablejsapi=1'"
+                        x-on:load="setTimeout(() => $refs.videoIframe?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), 'https://www.youtube-nocookie.com'), 500)"
+                        class="h-full w-full"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                    ></iframe>
                     <div class="absolute right-3 top-3 z-10 flex items-center gap-1.5">
                         <button type="button" x-on:click="toggleFullscreen()" title="Full screen" class="rounded-md bg-black/60 p-2 text-white hover:bg-black/80">
                             <x-icon name="maximize" class="h-5 w-5" />
@@ -54,14 +66,41 @@
             </template>
         </div>
 
-        <div class="flex flex-1 flex-col justify-center p-8 sm:p-10">
-            <h3 class="text-2xl font-bold text-slate-800 sm:text-3xl">Grey to Glory – Our Journey of Resilience</h3>
-            <p class="mt-4 max-w-xl text-base text-slate-500">
+        <div class="relative flex flex-1 flex-col justify-center overflow-hidden bg-gradient-to-br from-white via-brand-50 to-brand-100 p-8 sm:p-10">
+            {{-- Decorative dot grid + wave background, echoing the auth-side panel --}}
+            <div
+                class="pointer-events-none absolute inset-0"
+                style="background-image: radial-gradient(#c4b5fd 1px, transparent 1px); background-size: 16px 16px; -webkit-mask-image: radial-gradient(circle at top right, black, transparent 55%); mask-image: radial-gradient(circle at top right, black, transparent 55%); opacity: 0.35;"
+            ></div>
+            <svg class="pointer-events-none absolute -bottom-10 -right-10 h-56 w-56 text-brand-300 opacity-30" viewBox="0 0 200 200" fill="none">
+                <path d="M0 140 C 50 100, 100 180, 200 120" stroke="currentColor" stroke-width="2" />
+                <path d="M0 170 C 50 130, 100 200, 200 150" stroke="currentColor" stroke-width="2" />
+                <path d="M0 100 C 50 60, 100 140, 200 80" stroke="currentColor" stroke-width="2" />
+            </svg>
+
+            <span class="badge relative w-fit bg-brand-600 uppercase tracking-wider text-white">Our Story</span>
+
+            <h3 class="relative mt-3 text-2xl font-extrabold leading-tight text-brand-900 sm:text-3xl">
+                Grey to Glory –<br>Our Journey of <span class="bg-gradient-to-r from-brand-600 to-indigo-500 bg-clip-text text-transparent">Resilience</span>
+            </h3>
+            <span class="relative mt-3 h-1 w-14 rounded-full bg-brand-400"></span>
+
+            <p class="relative mt-4 max-w-xl text-base text-slate-500">
                 From the darkest clouds to the brightest skies — Grey to Glory is the story of how our company faced storms, setbacks, and challenges, yet rose stronger than ever. It's a journey of resilience, determination, and the unwavering spirit that turned struggles into success.
             </p>
-            <div class="mt-6 flex gap-4">
-                <button type="button" x-on:click="play('english')" class="btn-primary">▶️ English</button>
-                <button type="button" x-on:click="play('hindi')" class="btn-primary">▶️ Hindi</button>
+            <div class="relative mt-6 flex gap-4">
+                <button
+                    type="button"
+                    x-on:click="play('english')"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition"
+                    :class="currentLanguage === 'english' ? 'bg-brand-700 text-white hover:bg-brand-800' : 'border border-brand-300 bg-white text-brand-700 hover:bg-brand-50'"
+                >▶️ English</button>
+                <button
+                    type="button"
+                    x-on:click="play('hindi')"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition"
+                    :class="currentLanguage === 'hindi' ? 'bg-brand-700 text-white hover:bg-brand-800' : 'border border-brand-300 bg-white text-brand-700 hover:bg-brand-50'"
+                >▶️ Hindi</button>
             </div>
         </div>
     </div>

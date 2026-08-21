@@ -16,6 +16,8 @@ class Resource extends Model
         'title',
         'description',
         'thumbnail',
+        'hindi_thumbnail',
+        'english_thumbnail',
         'hindi_youtube_url',
         'english_youtube_url',
         'is_published',
@@ -44,6 +46,17 @@ class Resource extends Model
     public function checkpointsFor(string $language): HasMany
     {
         return $this->checkpoints()->where('language', $language)->orderBy('sort_order');
+    }
+
+    // Falls back to the other language's thumbnail, then the legacy shared thumbnail
+    // (from before per-language thumbnails existed), when one hasn't been uploaded.
+    public function thumbnailFor(string $language): ?string
+    {
+        return match ($language) {
+            'hindi' => $this->hindi_thumbnail ?: $this->english_thumbnail ?: $this->thumbnail,
+            'english' => $this->english_thumbnail ?: $this->hindi_thumbnail ?: $this->thumbnail,
+            default => $this->thumbnail,
+        };
     }
 
     public function scopePublished(Builder $query): Builder

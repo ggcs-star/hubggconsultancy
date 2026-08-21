@@ -51,6 +51,9 @@ module.exports = {
                 'surface-alt': '#f8fafc',
                 'chart-4': '#0ea5e9',
             },
+            animation: {
+                'spin-slow': 'spin 6s linear infinite',
+            },
         },
     },
     plugins: [],

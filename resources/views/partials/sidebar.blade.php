@@ -58,7 +58,7 @@
             </p>
 
             <p class="truncate text-xs text-slate-400">
-                {{ $isAdmin ? 'Admin Panel' : 'Sales Team' }}
+                {{ $isAdmin ? 'Admin Panel' : 'Learn · Assess · Grow' }}
             </p>
         </div>
 

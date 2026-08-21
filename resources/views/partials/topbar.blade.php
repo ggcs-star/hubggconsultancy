@@ -21,6 +21,7 @@
                 ['label' => 'Join Global Garner on WhatsApp', 'url' => 'https://chat.whatsapp.com/KvNzx3JmfkFF46QHEoFH7E', 'platform' => 'whatsapp', 'color' => 'bg-[#25D366]'],
                 ['label' => 'Join Global Garner on Telegram', 'url' => 'https://t.me/globalgarnergroup', 'platform' => 'telegram', 'color' => 'bg-[#229ED9]'],
                 ['label' => 'Join Global Garner on Instagram', 'url' => 'https://www.instagram.com/global_garner_official/', 'platform' => 'instagram', 'color' => 'bg-gradient-to-br from-[#f58529] via-[#dd2a7b] to-[#8134af]'],
+                ['label' => 'Join Global Garner on LinkedIn', 'url' => 'https://www.linkedin.com/company/global-garner-sales-services-limited/', 'platform' => 'linkedin', 'color' => 'bg-[#0A66C2]'],
                 ['label' => 'Join Our WhatsApp Group for New Prospect', 'url' => 'https://chat.whatsapp.com/B8acaayRBj3HXldl6mCvvZ?mode=ems_copy_c', 'platform' => 'whatsapp', 'color' => 'bg-[#25D366]'],
             ];
 
@@ -29,14 +30,21 @@
             $distinctPlatforms = collect($socialLinks)->unique('platform')->values();
         @endphp
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-            <button type="button" @click="open = !open" title="Join Us To Know More"
-                class="hidden items-center rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-2.5 shadow-sm transition hover:shadow-md sm:flex">
-                @foreach ($distinctPlatforms as $index => $link)
-                    <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ring-2 ring-white {{ $link['color'] }} {{ $index > 0 ? '-ml-2' : '' }}">
-                        <x-brand-icon name="{{ $link['platform'] }}" class="h-3.5 w-3.5" />
-                    </span>
-                @endforeach
-            </button>
+            <div class="relative hidden p-2 sm:block">
+                <div class="absolute inset-0 rounded-full border border-dashed border-brand-300">
+                    <span class="absolute -left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-brand-400"></span>
+                    <span class="absolute -right-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-brand-400"></span>
+                </div>
+
+                <button type="button" @click="open = !open" title="Join Us To Know More"
+                    class="relative flex items-center rounded-full border border-slate-200 bg-white py-2 pl-2 pr-3 shadow-sm transition hover:shadow-md">
+                    @foreach ($distinctPlatforms as $index => $link)
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ring-2 ring-white {{ $link['color'] }} {{ $index > 0 ? '-ml-3' : '' }}">
+                            <x-brand-icon name="{{ $link['platform'] }}" class="h-5 w-5" />
+                        </span>
+                    @endforeach
+                </button>
+            </div>
 
             <div x-show="open" x-transition x-cloak class="absolute right-0 top-12 z-30 w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
                 <p class="flex items-center gap-1.5 border-b border-slate-100 px-4 py-3 text-sm font-bold text-slate-800">

@@ -183,9 +183,13 @@
                     <div id="resource-frame-{{ $resource->id }}" class="relative aspect-video w-full shrink-0 bg-black">
                         <template x-if="! isPlaying({{ $resource->id }}, selectedTab)">
                             <div class="group relative h-full w-full cursor-pointer" x-on:click="openVideo({{ $resource->id }}, selectedTab)">
-                                @if ($resource->thumbnail)
-                                    <img src="{{ asset('storage/' . $resource->thumbnail) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover transition group-hover:brightness-90">
-                                @else
+                                @if ($resource->thumbnailFor('hindi'))
+                                    <img x-show="selectedTab === 'hindi'" src="{{ asset('storage/' . $resource->thumbnailFor('hindi')) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover transition group-hover:brightness-90">
+                                @endif
+                                @if ($resource->thumbnailFor('english'))
+                                    <img x-show="selectedTab === 'english'" src="{{ asset('storage/' . $resource->thumbnailFor('english')) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover transition group-hover:brightness-90">
+                                @endif
+                                @if (! $resource->thumbnailFor('hindi') && ! $resource->thumbnailFor('english'))
                                     <div class="flex h-full w-full items-center justify-center bg-slate-800 text-slate-500">
                                         <x-icon name="video" class="h-10 w-10" />
                                     </div>
