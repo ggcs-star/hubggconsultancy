@@ -51,7 +51,17 @@ class Handler extends ExceptionHandler
         // A missing/stale build (e.g. mid-deploy, before `npm run build` finishes on the
         // server) must never surface as a raw crash to a live user — show a "we're
         // updating" holding page instead, which auto-refreshes until the build lands.
-        $this->renderable(function (ViteManifestNotFoundException $e, Request $request) {
+        //
+        // @vite(...) always fails from *inside* a Blade view (layout.blade.php), and
+        // Illuminate\View\Engines\CompilerEngine::handleViewException() wraps whatever
+        // exception a view throws into a ViewException (chained via getPrevious()) before
+        // it ever reaches here — so this can't type-hint ViteManifestNotFoundException
+        // directly, it has to unwrap the chain to find it.
+        $this->renderable(function (Throwable $e, Request $request) {
+            if (! $this->causedByMissingViteManifest($e)) {
+                return null;
+            }
+
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'The site is being updated. Please try again shortly.'], 503);
             }
@@ -76,5 +86,22 @@ class Handler extends ExceptionHandler
 
             return redirect()->route('login')->with('status', 'Your session has expired for your security. Please log in again.');
         });
+    }
+
+    /**
+     * Walks the full getPrevious() chain, since view-rendering wraps the real
+     * exception (ViteManifestNotFoundException) inside one or more ViewExceptions.
+     */
+    private function causedByMissingViteManifest(?Throwable $e): bool
+    {
+        while ($e !== null) {
+            if ($e instanceof ViteManifestNotFoundException) {
+                return true;
+            }
+
+            $e = $e->getPrevious();
+        }
+
+        return false;
     }
 }
