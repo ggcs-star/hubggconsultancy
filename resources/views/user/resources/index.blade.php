@@ -7,6 +7,7 @@
             return {
                 data,
                 selectedTab: 'hindi',
+                searchTerm: '',
                 activeResourceId: null,
                 activeLanguage: null,
                 activeCheckpoint: null,
@@ -150,23 +151,33 @@
         x-data="resourceLibrary(window.resourcePlayerData)"
         x-on:resource:checkpoint.window="onCheckpoint($event.detail)"
     >
-        {{-- Language tabs — pick Hindi or English to see that language's videos only --}}
-        <div class="flex items-center gap-6 border-b border-slate-200">
-            <button type="button" x-on:click="stopVideo(); selectedTab = 'hindi'" class="border-b-2 px-1 pb-3 text-sm font-semibold transition"
-                :class="selectedTab === 'hindi' ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-400 hover:text-slate-600'">
-                Hindi
-            </button>
-            <button type="button" x-on:click="stopVideo(); selectedTab = 'english'" class="border-b-2 px-1 pb-3 text-sm font-semibold transition"
-                :class="selectedTab === 'english' ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-400 hover:text-slate-600'">
-                English
-            </button>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="relative w-full sm:max-w-xs">
+                <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" x-model="searchTerm" placeholder="Search resources..." class="form-input pl-10" :class="searchTerm ? 'pr-9' : ''">
+                <button type="button" x-show="searchTerm" x-cloak x-on:click="searchTerm = ''" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <x-icon name="x" class="h-4 w-4" />
+                </button>
+            </div>
+
+            {{-- Language switch — pick Hindi or English to see that language's videos only --}}
+            <div class="flex items-center gap-2">
+                <button type="button" x-on:click="stopVideo(); selectedTab = 'hindi'" class="rounded-lg px-5 py-2 text-sm font-semibold transition"
+                    :class="selectedTab === 'hindi' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'">
+                    Hindi
+                </button>
+                <button type="button" x-on:click="stopVideo(); selectedTab = 'english'" class="rounded-lg px-5 py-2 text-sm font-semibold transition"
+                    :class="selectedTab === 'english' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'">
+                    English
+                </button>
+            </div>
         </div>
 
         <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($resources as $resource)
                 @continue(! $resource->hindi_youtube_url && ! $resource->english_youtube_url)
                 <div class="card flex flex-col overflow-hidden" x-data="{ expanded: false }"
-                    x-show="selectedTab === 'hindi' ? {{ $resource->hindi_youtube_url ? 'true' : 'false' }} : {{ $resource->english_youtube_url ? 'true' : 'false' }}"
+                    x-show="(selectedTab === 'hindi' ? {{ $resource->hindi_youtube_url ? 'true' : 'false' }} : {{ $resource->english_youtube_url ? 'true' : 'false' }}) && (searchTerm.trim() === '' || {{ \Illuminate\Support\Js::from(strtolower($resource->title)) }}.includes(searchTerm.trim().toLowerCase()))"
                     x-cloak>
                     {{-- The frame itself is the player — click anywhere on it to play, no separate button. --}}
                     <div id="resource-frame-{{ $resource->id }}" class="relative aspect-video w-full shrink-0 bg-black">
