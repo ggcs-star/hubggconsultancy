@@ -70,7 +70,7 @@
         <table class="w-full text-left text-sm">
             <thead>
                 <tr class="text-xs uppercase tracking-wider text-slate-400">
-                    <th class="px-5 py-3 font-semibold">Student</th>
+                    <th class="px-5 py-3 font-semibold">User</th>
                     <th class="px-5 py-3 font-semibold">Interest</th>
                     <th class="px-5 py-3 font-semibold">Score</th>
                     <th class="px-5 py-3 font-semibold">Status</th>

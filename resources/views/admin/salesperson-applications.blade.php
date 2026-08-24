@@ -1,4 +1,4 @@
-<x-layout title="Salesperson Applications" subtitle="Review and approve clients who applied to become salespeople">
+<x-layout title="Onboarding" subtitle="Review and approve clients who applied to become salespeople">
 
     @php
         $statusMap = ['pending' => 'badge-amber', 'approved' => 'badge-green', 'rejected' => 'badge-slate'];

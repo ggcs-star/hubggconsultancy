@@ -40,6 +40,12 @@ use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\User\SupportTicketController as UserSupportTicketController;
 use App\Http\Controllers\Admin\SalesManualController;
 use App\Http\Controllers\User\SalesManualController as UserSalesManualController;
+use App\Http\Controllers\Admin\SalesToolkitController;
+use App\Http\Controllers\User\SalesToolkitController as UserSalesToolkitController;
+use App\Http\Controllers\Admin\EventController as AdminEventController;
+use App\Http\Controllers\User\EventController as UserEventController;
+use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\User\FaqController as UserFaqController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -288,6 +294,31 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::delete('/{document}', [AdminDocumentController::class, 'destroy'])->name('destroy');
             Route::patch('/{document}/publish-toggle', [AdminDocumentController::class, 'togglePublish'])->name('publish.toggle');
         });
+
+        Route::prefix('sales-toolkit')->name('sales-toolkit.')->group(function () {
+            Route::get('/', [SalesToolkitController::class, 'index'])->name('index');
+            Route::post('/', [SalesToolkitController::class, 'store'])->name('store');
+            Route::put('/{salesToolkitItem}', [SalesToolkitController::class, 'update'])->name('update');
+            Route::delete('/{salesToolkitItem}', [SalesToolkitController::class, 'destroy'])->name('destroy');
+            Route::patch('/{salesToolkitItem}/publish-toggle', [SalesToolkitController::class, 'togglePublish'])->name('publish.toggle');
+        });
+
+        Route::prefix('events')->name('events.')->group(function () {
+            Route::get('/', [AdminEventController::class, 'index'])->name('index');
+            Route::post('/', [AdminEventController::class, 'store'])->name('store');
+            Route::put('/{event}', [AdminEventController::class, 'update'])->name('update');
+            Route::delete('/{event}', [AdminEventController::class, 'destroy'])->name('destroy');
+            Route::patch('/{event}/publish-toggle', [AdminEventController::class, 'togglePublish'])->name('publish.toggle');
+            Route::get('/{event}/registrants', [AdminEventController::class, 'registrants'])->name('registrants');
+        });
+
+        Route::prefix('faqs')->name('faqs.')->group(function () {
+            Route::get('/', [FaqController::class, 'index'])->name('index');
+            Route::post('/', [FaqController::class, 'store'])->name('store');
+            Route::put('/{faq}', [FaqController::class, 'update'])->name('update');
+            Route::delete('/{faq}', [FaqController::class, 'destroy'])->name('destroy');
+            Route::patch('/{faq}/publish-toggle', [FaqController::class, 'togglePublish'])->name('publish.toggle');
+        });
     });
 
 Route::middleware(['auth', 'role:user'])
@@ -305,6 +336,14 @@ Route::middleware(['auth', 'role:user'])
         Route::post('/resource-quiz-checkpoints/{checkpoint}/answers', [ResourceQuizAnswerController::class, 'store'])->name('resource-quiz-answers.store');
 
         Route::get('/documents', [UserDocumentController::class, 'index'])->name('documents.index');
+
+        Route::get('/sales-toolkit', [UserSalesToolkitController::class, 'index'])->name('sales-toolkit.index');
+
+        Route::get('/events', [UserEventController::class, 'index'])->name('events.index');
+        Route::post('/events/{event}/register', [UserEventController::class, 'register'])->name('events.register');
+        Route::delete('/events/{event}/register', [UserEventController::class, 'unregister'])->name('events.unregister');
+
+        Route::get('/faqs', [UserFaqController::class, 'index'])->name('faqs.index');
 
         Route::get('/points', [PointsController::class, 'show'])->name('points.show');
 

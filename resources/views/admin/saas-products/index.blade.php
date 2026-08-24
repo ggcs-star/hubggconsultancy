@@ -1,4 +1,4 @@
-<x-layout title="SaaS Products" title-icon="sparkles" subtitle="The product catalog salespeople and clients can express interest in">
+<x-layout title="Products & Opportunities" title-icon="sparkles" subtitle="The product catalog salespeople and clients can express interest in">
 
     @php
         $accentColors = [

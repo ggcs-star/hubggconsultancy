@@ -65,11 +65,97 @@
             </div>
         </div>
 
-        @php $points = auth()->user()->combinedPoints(); @endphp
-        <div class="hidden items-center gap-1.5 rounded-full bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 sm:flex" title="Points earned across your LMS course and Resource video quizzes">
-            <x-icon name="trending-up" class="h-4 w-4" />
-            <span><span id="topbar-points-earned">{{ $points->earned }}</span>/<span id="topbar-points-total">{{ $points->total }}</span></span>
-            <span class="text-xs font-medium text-amber-500">pts</span>
+        @php
+            $points = auth()->user()->combinedPoints();
+
+            // TEMP: static breakdown so the dropdown has something to show.
+            // Replace with real per-category point data once that's tracked.
+            $pointsBreakdown = [
+                ['label' => 'Training Completion', 'sub' => 'Completed onboarding training', 'icon' => 'academic-cap', 'color' => 'bg-violet-100 text-violet-600', 'value' => 500],
+                ['label' => 'Assessments', 'sub' => 'Completed 2 assessments', 'icon' => 'edit', 'color' => 'bg-pink-100 text-pink-500', 'value' => 300],
+                ['label' => 'Certificates Earned', 'sub' => 'Earned 1 certificate', 'icon' => 'badge', 'color' => 'bg-blue-100 text-blue-500', 'value' => 250],
+                ['label' => 'Daily Login', 'sub' => 'Logged in today', 'icon' => 'calendar', 'color' => 'bg-orange-100 text-orange-500', 'value' => 50],
+                ['label' => 'Bonus Points', 'sub' => 'Achieved bonus milestone', 'icon' => 'star', 'color' => 'bg-amber-100 text-amber-500', 'value' => 150],
+            ];
+        @endphp
+
+        <div class="relative hidden sm:block" x-data="{ pointsOpen: false }" @click.outside="pointsOpen = false">
+            <button
+                type="button"
+                @click="pointsOpen = !pointsOpen"
+                class="flex items-center gap-2.5 rounded-2xl border border-dashed border-brand-300 bg-brand-50 py-1.5 pl-2 pr-3 transition hover:bg-brand-100"
+            >
+                <span class="flex h-12 w-12 shrink-0 items-center justify-center">
+                    <img src="{{ asset('images/coins.png') }}" alt="Coins" class="h-12 w-12 object-contain" />
+                </span>
+
+                <span class="text-left leading-tight">
+                    <span class="block text-xs font-semibold text-brand-700">Earning Points</span>
+                    <span class="flex items-baseline gap-1">
+                        <span id="topbar-points-earned" class="text-base font-bold text-slate-800">{{ $points->earned }}</span>
+                        <span class="text-xs font-semibold text-brand-600">pts</span>
+                    </span>
+                </span>
+
+                <span class="block shrink-0 text-brand-400 transition-transform" :class="pointsOpen ? 'rotate-180' : ''">
+                    <x-icon name="chevron-down" class="h-4 w-4" />
+                </span>
+            </button>
+
+            <div
+                x-show="pointsOpen"
+                x-transition
+                x-cloak
+                class="absolute right-0 top-14 z-30 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg"
+            >
+                <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                    <p class="text-sm font-bold text-slate-800">Earning Points Overview</p>
+                    <x-icon name="trending-up" class="h-4 w-4 text-brand-600" />
+                </div>
+
+                <div class="space-y-4 p-4">
+                    <div class="flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-14 w-14 shrink-0 items-center justify-center">
+                                <img src="{{ asset('images/coins.png') }}" alt="Coins" class="h-14 w-14 object-contain" />
+                            </span>
+                            <span>
+                                <span class="block text-sm font-semibold text-slate-800">Total Points</span>
+                                <span class="block text-xs text-slate-400">Keep learning and earning!</span>
+                            </span>
+                        </div>
+                        <span class="whitespace-nowrap text-lg font-bold text-brand-700">
+                            <span id="topbar-points-earned-total">{{ $points->earned }}</span>
+                            <span class="text-xs font-semibold text-brand-600">pts</span>
+                        </span>
+                    </div>
+
+                    <div class="space-y-3">
+                        @foreach ($pointsBreakdown as $row)
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ $row['color'] }}">
+                                        <x-icon name="{{ $row['icon'] }}" class="h-4 w-4" />
+                                    </span>
+                                    <span>
+                                        <span class="block text-sm font-semibold text-slate-700">{{ $row['label'] }}</span>
+                                        <span class="block text-xs text-slate-400">{{ $row['sub'] }}</span>
+                                    </span>
+                                </div>
+                                <span class="whitespace-nowrap text-sm font-semibold text-emerald-600">+{{ $row['value'] }} pts</span>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <span
+                        title="Coming soon"
+                        class="flex cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-300"
+                    >
+                        <x-icon name="gift" class="h-4 w-4" />
+                        View Points History
+                    </span>
+                </div>
+            </div>
         </div>
 
         <script>
@@ -78,10 +164,9 @@
             // immediately, without needing a full page reload.
             window.refreshPointsBadge = function () {
                 window.axios.get('{{ route('user.points.show') }}').then(({ data }) => {
-                    const earnedEl = document.getElementById('topbar-points-earned');
-                    const totalEl = document.getElementById('topbar-points-total');
-                    if (earnedEl) earnedEl.textContent = data.earned;
-                    if (totalEl) totalEl.textContent = data.total;
+                    document.querySelectorAll('#topbar-points-earned, #topbar-points-earned-total').forEach((el) => {
+                        el.textContent = data.earned;
+                    });
                 });
             };
         </script>

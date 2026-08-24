@@ -1,39 +1,199 @@
 @php
     $isAdmin = auth()->user()->isAdmin();
 
-    $mainNav = $isAdmin
-        ? [
-            ['label' => 'Dashboard', 'icon' => 'grid', 'route' => 'admin.dashboard'],
-        ]
-        : [
-            ['label' => 'Dashboard', 'icon' => 'grid', 'route' => 'user.dashboard'],
-            ['label' => 'Resources', 'icon' => 'video', 'route' => 'user.resources.index'],
-            ['label' => 'Onboarding Assessment', 'icon' => 'check-circle', 'route' => 'user.onboarding-assessment.index'],
-        ];
+    $navGroups = [];
 
-    $contentNav = $isAdmin
-        ? [
-            ['label' => 'Users', 'icon' => 'users', 'route' => 'admin.clients'],
-            ['label' => 'SaaS Products', 'icon' => 'folder', 'route' => 'admin.saas-products.index'],
-            ['label' => 'Onboarding Assessment', 'icon' => 'check-circle', 'route' => 'admin.onboarding-assessment.index'],
-            ['label' => 'Resources', 'icon' => 'video', 'route' => 'admin.resources.index'],
-            ['label' => 'Documents', 'icon' => 'document', 'route' => 'admin.documents.index'],
-            ['label' => 'Salesperson Applications', 'icon' => 'briefcase', 'route' => 'admin.salesperson-applications'],
-        ]
-        : [];
+    // Dashboard
+    $navGroups[] = [
+        'heading' => null,
+        'items' => [
+            ['label' => 'Dashboard', 'icon' => 'grid', 'route' => $isAdmin ? 'admin.dashboard' : 'user.dashboard'],
+        ],
+    ];
 
-    $learningNav = $isAdmin
-        ? [
-            ['label' => 'LMS / Courses', 'icon' => 'academic-cap', 'route' => 'admin.courses.index'],
-            ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'admin.certificates'],
-            ['label' => 'Sales Manuals', 'icon' => 'document', 'route' => 'admin.manuals.index'],
-        ]
-        : [
-            ['label' => 'Training / LMS', 'icon' => 'academic-cap', 'route' => 'user.training'],
-            ['label' => 'Documents', 'icon' => 'document', 'route' => 'user.documents.index'],
-            ['label' => 'Certificates', 'icon' => 'badge', 'route' => 'user.certificates.index'],
-            ['label' => 'Sales Manuals', 'icon' => 'document', 'route' => 'user.manuals'],
+    // Existing admin-only items with no equivalent in the new menu structure stay where they were.
+    if ($isAdmin) {
+        $navGroups[] = [
+            'heading' => 'Content',
+            'items' => [
+                ['label' => 'Users', 'icon' => 'users', 'route' => 'admin.clients', 'activePattern' => 'admin.clients*'],
+            ],
         ];
+    }
+
+    $navGroups[] = [
+        'heading' => 'Learn',
+        'items' => [
+            [
+                'label' => 'Training / LMS',
+                'icon' => 'academic-cap',
+                'route' => $isAdmin ? 'admin.courses.index' : 'user.training',
+                'activePattern' => $isAdmin ? 'admin.courses.*' : null,
+            ],
+            [
+                'label' => 'Live & Recorded Training',
+                'icon' => 'video',
+                'route' => $isAdmin ? 'admin.resources.index' : 'user.resources.index',
+                'activePattern' => $isAdmin ? 'admin.resources.*' : null,
+            ],
+            [
+                'label' => 'Documents',
+                'icon' => 'document',
+                'route' => $isAdmin ? 'admin.documents.index' : 'user.documents.index',
+                'activePattern' => $isAdmin ? 'admin.documents.*' : null,
+            ],
+            [
+                'label' => 'Sales Manuals',
+                'icon' => 'document',
+                'route' => $isAdmin ? 'admin.manuals.index' : 'user.manuals',
+                'activePattern' => $isAdmin ? 'admin.manuals.*' : 'user.manuals*',
+            ],
+            [
+                'label' => 'Sales Toolkit',
+                'icon' => 'briefcase',
+                'route' => $isAdmin ? 'admin.sales-toolkit.index' : 'user.sales-toolkit.index',
+                'activePattern' => $isAdmin ? 'admin.sales-toolkit.*' : null,
+            ],
+            ['label' => 'Scripts & Objection Handling', 'icon' => 'book-open', 'route' => null],
+        ],
+    ];
+
+    $navGroups[] = [
+        'heading' => 'Assess & Certify',
+        'items' => [
+            [
+                'label' => 'Assessments',
+                'icon' => 'check-circle',
+                'route' => $isAdmin ? 'admin.onboarding-assessment.index' : 'user.onboarding-assessment.index',
+                'activeCheck' => $isAdmin
+                    ? fn () => request()->routeIs('admin.onboarding-assessment.*') && request()->query('tab', 'quizzes') !== 'results'
+                    : null,
+            ],
+            [
+                'label' => $isAdmin ? 'Results Only' : 'My Results',
+                'icon' => 'grid',
+                'route' => $isAdmin ? 'admin.onboarding-assessment.index' : null,
+                'params' => $isAdmin ? ['tab' => 'results'] : [],
+                'activeCheck' => $isAdmin
+                    ? fn () => request()->routeIs('admin.onboarding-assessment.*') && request()->query('tab') === 'results'
+                    : null,
+            ],
+            $isAdmin ? [
+                'label' => 'SalesPerson',
+                'icon' => 'users',
+                'route' => 'admin.salesperson-applications',
+                'activePattern' => 'admin.salesperson-applications*',
+            ] : null,
+            ['label' => 'Learning Progress', 'icon' => 'grid', 'route' => null],
+            [
+                'label' => 'Certificates',
+                'icon' => 'badge',
+                'route' => $isAdmin ? 'admin.certificates' : 'user.certificates.index',
+                'activePattern' => $isAdmin ? null : 'user.certificates.*',
+            ],
+        ],
+    ];
+
+    $navGroups[count($navGroups) - 1]['items'] = array_values(array_filter($navGroups[count($navGroups) - 1]['items']));
+
+    $navGroups[] = [
+        'heading' => 'Get Started',
+        'items' => [
+            [
+                'label' => 'Onboarding',
+                'icon' => 'check-circle',
+                'route' => null,
+            ],
+            ['label' => 'Partner Journey', 'icon' => 'sparkles', 'route' => null],
+        ],
+    ];
+
+    $navGroups[] = [
+        'heading' => 'Sell',
+        'items' => [
+            [
+                'label' => 'Products & Opportunities',
+                'icon' => 'grid',
+                'route' => $isAdmin ? 'admin.saas-products.index' : null,
+            ],
+            ['label' => 'Leads / CRM', 'icon' => 'users', 'route' => null],
+            ['label' => 'Sales Calculators', 'icon' => 'grid', 'route' => null],
+            ['label' => 'My Team', 'icon' => 'users', 'route' => null],
+        ],
+    ];
+
+    $navGroups[] = [
+        'heading' => 'Performance',
+        'items' => [
+            ['label' => 'My Performance', 'icon' => 'grid', 'route' => null],
+            ['label' => 'Ranking / Leaderboard', 'icon' => 'grid', 'route' => null],
+            ['label' => 'Contests', 'icon' => 'grid', 'route' => null],
+            ['label' => 'Contest Tracker', 'icon' => 'grid', 'route' => null],
+            ['label' => 'Incentives & Earnings', 'icon' => 'grid', 'route' => null],
+        ],
+    ];
+
+    $navGroups[] = [
+        'heading' => 'Recognition',
+        'items' => [
+            ['label' => 'Achievers / Hall of Fame', 'icon' => 'badge', 'route' => null],
+            ['label' => 'Success Stories', 'icon' => 'badge', 'route' => null],
+        ],
+    ];
+
+    $navGroups[] = [
+        'heading' => 'Events & Community',
+        'items' => [
+            [
+                'label' => 'Events & Webinars',
+                'icon' => 'calendar',
+                'route' => $isAdmin ? 'admin.events.index' : 'user.events.index',
+                'activePattern' => $isAdmin ? 'admin.events.*' : null,
+            ],
+            [
+                'label' => 'GG Community',
+                'icon' => 'users',
+                'route' => null,
+                'url' => 'https://globalgarner.community/',
+            ],
+        ],
+    ];
+
+    $supportItems = [
+        [
+            'label' => 'Knowledge Base',
+            'icon' => 'external-link',
+            'route' => null,
+            'url' => 'https://allinone.ggconsultancy.services/',
+        ],
+        [
+            'label' => 'FAQ',
+            'icon' => 'help-circle',
+            'route' => $isAdmin ? 'admin.faqs.index' : 'user.faqs.index',
+            'activePattern' => $isAdmin ? 'admin.faqs.*' : null,
+        ],
+        [
+            'label' => 'Support Tickets',
+            'icon' => 'help-circle',
+            'route' => $isAdmin ? 'admin.support.tickets.index' : 'user.support.tickets.index',
+            'activePattern' => $isAdmin ? 'admin.support.tickets.*' : 'user.support.tickets.*',
+        ],
+    ];
+
+    // "Issue Types" has no equivalent in the new menu structure, so it stays in its existing spot.
+    if ($isAdmin) {
+        $supportItems[] = [
+            'label' => 'Issue Types',
+            'icon' => 'list',
+            'route' => 'admin.support.issue-types.index',
+            'activePattern' => 'admin.support.issue-types.*',
+        ];
+    }
+
+    $navGroups[] = [
+        'heading' => 'Support',
+        'items' => $supportItems,
+    ];
 @endphp
 
 <aside
@@ -58,7 +218,7 @@
             </p>
 
             <p class="truncate text-xs text-slate-400">
-                {{ $isAdmin ? 'Admin Panel' : 'Learn · Assess · Grow' }}
+                {{ $isAdmin ? 'Admin Panel' : 'Learn · Sell · Grow' }}
             </p>
         </div>
 
@@ -79,185 +239,91 @@
 
     <nav class="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-4 pb-6">
 
-        {{-- Main Navigation --}}
-        <div class="space-y-1">
-            @foreach ($mainNav as $item)
-                <a
-                    href="{{ route($item['route']) }}"
-                    title="{{ $item['label'] }}"
-                    class="sidebar-link {{ request()->routeIs($item['route']) ? 'active' : '' }}"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
-                >
-                    <x-icon
-                        :name="$item['icon']"
-                        class="h-5 w-5 shrink-0"
-                    />
-
-                    <span
+        @foreach ($navGroups as $group)
+            <div>
+                @if ($group['heading'])
+                    <p
+                        class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400"
                         x-show="!sidebarCollapsed"
                         x-transition.opacity
                     >
-                        {{ $item['label'] }}
-                    </span>
-                </a>
-            @endforeach
-        </div>
-
-        {{-- Content --}}
-        @if (!empty($contentNav))
-            <div>
-                <p
-                    class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400"
-                    x-show="!sidebarCollapsed"
-                    x-transition.opacity
-                >
-                    Content
-                </p>
+                        {{ $group['heading'] }}
+                    </p>
+                @endif
 
                 <div class="space-y-1">
-                    @foreach ($contentNav as $item)
-                        @php
-                            $isActive = request()->routeIs($item['route'])
-                                || ($item['route'] === 'admin.resources.index' && request()->routeIs('admin.resources.*'))
-                                || ($item['route'] === 'admin.documents.index' && request()->routeIs('admin.documents.*'));
-                        @endphp
-                        <a
-                            href="{{ route($item['route']) }}"
-                            title="{{ $item['label'] }}"
-                            class="sidebar-link {{ $isActive ? 'active' : '' }}"
-                            :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
-                        >
-                            <x-icon
-                                :name="$item['icon']"
-                                class="h-5 w-5 shrink-0"
-                            />
-
-                            <span
-                                x-show="!sidebarCollapsed"
-                                x-transition.opacity
+                    @foreach ($group['items'] as $item)
+                        @if (!empty($item['url']))
+                            <a
+                                href="{{ $item['url'] }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="{{ $item['label'] }}"
+                                class="sidebar-link"
+                                :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
                             >
-                                {{ $item['label'] }}
+                                <x-icon
+                                    :name="$item['icon']"
+                                    class="h-5 w-5 shrink-0"
+                                />
+
+                                <span
+                                    x-show="!sidebarCollapsed"
+                                    x-transition.opacity
+                                >
+                                    {{ $item['label'] }}
+                                </span>
+                            </a>
+                        @elseif ($item['route'])
+                            @php
+                                $isActive = isset($item['activeCheck'])
+                                    ? ($item['activeCheck'])()
+                                    : (!empty($item['activePattern'])
+                                        ? request()->routeIs($item['activePattern'])
+                                        : request()->routeIs($item['route']));
+                            @endphp
+
+                            <a
+                                href="{{ route($item['route'], $item['params'] ?? []) }}"
+                                title="{{ $item['label'] }}"
+                                class="sidebar-link {{ $isActive ? 'active' : '' }}"
+                                :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
+                            >
+                                <x-icon
+                                    :name="$item['icon']"
+                                    class="h-5 w-5 shrink-0"
+                                />
+
+                                <span
+                                    x-show="!sidebarCollapsed"
+                                    x-transition.opacity
+                                >
+                                    {{ $item['label'] }}
+                                </span>
+                            </a>
+                        @else
+                            <span
+                                title="{{ $item['label'] }} (coming soon)"
+                                class="sidebar-link pointer-events-none cursor-not-allowed opacity-40"
+                                :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
+                            >
+                                <x-icon
+                                    :name="$item['icon']"
+                                    class="h-5 w-5 shrink-0"
+                                />
+
+                                <span
+                                    x-show="!sidebarCollapsed"
+                                    x-transition.opacity
+                                >
+                                    {{ $item['label'] }}
+                                </span>
                             </span>
-                        </a>
+                        @endif
                     @endforeach
                 </div>
             </div>
-        @endif
-
-        {{-- Content / Learning --}}
-        <div>
-            <p
-                class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400"
-                x-show="!sidebarCollapsed"
-                x-transition.opacity
-            >
-                {{ $isAdmin ? 'Content' : 'Learning' }}
-            </p>
-
-            <div class="space-y-1">
-                @foreach ($learningNav as $item)
-                    @php
-                        $isActive = request()->routeIs($item['route']);
-
-                        if (
-                            $isAdmin &&
-                            $item['route'] === 'admin.manuals.index' &&
-                            request()->routeIs('admin.manuals.*')
-                        ) {
-                            $isActive = true;
-                        }
-
-                    @endphp
-
-                    <a
-                        href="{{ route($item['route']) }}"
-                        title="{{ $item['label'] }}"
-                        class="sidebar-link {{ $isActive ? 'active' : '' }}"
-                        :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
-                    >
-                        <x-icon
-                            :name="$item['icon']"
-                            class="h-5 w-5 shrink-0"
-                        />
-
-                        <span
-                            x-show="!sidebarCollapsed"
-                            x-transition.opacity
-                        >
-                            {{ $item['label'] }}
-                        </span>
-                    </a>
-                @endforeach
-            </div>
-        </div>
-
-        {{-- ADMIN SUPPORT --}}
-        @if ($isAdmin)
-            <div>
-                <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Support
-                </p>
-
-                <div class="space-y-1">
-
-                    {{-- Tickets --}}
-                    <a
-                        href="{{ route('admin.support.tickets.index') }}"
-                        class="sidebar-link {{ request()->routeIs('admin.support.tickets.*') ? 'active' : '' }}"
-                    >
-                        <x-icon
-                            name="help-circle"
-                            class="h-5 w-5 shrink-0"
-                        />
-
-                        <span>
-                            Tickets
-                        </span>
-                    </a>
-
-                    {{-- Issue Types --}}
-                    <a
-                        href="{{ route('admin.support.issue-types.index') }}"
-                        class="sidebar-link {{ request()->routeIs('admin.support.issue-types.*') ? 'active' : '' }}"
-                    >
-                        <x-icon
-                            name="list"
-                            class="h-5 w-5 shrink-0"
-                        />
-
-                        <span>
-                            Issue Types
-                        </span>
-                    </a>
-
-                </div>
-            </div>
-        @endif
-
-        {{-- USER SUPPORT --}}
-        @if (!$isAdmin)
-            <div>
-                <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Support
-                </p>
-
-                <div class="space-y-1">
-                    <a
-                        href="{{ route('user.support.tickets.index') }}"
-                        class="sidebar-link {{ request()->routeIs('user.support.tickets.*') ? 'active' : '' }}"
-                    >
-                        <x-icon
-                            name="help-circle"
-                            class="h-5 w-5 shrink-0"
-                        />
-
-                        <span>
-                            Support Tickets
-                        </span>
-                    </a>
-                </div>
-            </div>
-        @endif
+        @endforeach
 
     </nav>
 

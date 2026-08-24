@@ -90,6 +90,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Course::class, 'course_user')->withTimestamps();
     }
 
+    public function registeredEvents(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_registrations')->withTimestamps();
+    }
+
     /**
      * Points earned across every LMS course quiz assigned to this user —
      * both mid-lesson (YouTube video) checkpoints and standalone module
