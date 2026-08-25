@@ -43,12 +43,7 @@
                         <p class="mt-1 text-sm text-slate-400">{{ $score->attempted_quiz_count }}/{{ $score->quiz_count }} {{ Str::plural('quiz', $score->quiz_count) }} completed</p>
 
                         @if ($score->attempted && isset($overallStatusCopy[$score->status]))
-                            <div class="mt-3 flex flex-wrap items-center gap-3">
-                                <span class="badge {{ $overallStatusCopy[$score->status]['class'] }}">{{ $overallStatusCopy[$score->status]['label'] }}</span>
-                                @if ($overallStatusCopy[$score->status]['note'])
-                                    <p class="text-sm text-slate-500">{{ $overallStatusCopy[$score->status]['note'] }}</p>
-                                @endif
-                            </div>
+                            <span class="badge {{ $overallStatusCopy[$score->status]['class'] }} mt-3">{{ $overallStatusCopy[$score->status]['label'] }}</span>
                         @endif
                     </div>
                 </div>
@@ -95,6 +90,13 @@
                 @endif
             </div>
 
+            @if ($score->attempted && isset($overallStatusCopy[$score->status]) && $overallStatusCopy[$score->status]['note'])
+                <div class="mt-4 flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                    <x-icon name="help-circle" class="mt-0.5 h-4 w-4 shrink-0" />
+                    <p>{{ $overallStatusCopy[$score->status]['note'] }}</p>
+                </div>
+            @endif
+
             @if ($score->attempted && ! is_null($score->percent))
                 <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand-50 px-4 py-3">
                     <p class="flex items-center gap-2 text-sm text-brand-700">
@@ -110,6 +112,42 @@
 
         @if ($quizzes->isEmpty())
             <div class="card mt-6 p-8 text-center text-sm text-slate-400">No quizzes have been added yet.</div>
+        @elseif ($score->all_attempted)
+            <div class="card mt-6 p-10 text-center">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
+                    <x-icon name="check-circle" class="h-8 w-8 text-emerald-600" />
+                </div>
+                <h3 class="mt-4 text-lg font-bold text-slate-800">Assessment Completed!</h3>
+                <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">
+                    @if ($score->status === 'pending_review')
+                        You've answered every quiz. A few of your answers are still being reviewed — your final score will update once grading is complete.
+                    @else
+                        You've answered every quiz in the onboarding assessment. Great work!
+                    @endif
+                </p>
+
+                <div class="mt-6 grid grid-cols-1 gap-3 text-left sm:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($score->quizzes as $quizScoreRow)
+                        <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
+                            <p class="min-w-0 truncate text-sm font-medium text-slate-700">{{ $quizScoreRow->quiz->title }}</p>
+                            <div class="flex shrink-0 items-center gap-3">
+                                <span class="text-sm font-bold text-brand-700">
+                                    {{ $quizScoreRow->earned_points }}/{{ $quizScoreRow->total_points }} pts
+                                    @if (! is_null($quizScoreRow->percent))
+                                        <span class="font-medium text-slate-400">({{ $quizScoreRow->percent }}%)</span>
+                                    @endif
+                                </span>
+                                <span class="badge {{ $quizStatusCopy[$quizScoreRow->status]['class'] }}">{{ $quizStatusCopy[$quizScoreRow->status]['label'] }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <a href="{{ route('user.onboarding-assessment.results') }}" class="mt-5 inline-flex items-center gap-1.5 btn-primary">
+                    View My Results
+                    <x-icon name="chevron-right" class="h-4 w-4" />
+                </a>
+            </div>
         @else
             <div class="mt-6 flex items-center gap-2 overflow-x-auto rounded-full bg-slate-100 p-1.5">
                 @foreach ($quizzes as $quiz)
@@ -128,7 +166,11 @@
                 @endforeach
             </div>
 
-            @php $quiz = $activeQuiz; $quizScore = $scoreByQuizId->get($quiz->id); @endphp
+            @php
+                $quiz = $activeQuiz;
+                $quizScore = $scoreByQuizId->get($quiz->id);
+                $nextQuiz = $quizzes->first(fn ($candidate) => $candidate->id !== $quiz->id && ! ($scoreByQuizId->get($candidate->id)?->attempted));
+            @endphp
             <div class="mt-6 space-y-6">
                     <div class="card">
                         <div class="border-b border-slate-100 px-6 py-4">
@@ -182,22 +224,35 @@
                                                     {{ is_null($answer?->points_awarded) ? 'Awaiting review' : $answer->points_awarded . '/' . $questionPoints . ' pts' }}
                                                 </p>
                                             @else
+                                                @php
+                                                    $selectedOptions = $question->options->filter(
+                                                        fn ($option) => $option->selected ?? in_array($option->id, $answer->selected_option_ids ?? [])
+                                                    );
+                                                @endphp
                                                 <ul class="mt-2 space-y-1">
-                                                    @foreach ($question->options as $option)
-                                                        @php $wasSelected = $option->selected ?? in_array($option->id, $answer->selected_option_ids ?? []); @endphp
-                                                        <li class="flex items-center gap-1.5 text-sm {{ $option->is_correct ? 'font-medium text-emerald-600' : ($wasSelected ? 'font-medium text-red-600' : 'text-slate-400') }}">
-                                                            <x-icon name="{{ $wasSelected ? 'check-circle' : 'x' }}" class="h-3.5 w-3.5" />
+                                                    @forelse ($selectedOptions as $option)
+                                                        <li class="flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                                                            <x-icon name="check-circle" class="h-3.5 w-3.5 text-brand-500" />
                                                             {{ $option->option_text }}
                                                         </li>
-                                                    @endforeach
+                                                    @empty
+                                                        <li class="text-sm italic text-slate-400">No answer selected.</li>
+                                                    @endforelse
                                                 </ul>
-                                                <p class="mt-2 text-sm font-medium {{ $answer?->is_correct ? 'text-emerald-600' : 'text-red-600' }}">
+                                                <p class="mt-2 text-sm font-medium text-slate-600">
                                                     {{ $answer->points_awarded ?? 0 }}/{{ $questionPoints }} pts
                                                 </p>
                                             @endif
                                         </div>
                                     </div>
                                 @endforeach
+
+                                @if ($nextQuiz)
+                                    <a href="{{ route('user.onboarding-assessment.index', ['quiz' => $nextQuiz->id]) }}" class="btn-primary inline-flex w-full items-center justify-center gap-1.5 sm:w-auto">
+                                        Next Quiz
+                                        <x-icon name="chevron-right" class="h-4 w-4" />
+                                    </a>
+                                @endif
                             </div>
                         @elseif ($quiz->questions->isEmpty())
                             <div class="p-6 text-center text-sm text-slate-400">This quiz has no questions yet.</div>

@@ -175,8 +175,11 @@ class OnboardingAssessmentController extends Controller
 
     public function retake(User $user): RedirectResponse
     {
+        // withTrashed() matters here: a quiz's questions get soft-deleted whenever they're
+        // edited/replaced, but the user's old answers still reference those question ids —
+        // without it, "Retake All" would silently leave stale answers behind.
         OnboardingAssessmentAnswer::where('user_id', $user->id)
-            ->whereIn('onboarding_assessment_question_id', OnboardingAssessmentQuestion::whereNotNull('onboarding_assessment_quiz_id')->pluck('id'))
+            ->whereIn('onboarding_assessment_question_id', OnboardingAssessmentQuestion::withTrashed()->whereNotNull('onboarding_assessment_quiz_id')->pluck('id'))
             ->delete();
 
         return redirect()
@@ -187,7 +190,7 @@ class OnboardingAssessmentController extends Controller
     public function retakeQuiz(User $user, OnboardingAssessmentQuiz $quiz): RedirectResponse
     {
         OnboardingAssessmentAnswer::where('user_id', $user->id)
-            ->whereIn('onboarding_assessment_question_id', $quiz->questions()->pluck('id'))
+            ->whereIn('onboarding_assessment_question_id', $quiz->questions()->withTrashed()->pluck('id'))
             ->delete();
 
         return redirect()

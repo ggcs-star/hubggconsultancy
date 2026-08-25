@@ -54,7 +54,12 @@
                 'route' => $isAdmin ? 'admin.sales-toolkit.index' : 'user.sales-toolkit.index',
                 'activePattern' => $isAdmin ? 'admin.sales-toolkit.*' : null,
             ],
-            ['label' => 'Scripts & Objection Handling', 'icon' => 'book-open', 'route' => null],
+            [
+                'label' => 'Scripts & Objection Handling',
+                'icon' => 'book-open',
+                'route' => $isAdmin ? 'admin.scripts.index' : 'user.scripts.index',
+                'activePattern' => $isAdmin ? 'admin.scripts.*' : null,
+            ],
         ],
     ];
 
@@ -70,9 +75,9 @@
                     : null,
             ],
             [
-                'label' => $isAdmin ? 'Results Only' : 'My Results',
+                'label' => $isAdmin ? 'Results' : 'My Results',
                 'icon' => 'grid',
-                'route' => $isAdmin ? 'admin.onboarding-assessment.index' : null,
+                'route' => $isAdmin ? 'admin.onboarding-assessment.index' : 'user.onboarding-assessment.results',
                 'params' => $isAdmin ? ['tab' => 'results'] : [],
                 'activeCheck' => $isAdmin
                     ? fn () => request()->routeIs('admin.onboarding-assessment.*') && request()->query('tab') === 'results'

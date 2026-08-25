@@ -40,7 +40,28 @@ class OnboardingAssessmentController extends Controller
         ]);
     }
 
-    public function submit(Request $request, OnboardingAssessmentQuiz $quiz): View|RedirectResponse
+    public function results(Request $request, OnboardingAssessmentScorer $scorer): View
+    {
+        $user = $request->user();
+
+        $score = $scorer->score($user);
+        $quizzes = $scorer->relevantQuizzes($user, withOptions: true);
+
+        $answers = $score->attempted
+            ? $user->onboardingAssessmentAnswers()->get()->keyBy('onboarding_assessment_question_id')
+            : collect();
+
+        $activeQuiz = $quizzes->firstWhere('id', (int) $request->query('quiz')) ?? $quizzes->first();
+
+        return view('user.onboarding-assessment.results', [
+            'score' => $score,
+            'quizzes' => $quizzes,
+            'answers' => $answers,
+            'activeQuiz' => $activeQuiz,
+        ]);
+    }
+
+    public function submit(Request $request, OnboardingAssessmentQuiz $quiz, OnboardingAssessmentScorer $scorer): View|RedirectResponse
     {
         $user = $request->user();
 
@@ -110,6 +131,19 @@ class OnboardingAssessmentController extends Controller
             );
         }
 
-        return redirect()->route('user.onboarding-assessment.index', ['quiz' => $quiz->id])->with('status', "\"{$quiz->title}\" submitted.");
+        // Auto-advance to the next quiz the user hasn't attempted yet, so they don't have
+        // to manually click through tabs. If everything is now attempted, land back on the
+        // index without a quiz param — that's what triggers the "Assessment Completed" screen.
+        $remainingQuizzes = $scorer->relevantQuizzes($user);
+        $answeredQuestionIds = $user->onboardingAssessmentAnswers()->pluck('onboarding_assessment_question_id');
+
+        $nextQuiz = $remainingQuizzes
+            ->reject(fn (OnboardingAssessmentQuiz $candidate) => $candidate->id === $quiz->id)
+            ->first(fn (OnboardingAssessmentQuiz $candidate) => $candidate->questions->isNotEmpty()
+                && $candidate->questions->pluck('id')->diff($answeredQuestionIds)->isNotEmpty());
+
+        return redirect()
+            ->route('user.onboarding-assessment.index', $nextQuiz ? ['quiz' => $nextQuiz->id] : [])
+            ->with('status', "\"{$quiz->title}\" submitted.");
     }
 }

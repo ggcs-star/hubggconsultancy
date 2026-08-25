@@ -1,7 +1,7 @@
 @php
     // Page heading always matches whichever sidebar item leads here — "Assessments" for the
-    // Quizzes/Settings tabs, "My Results" for the results view — not the underlying route's name.
-    $pageTitle = $activeTab === 'results' ? 'My Results' : 'Assessments';
+    // Quizzes/Settings tabs, "Results" for the results view — not the underlying route's name.
+    $pageTitle = $activeTab === 'results' ? 'Results' : 'Assessments';
     $pageSubtitle = $activeTab === 'results'
         ? "Every salesperson's onboarding assessment score."
         : 'Configure the assessment salespeople take.';
@@ -17,7 +17,7 @@
     @endphp
 
     @if ($activeTab === 'results')
-        {{-- Reached only via the "My Results" sidebar link — its own section, not part of the Quizzes/Settings tab switcher. --}}
+        {{-- Reached only via the "Results" sidebar link — its own section, not part of the Quizzes/Settings tab switcher. --}}
         @include('admin.onboarding-assessment._results-tab')
     @else
         <div class="flex items-center justify-between border-b border-slate-200">

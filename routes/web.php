@@ -46,6 +46,9 @@ use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\User\EventController as UserEventController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\User\FaqController as UserFaqController;
+use App\Http\Controllers\Admin\ScriptTopicController;
+use App\Http\Controllers\Admin\ScriptItemController;
+use App\Http\Controllers\User\ScriptController as UserScriptController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -319,6 +322,20 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::delete('/{faq}', [FaqController::class, 'destroy'])->name('destroy');
             Route::patch('/{faq}/publish-toggle', [FaqController::class, 'togglePublish'])->name('publish.toggle');
         });
+
+        Route::prefix('scripts')->name('scripts.')->group(function () {
+            Route::get('/', [ScriptTopicController::class, 'index'])->name('index');
+            Route::post('/', [ScriptTopicController::class, 'store'])->name('store');
+            Route::get('/{script}', [ScriptTopicController::class, 'show'])->name('show');
+            Route::put('/{script}', [ScriptTopicController::class, 'update'])->name('update');
+            Route::delete('/{script}', [ScriptTopicController::class, 'destroy'])->name('destroy');
+            Route::patch('/{script}/publish-toggle', [ScriptTopicController::class, 'togglePublish'])->name('publish.toggle');
+        });
+
+        Route::post('/script-topics/{topic}/items', [ScriptItemController::class, 'store'])->name('script-items.store');
+        Route::put('/script-items/{item}', [ScriptItemController::class, 'update'])->name('script-items.update');
+        Route::delete('/script-items/{item}', [ScriptItemController::class, 'destroy'])->name('script-items.destroy');
+        Route::patch('/script-items/{item}/publish-toggle', [ScriptItemController::class, 'togglePublish'])->name('script-items.publish.toggle');
     });
 
 Route::middleware(['auth', 'role:user'])
@@ -331,6 +348,7 @@ Route::middleware(['auth', 'role:user'])
 
         Route::get('/onboarding-assessment', [UserOnboardingAssessmentController::class, 'index'])->name('onboarding-assessment.index');
         Route::post('/onboarding-assessment/quizzes/{quiz}/submit', [UserOnboardingAssessmentController::class, 'submit'])->name('onboarding-assessment.submit');
+        Route::get('/my-results', [UserOnboardingAssessmentController::class, 'results'])->name('onboarding-assessment.results');
 
         Route::get('/resources', [UserResourceController::class, 'index'])->name('resources.index');
         Route::post('/resource-quiz-checkpoints/{checkpoint}/answers', [ResourceQuizAnswerController::class, 'store'])->name('resource-quiz-answers.store');
@@ -344,6 +362,8 @@ Route::middleware(['auth', 'role:user'])
         Route::delete('/events/{event}/register', [UserEventController::class, 'unregister'])->name('events.unregister');
 
         Route::get('/faqs', [UserFaqController::class, 'index'])->name('faqs.index');
+
+        Route::get('/scripts', [UserScriptController::class, 'index'])->name('scripts.index');
 
         Route::get('/points', [PointsController::class, 'show'])->name('points.show');
 
