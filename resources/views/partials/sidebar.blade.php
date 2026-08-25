@@ -89,7 +89,11 @@
                 'route' => 'admin.salesperson-applications',
                 'activePattern' => 'admin.salesperson-applications*',
             ] : null,
-            ['label' => 'Learning Progress', 'icon' => 'grid', 'route' => null],
+            [
+                'label' => 'Learning Progress',
+                'icon' => 'academic-cap',
+                'route' => $isAdmin ? 'admin.learning-progress.index' : 'user.learning-progress.index',
+            ],
             [
                 'label' => 'Certificates',
                 'icon' => 'badge',
@@ -118,37 +122,71 @@
         'items' => [
             [
                 'label' => 'Products & Opportunities',
-                'icon' => 'grid',
-                'route' => $isAdmin ? 'admin.saas-products.index' : null,
+                'icon' => 'sparkles',
+                'route' => $isAdmin ? 'admin.saas-products.index' : 'user.saas-products.index',
+                'activePattern' => $isAdmin ? 'admin.saas-products.*' : 'user.saas-products.*',
             ],
-            ['label' => 'Leads / CRM', 'icon' => 'users', 'route' => null],
+            [
+                'label' => 'Leads / CRM',
+                'icon' => 'users',
+                'route' => $isAdmin ? 'admin.leads.index' : 'user.leads.index',
+                'activePattern' => $isAdmin ? 'admin.leads.*' : 'user.leads.*',
+            ],
             ['label' => 'Sales Calculators', 'icon' => 'grid', 'route' => null],
-            ['label' => 'My Team', 'icon' => 'users', 'route' => null],
+            [
+                'label' => 'My Team',
+                'icon' => 'users',
+                'route' => $isAdmin ? 'admin.teams.index' : 'user.team.index',
+                'activePattern' => $isAdmin ? 'admin.teams.*' : null,
+            ],
         ],
     ];
 
     $navGroups[] = [
         'heading' => 'Performance',
         'items' => [
-            ['label' => 'My Performance', 'icon' => 'grid', 'route' => null],
-            ['label' => 'Ranking / Leaderboard', 'icon' => 'grid', 'route' => null],
-            ['label' => 'Contests', 'icon' => 'grid', 'route' => null],
-            ['label' => 'Contest Tracker', 'icon' => 'grid', 'route' => null],
-            ['label' => 'Incentives & Earnings', 'icon' => 'grid', 'route' => null],
+            ['label' => 'My Performance', 'icon' => 'trending-up', 'route' => null],
+            [
+                'label' => 'Ranking / Leaderboard',
+                'icon' => 'star',
+                'route' => $isAdmin ? 'admin.leaderboard.index' : 'user.leaderboard.index',
+            ],
+            [
+                'label' => 'Contests',
+                'icon' => 'gift',
+                'route' => $isAdmin ? 'admin.contests.index' : 'user.contests.index',
+                'activePattern' => $isAdmin ? 'admin.contests.*' : null,
+            ],
+            [
+                'label' => 'Contest Tracker',
+                'icon' => 'trending-up',
+                'route' => $isAdmin ? 'admin.contest-tracker.index' : 'user.contest-tracker.index',
+            ],
+            [
+                'label' => 'Incentives & Earnings',
+                'icon' => 'coin',
+                'route' => $isAdmin ? 'admin.incentives.index' : 'user.incentives.index',
+            ],
         ],
     ];
 
     $navGroups[] = [
         'heading' => 'Recognition',
         'items' => [
-            ['label' => 'Achievers / Hall of Fame', 'icon' => 'badge', 'route' => null],
-            ['label' => 'Success Stories', 'icon' => 'badge', 'route' => null],
+            ['label' => 'Achievers / Hall of Fame', 'icon' => 'star', 'route' => null],
+            ['label' => 'Success Stories', 'icon' => 'lightbulb', 'route' => null],
         ],
     ];
 
     $navGroups[] = [
         'heading' => 'Events & Community',
         'items' => [
+            [
+                'label' => 'Announcements',
+                'icon' => 'bell',
+                'route' => $isAdmin ? 'admin.announcements.index' : 'user.announcements.index',
+                'activePattern' => $isAdmin ? 'admin.announcements.*' : null,
+            ],
             [
                 'label' => 'Events & Webinars',
                 'icon' => 'calendar',

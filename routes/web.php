@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ResourceCheckpointController;
 use App\Http\Controllers\Admin\ResourceController as AdminResourceController;
 use App\Http\Controllers\Admin\ResourceQuizQuestionController;
 use App\Http\Controllers\Admin\SaasProductController;
+use App\Http\Controllers\User\SaasProductController as UserSaasProductController;
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CourseLessonVideoController;
@@ -50,6 +51,23 @@ use App\Http\Controllers\Admin\ScriptTopicController;
 use App\Http\Controllers\Admin\ScriptItemController;
 use App\Http\Controllers\User\ScriptController as UserScriptController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
+use App\Http\Controllers\Admin\ContestController as AdminContestController;
+use App\Http\Controllers\User\ContestController as UserContestController;
+use App\Http\Controllers\Admin\TeamController as AdminTeamController;
+use App\Http\Controllers\User\TeamController as UserTeamController;
+use App\Http\Controllers\Admin\ContestTrackerController as AdminContestTrackerController;
+use App\Http\Controllers\User\ContestTrackerController as UserContestTrackerController;
+use App\Http\Controllers\Admin\LeaderboardController as AdminLeaderboardController;
+use App\Http\Controllers\User\LeaderboardController as UserLeaderboardController;
+use App\Http\Controllers\Admin\IncentiveController as AdminIncentiveController;
+use App\Http\Controllers\User\IncentiveController as UserIncentiveController;
+use App\Http\Controllers\Admin\LeadController as AdminLeadController;
+use App\Http\Controllers\User\LeadController as UserLeadController;
+use App\Http\Controllers\Admin\CampaignController as AdminCampaignController;
+use App\Http\Controllers\Admin\LearningProgressController as AdminLearningProgressController;
+use App\Http\Controllers\User\LearningProgressController as UserLearningProgressController;
+use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
+use App\Http\Controllers\User\AnnouncementController as UserAnnouncementController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -315,6 +333,67 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::get('/{event}/registrants', [AdminEventController::class, 'registrants'])->name('registrants');
         });
 
+        Route::prefix('contests')->name('contests.')->group(function () {
+            Route::get('/', [AdminContestController::class, 'index'])->name('index');
+            Route::get('/create', [AdminContestController::class, 'create'])->name('create');
+            Route::post('/', [AdminContestController::class, 'store'])->name('store');
+            Route::get('/{contest}/edit', [AdminContestController::class, 'edit'])->name('edit');
+            Route::put('/{contest}', [AdminContestController::class, 'update'])->name('update');
+            Route::delete('/{contest}', [AdminContestController::class, 'destroy'])->name('destroy');
+            Route::patch('/{contest}/active-toggle', [AdminContestController::class, 'toggleActive'])->name('active.toggle');
+            Route::get('/{contest}/participants', [AdminContestController::class, 'participants'])->name('participants');
+            Route::post('/{contest}/achievements', [AdminContestController::class, 'storeAchievement'])->name('achievements.store');
+        });
+        Route::delete('/contest-achievements/{achievement}', [AdminContestController::class, 'destroyAchievement'])->name('contest-achievements.destroy');
+
+        Route::get('/contest-tracker', [AdminContestTrackerController::class, 'index'])->name('contest-tracker.index');
+        Route::get('/leaderboard', [AdminLeaderboardController::class, 'index'])->name('leaderboard.index');
+
+        Route::prefix('incentives')->name('incentives.')->group(function () {
+            Route::get('/', [AdminIncentiveController::class, 'index'])->name('index');
+            Route::post('/', [AdminIncentiveController::class, 'store'])->name('store');
+            Route::delete('/{incentive}', [AdminIncentiveController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('teams')->name('teams.')->group(function () {
+            Route::get('/', [AdminTeamController::class, 'index'])->name('index');
+            Route::get('/{user}', [AdminTeamController::class, 'show'])->name('show');
+            Route::post('/{user}/earnings', [AdminTeamController::class, 'storeEarning'])->name('earnings.store');
+        });
+        Route::delete('/referral-earnings/{earning}', [AdminTeamController::class, 'destroyEarning'])->name('referral-earnings.destroy');
+
+        Route::prefix('leads')->name('leads.')->group(function () {
+            Route::get('/', [AdminLeadController::class, 'index'])->name('index');
+            Route::get('/create', [AdminLeadController::class, 'create'])->name('create');
+            Route::post('/', [AdminLeadController::class, 'store'])->name('store');
+            Route::post('/bulk-assign', [AdminLeadController::class, 'bulkAssign'])->name('bulk-assign');
+            Route::post('/auto-assign', [AdminLeadController::class, 'autoAssign'])->name('auto-assign');
+            Route::get('/{lead}', [AdminLeadController::class, 'show'])->name('show');
+            Route::get('/{lead}/edit', [AdminLeadController::class, 'edit'])->name('edit');
+            Route::put('/{lead}', [AdminLeadController::class, 'update'])->name('update');
+            Route::delete('/{lead}', [AdminLeadController::class, 'destroy'])->name('destroy');
+            Route::post('/{lead}/notes', [AdminLeadController::class, 'storeNote'])->name('notes.store');
+        });
+
+        Route::prefix('campaigns')->name('campaigns.')->group(function () {
+            Route::get('/', [AdminCampaignController::class, 'index'])->name('index');
+            Route::post('/', [AdminCampaignController::class, 'store'])->name('store');
+            Route::get('/{campaign}', [AdminCampaignController::class, 'show'])->name('show');
+            Route::put('/{campaign}', [AdminCampaignController::class, 'update'])->name('update');
+            Route::delete('/{campaign}', [AdminCampaignController::class, 'destroy'])->name('destroy');
+            Route::patch('/{campaign}/active-toggle', [AdminCampaignController::class, 'toggleActive'])->name('active.toggle');
+        });
+
+        Route::get('/learning-progress', [AdminLearningProgressController::class, 'index'])->name('learning-progress.index');
+
+        Route::prefix('announcements')->name('announcements.')->group(function () {
+            Route::get('/', [AdminAnnouncementController::class, 'index'])->name('index');
+            Route::post('/', [AdminAnnouncementController::class, 'store'])->name('store');
+            Route::put('/{announcement}', [AdminAnnouncementController::class, 'update'])->name('update');
+            Route::delete('/{announcement}', [AdminAnnouncementController::class, 'destroy'])->name('destroy');
+            Route::patch('/{announcement}/active-toggle', [AdminAnnouncementController::class, 'toggleActive'])->name('active.toggle');
+        });
+
         Route::prefix('faqs')->name('faqs.')->group(function () {
             Route::get('/', [FaqController::class, 'index'])->name('index');
             Route::post('/', [FaqController::class, 'store'])->name('store');
@@ -361,9 +440,35 @@ Route::middleware(['auth', 'role:user'])
         Route::post('/events/{event}/register', [UserEventController::class, 'register'])->name('events.register');
         Route::delete('/events/{event}/register', [UserEventController::class, 'unregister'])->name('events.unregister');
 
+        Route::get('/contests', [UserContestController::class, 'index'])->name('contests.index');
+        Route::post('/contests/{contest}/register', [UserContestController::class, 'register'])->name('contests.register');
+        Route::delete('/contests/{contest}/register', [UserContestController::class, 'unregister'])->name('contests.unregister');
+
+        Route::get('/contest-tracker', [UserContestTrackerController::class, 'index'])->name('contest-tracker.index');
+        Route::get('/leaderboard', [UserLeaderboardController::class, 'index'])->name('leaderboard.index');
+        Route::get('/incentives', [UserIncentiveController::class, 'index'])->name('incentives.index');
+
+        Route::get('/my-team', [UserTeamController::class, 'index'])->name('team.index');
+
+        Route::prefix('leads')->name('leads.')->group(function () {
+            Route::get('/', [UserLeadController::class, 'index'])->name('index');
+            Route::get('/{lead}', [UserLeadController::class, 'show'])->name('show');
+            Route::patch('/{lead}/status', [UserLeadController::class, 'updateStatus'])->name('status.update');
+            Route::post('/{lead}/notes', [UserLeadController::class, 'storeNote'])->name('notes.store');
+        });
+
+        Route::prefix('products')->name('saas-products.')->group(function () {
+            Route::get('/', [UserSaasProductController::class, 'index'])->name('index');
+            Route::post('/{saasProduct}/interest', [UserSaasProductController::class, 'toggleInterest'])->name('interest.toggle');
+        });
+
         Route::get('/faqs', [UserFaqController::class, 'index'])->name('faqs.index');
 
         Route::get('/scripts', [UserScriptController::class, 'index'])->name('scripts.index');
+
+        Route::get('/learning-progress', [UserLearningProgressController::class, 'index'])->name('learning-progress.index');
+
+        Route::get('/announcements', [UserAnnouncementController::class, 'index'])->name('announcements.index');
 
         Route::get('/points', [PointsController::class, 'show'])->name('points.show');
 

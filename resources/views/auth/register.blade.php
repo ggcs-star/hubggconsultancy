@@ -43,6 +43,7 @@
 
                 <form method="POST" action="{{ route('register') }}" class="mt-6 space-y-4">
                     @csrf
+                    <input type="hidden" name="referral_code" value="{{ old('referral_code', $referralCode ?? '') }}">
 
                     <div>
                         <label for="name" class="form-label">Full Name</label>

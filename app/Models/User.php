@@ -4,10 +4,12 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -38,6 +40,8 @@ class User extends Authenticatable
         'pincode',
         'state',
         'country',
+        'referral_code',
+        'referred_by',
     ];
 
     /**
@@ -59,6 +63,24 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'profile_completed' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $user) {
+            if (empty($user->referral_code)) {
+                $user->referral_code = static::generateUniqueReferralCode();
+            }
+        });
+    }
+
+    protected static function generateUniqueReferralCode(): string
+    {
+        do {
+            $code = strtoupper(Str::random(8));
+        } while (static::where('referral_code', $code)->exists());
+
+        return $code;
+    }
 
     public function isAdmin(): bool
     {
@@ -93,6 +115,56 @@ class User extends Authenticatable
     public function registeredEvents(): BelongsToMany
     {
         return $this->belongsToMany(Event::class, 'event_registrations')->withTimestamps();
+    }
+
+    public function referredBy(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'referred_by');
+    }
+
+    /**
+     * Everyone who signed up using this user's referral link, regardless of
+     * their current salesperson status.
+     */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(self::class, 'referred_by');
+    }
+
+    /**
+     * The subset of referrals that actually count as "My Team" — a referred
+     * signup only joins the team once they're an approved salesperson.
+     */
+    public function teamMembers(): HasMany
+    {
+        return $this->referrals()->where('salesperson_status', 'approved');
+    }
+
+    /**
+     * Earnings this salesperson has received for their team's activity —
+     * logged manually by an admin against a specific team member.
+     */
+    public function referralEarnings(): HasMany
+    {
+        return $this->hasMany(ReferralEarning::class, 'referrer_id');
+    }
+
+    public function totalReferralEarnings(): float
+    {
+        return (float) $this->referralEarnings()->sum('amount');
+    }
+
+    /**
+     * Contest rewards and admin-granted incentives — the "Incentives & Earnings" ledger.
+     */
+    public function incentiveEntries(): HasMany
+    {
+        return $this->hasMany(IncentiveEntry::class);
+    }
+
+    public function assignedLeads(): HasMany
+    {
+        return $this->hasMany(Lead::class, 'assigned_to');
     }
 
     /**
@@ -165,5 +237,41 @@ class User extends Authenticatable
             'total' => $total,
             'percent' => $total > 0 ? (int) round($earned / $total * 100) : null,
         ];
+    }
+
+    /**
+     * Points earned from CRM-driven contests only — manual/revenue contests
+     * award ₹ amounts, not points, so they're deliberately excluded here to
+     * avoid mixing units in the gamification total below.
+     */
+    public function totalContestPoints(): int
+    {
+        return (int) ContestAchievement::where('user_id', $this->id)
+            ->whereHas('contest', fn ($query) => $query->where('achievement_source', 'crm'))
+            ->sum('amount');
+    }
+
+    /**
+     * The single "points" figure used for the dashboard rank/leaderboard —
+     * LMS + resource quiz points plus CRM-contest points.
+     */
+    public function totalPoints(): int
+    {
+        return $this->combinedPoints()->earned + $this->totalContestPoints();
+    }
+
+    public static function tierFor(int $points): string
+    {
+        return match (true) {
+            $points >= 7000 => 'Platinum Performer',
+            $points >= 3000 => 'Gold Performer',
+            $points >= 1000 => 'Silver Performer',
+            default => 'Bronze Performer',
+        };
+    }
+
+    public function tier(): string
+    {
+        return static::tierFor($this->totalPoints());
     }
 }

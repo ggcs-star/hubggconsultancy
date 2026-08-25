@@ -46,9 +46,17 @@ class AuthController extends Controller
         return redirect()->intended($this->redirectPathFor(Auth::user()));
     }
 
-    public function showRegister(): View
+    public function showRegister(Request $request): View
     {
-        return view('auth.register');
+        $referralCode = trim((string) $request->query('ref'));
+
+        if ($referralCode !== '') {
+            $request->session()->put('referral_code', $referralCode);
+        }
+
+        return view('auth.register', [
+            'referralCode' => $request->session()->get('referral_code'),
+        ]);
     }
 
     public function googleStub(Request $request): RedirectResponse
@@ -66,13 +74,18 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
+        $referrer = User::where('referral_code', trim((string) $request->input('referral_code')))->first();
+
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password']),
             'role' => 'user',
+            'referred_by' => $referrer?->id,
         ]);
+
+        $request->session()->forget('referral_code');
 
         Auth::login($user);
 

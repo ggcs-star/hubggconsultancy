@@ -3,187 +3,147 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Certificate;
+use App\Models\Announcement;
+use App\Models\Contest;
 use App\Models\Course;
-use App\Models\SupportTicket;
+use App\Models\Event;
+use App\Models\IncentiveEntry;
+use App\Models\Lead;
+use App\Models\OnboardingAssessmentAnswer;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     public function index(): View
     {
-        $stats = [
-            'total_users' => User::where('role', 'user')->count(),
-            'pending_applications' => User::where('salesperson_status', 'pending')->count(),
-            'approved_salespeople' => User::where('salesperson_status', 'approved')->count(),
-            'profile_completed' => User::where('role', 'user')->where('profile_completed', true)->count(),
-            'total_courses' => Course::where('is_published', true)->count(),
-            'total_enrollments' => DB::table('course_user')->count(),
-            'certificates_issued' => Certificate::count(),
-            'open_tickets' => SupportTicket::whereIn('status', ['open', 'in_progress', 'waiting_for_user'])->count(),
-        ];
-
-        $recentUsers = User::where('role', 'user')->latest()->take(6)->get();
-        $recentTickets = SupportTicket::with(['user', 'issueType'])->latest()->take(6)->get();
-        $topUsers = $this->topUsersByPoints();
-
-        $signups = $this->signupsChart();
-        $topCourses = $this->topCoursesChart();
-        $applicationStatus = $this->applicationStatusChart();
-        $ticketStatus = $this->ticketStatusChart();
-
-        $usersTrend = $this->dailyTrend(fn ($start) => User::where('role', 'user')->where('created_at', '>=', $start)->get()->groupBy(fn ($u) => $u->created_at->format('Y-m-d'))->map->count());
-        $enrollmentsTrend = $this->dailyTrend(fn ($start) => DB::table('course_user')->where('created_at', '>=', $start)->selectRaw('DATE(created_at) as d, count(*) as c')->groupBy('d')->pluck('c', 'd'));
-        $certificatesTrend = $this->dailyTrend(fn ($start) => Certificate::where('issued_at', '>=', $start)->get()->groupBy(fn ($c) => $c->issued_at->format('Y-m-d'))->map->count());
-        $ticketsTrend = $this->dailyTrend(fn ($start) => SupportTicket::where('created_at', '>=', $start)->get()->groupBy(fn ($t) => $t->created_at->format('Y-m-d'))->map->count());
-
-        return view('admin.dashboard', compact(
-            'stats',
-            'recentUsers',
-            'recentTickets',
-            'topUsers',
-            'signups',
-            'topCourses',
-            'applicationStatus',
-            'ticketStatus',
-            'usersTrend',
-            'enrollmentsTrend',
-            'certificatesTrend',
-            'ticketsTrend'
-        ));
+        return view('admin.dashboard', [
+            'topPerformers' => $this->topPerformers(),
+            'trainingProgress' => $this->teamTrainingProgress(),
+            'leadStats' => $this->leadStats(),
+            'contestProgress' => $this->contestProgress(),
+            'tasks' => $this->tasks(),
+            'upcomingEvents' => Event::published()->upcoming()->take(3)->get(),
+            'announcements' => Announcement::visible()->latest('published_at')->latest('id')->take(3)->get(),
+            'learningProgress' => $this->teamLearningProgress(),
+        ]);
     }
 
-    /**
-     * Zero-filled daily counts for the last 7 days, given a callback that
-     * groups rows created since $start into a ['Y-m-d' => count] collection.
-     */
-    private function dailyTrend(\Closure $countsByDay): array
+    private function topPerformers(int $limit = 5): \Illuminate\Support\Collection
     {
-        $start = now()->subDays(6)->startOfDay();
-        $counts = $countsByDay($start);
-
-        $trend = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $key = now()->subDays($i)->format('Y-m-d');
-            $trend[] = (int) ($counts[$key] ?? 0);
-        }
-
-        return $trend;
-    }
-
-    /**
-     * Top N users by LMS quiz points earned (course checkpoint/module
-     * quizzes only — same scope as User::lmsPoints(), which deliberately
-     * excludes the separate Onboarding Assessment).
-     */
-    private function topUsersByPoints(int $limit = 5): \Illuminate\Support\Collection
-    {
-        $earnedByUser = DB::table('client_quiz_answers')
-            ->whereNotNull('points_awarded')
-            ->select('user_id', DB::raw('SUM(points_awarded) as earned'))
-            ->groupBy('user_id')
-            ->orderByDesc('earned')
+        return User::where('role', 'user')->get()
+            ->map(fn (User $user) => (object) ['user' => $user, 'points' => $user->totalPoints()])
+            ->sortByDesc('points')
+            ->values()
             ->take($limit)
-            ->pluck('earned', 'user_id');
+            ->map(function ($row, $index) {
+                $row->rank = $index + 1;
 
-        if ($earnedByUser->isEmpty()) {
-            return collect();
-        }
+                return $row;
+            });
+    }
 
-        $users = User::whereIn('id', $earnedByUser->keys())->get()->keyBy('id');
+    private function teamTrainingProgress(): object
+    {
+        $courses = Course::where('is_published', true)->with('assignedUsers')->get();
 
-        return $earnedByUser->map(function ($earned, $userId) use ($users) {
-            $user = $users->get($userId);
+        $percents = [];
 
-            if (!$user) {
-                return null;
+        foreach ($courses as $course) {
+            foreach ($course->assignedUsers as $user) {
+                $percents[] = $course->progressFor($user)->percent;
             }
-
-            $points = $user->lmsPoints();
-
-            return (object) [
-                'user' => $user,
-                'earned' => (int) $earned,
-                'total' => $points->total,
-                'percent' => $points->percent,
-            ];
-        })->filter()->values();
-    }
-
-    /**
-     * Signups over the last 6 calendar months, zero-filled so gaps
-     * don't just disappear from the line chart.
-     */
-    private function signupsChart(): array
-    {
-        $start = now()->subMonths(5)->startOfMonth();
-
-        $counts = User::where('role', 'user')
-            ->where('created_at', '>=', $start)
-            ->get()
-            ->groupBy(fn ($user) => $user->created_at->format('Y-m'))
-            ->map->count();
-
-        $labels = [];
-        $data = [];
-
-        for ($i = 5; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $key = $month->format('Y-m');
-            $labels[] = $month->format('M Y');
-            $data[] = (int) ($counts[$key] ?? 0);
         }
 
-        return ['labels' => $labels, 'data' => $data];
-    }
-
-    private function topCoursesChart(): array
-    {
-        $courses = Course::withCount('assignedUsers')
-            ->orderByDesc('assigned_users_count')
-            ->take(6)
-            ->get();
-
-        return [
-            'labels' => $courses->pluck('title')->all(),
-            'data' => $courses->pluck('assigned_users_count')->all(),
+        return (object) [
+            'percent' => count($percents) > 0 ? (int) round(array_sum($percents) / count($percents)) : 0,
+            'has_data' => count($percents) > 0,
         ];
     }
 
-    private function applicationStatusChart(): array
+    private function leadStats(): object
     {
-        $labels = ['none' => 'None', 'pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'];
+        $leads = Lead::all();
 
-        $counts = User::where('role', 'user')
-            ->select('salesperson_status', DB::raw('count(*) as c'))
-            ->groupBy('salesperson_status')
-            ->pluck('c', 'salesperson_status');
+        $newThisWeek = $leads->where('created_at', '>=', now()->subDays(7))->count();
 
-        return [
-            'labels' => array_values($labels),
-            'data' => collect($labels)->keys()->map(fn ($key) => (int) ($counts[$key] ?? 0))->all(),
+        $wonThisMonth = $leads->filter(fn (Lead $lead) => $lead->won_at && $lead->won_at->isSameMonth(now()));
+        $wonLastMonth = $leads->filter(fn (Lead $lead) => $lead->won_at && $lead->won_at->isSameMonth(now()->subMonthNoOverflow()));
+
+        $salesThisMonth = (float) $wonThisMonth->sum('expected_value');
+        $salesLastMonth = (float) $wonLastMonth->sum('expected_value');
+
+        $payoutsThisMonth = $this->payoutsFor(now());
+        $payoutsLastMonth = $this->payoutsFor(now()->subMonthNoOverflow());
+
+        return (object) [
+            'total' => $leads->count(),
+            'new_this_week' => $newThisWeek,
+            'sales_this_month' => $salesThisMonth,
+            'sales_change_percent' => $salesLastMonth > 0 ? (int) round(($salesThisMonth - $salesLastMonth) / $salesLastMonth * 100) : null,
+            'payouts_this_month' => $payoutsThisMonth,
+            'payouts_change_percent' => $payoutsLastMonth > 0 ? (int) round(($payoutsThisMonth - $payoutsLastMonth) / $payoutsLastMonth * 100) : null,
         ];
     }
 
-    private function ticketStatusChart(): array
+    private function payoutsFor(\Illuminate\Support\Carbon $month): float
     {
-        $labels = [
-            'open' => 'Open',
-            'in_progress' => 'In Progress',
-            'waiting_for_user' => 'Waiting for User',
-            'resolved' => 'Resolved',
-            'closed' => 'Closed',
+        return (float) IncentiveEntry::whereYear('awarded_at', $month->year)
+            ->whereMonth('awarded_at', $month->month)
+            ->sum('amount');
+    }
+
+    private function contestProgress(): ?object
+    {
+        $contest = Contest::active()->withCount('registrations')->orderByDesc('starts_at')->first();
+
+        if (! $contest) {
+            return null;
+        }
+
+        return (object) [
+            'contest' => $contest,
+            'leader' => $contest->rankedParticipants()->first(),
+            'total_participants' => $contest->registrations_count,
         ];
+    }
 
-        $counts = SupportTicket::select('status', DB::raw('count(*) as c'))
-            ->groupBy('status')
-            ->pluck('c', 'status');
-
+    private function tasks(): array
+    {
         return [
-            'labels' => array_values($labels),
-            'data' => collect($labels)->keys()->map(fn ($key) => (int) ($counts[$key] ?? 0))->all(),
+            [
+                'label' => 'Unassigned leads',
+                'count' => Lead::whereNull('assigned_to')->count(),
+                'route' => route('admin.leads.index'),
+            ],
+            [
+                'label' => 'Leads overdue for follow-up',
+                'count' => Lead::needsFollowUp()->count(),
+                'route' => route('admin.leads.index'),
+            ],
+            [
+                'label' => 'Pending salesperson applications',
+                'count' => User::where('salesperson_status', 'pending')->count(),
+                'route' => route('admin.salesperson-applications'),
+            ],
+            [
+                'label' => 'Text answers awaiting grading',
+                'count' => OnboardingAssessmentAnswer::whereNull('points_awarded')->whereNull('is_correct')->count(),
+                'route' => route('admin.onboarding-assessment.index', ['tab' => 'results']),
+            ],
         ];
+    }
+
+    private function teamLearningProgress(int $limit = 4): \Illuminate\Support\Collection
+    {
+        return Course::where('is_published', true)->with('assignedUsers')->orderBy('title')->get()
+            ->filter(fn (Course $course) => $course->assignedUsers->isNotEmpty())
+            ->map(function (Course $course) {
+                $percents = $course->assignedUsers->map(fn (User $user) => $course->progressFor($user)->percent);
+                $course->progress = (object) ['percent' => (int) round($percents->avg())];
+
+                return $course;
+            })
+            ->take($limit);
     }
 }

@@ -261,4 +261,30 @@ class Course extends Model
             'pending_count' => $pendingCount,
         ];
     }
+
+    /**
+     * Lesson-completion progress — the % of this course's lessons the user
+     * has marked complete (via CourseLessonProgressController), independent
+     * of quiz score. This is what "Learning Progress" shows.
+     */
+    public function progressFor(User $user): object
+    {
+        $lessonIds = $this->lessons()->pluck('course_lessons.id');
+        $totalLessons = $lessonIds->count();
+
+        if ($totalLessons === 0) {
+            return (object) ['percent' => 0, 'completed_lessons' => 0, 'total_lessons' => 0];
+        }
+
+        $completedLessons = CourseLessonProgress::where('user_id', $user->id)
+            ->where('completed', true)
+            ->whereIn('course_lesson_id', $lessonIds)
+            ->count();
+
+        return (object) [
+            'percent' => (int) round($completedLessons / $totalLessons * 100),
+            'completed_lessons' => $completedLessons,
+            'total_lessons' => $totalLessons,
+        ];
+    }
 }

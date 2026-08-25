@@ -98,13 +98,13 @@
     <div class="mt-6 space-y-6">
         @forelse ($quizzes as $quiz)
             @php $quizScore = $scoreByQuizId->get($quiz->id); @endphp
-            <div class="card">
+            <div class="card" x-data="{ quizOpen: true }">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
-                    <div class="flex items-center gap-3">
+                    <button type="button" x-on:click="quizOpen = !quizOpen" class="flex min-w-0 flex-1 items-center gap-3 text-left">
                         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                             <x-icon name="document" class="h-5 w-5" />
                         </span>
-                        <div>
+                        <div class="min-w-0">
                             <div class="flex items-center gap-2">
                                 <p class="font-bold text-slate-800">{{ $quiz->title }}</p>
                                 <span class="badge {{ $quiz->is_published ? 'badge-green' : 'badge-slate' }}">{{ $quiz->is_published ? 'Published' : 'Draft' }}</span>
@@ -118,7 +118,7 @@
                                 </p>
                             @endif
                         </div>
-                    </div>
+                    </button>
                     <div class="flex items-center gap-3">
                         @if ($quizScore)
                             <span class="badge {{ $quizStatusBadge[$quizScore->status]['class'] }}">{{ $quizStatusBadge[$quizScore->status]['label'] }}</span>
@@ -130,26 +130,34 @@
                                 <button type="submit" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Retake</button>
                             </form>
                         @endif
+                        <button type="button" x-on:click="quizOpen = !quizOpen" class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+                            <x-icon name="chevron-down" class="h-4 w-4 transition-transform" x-bind:class="quizOpen ? 'rotate-180' : ''" />
+                        </button>
                     </div>
                 </div>
 
-                <div class="space-y-4 p-6">
+                <div x-show="quizOpen" x-transition x-cloak class="space-y-4 p-6">
                     @forelse ($quiz->questions as $question)
                         @php
                             $answer = $answers->get($question->id);
                             $questionPoints = $answer?->question_points ?? $question->points;
                             $questionText = $answer?->question_text ?? $question->question_text;
                         @endphp
-                        <div class="flex gap-3 rounded-xl border border-slate-100 p-4">
-                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">{{ $loop->iteration }}</span>
-                            <div class="min-w-0 flex-1">
-                                <span class="text-xs font-semibold uppercase tracking-wide text-brand-500">{{ $questionTypeLabels[$question->type] }} &middot; {{ $questionPoints }} {{ Str::plural('pt', $questionPoints) }}</span>
-                                <p class="mt-1 font-medium text-slate-800">{{ $questionText }}</p>
+                        <div class="rounded-xl border border-slate-100 p-4" x-data="{ open: true }">
+                            <button type="button" x-on:click="open = !open" class="flex w-full items-start gap-3 text-left">
+                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">{{ $loop->iteration }}</span>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-xs font-semibold uppercase tracking-wide text-brand-500">{{ $questionTypeLabels[$question->type] }} &middot; {{ $questionPoints }} {{ Str::plural('pt', $questionPoints) }}</span>
+                                    <p class="mt-1 font-medium text-slate-800">{{ $questionText }}</p>
+                                </div>
+                                <x-icon name="chevron-down" class="mt-1 h-4 w-4 shrink-0 text-slate-400 transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+                            </button>
 
+                            <div x-show="open" x-transition x-cloak class="ml-10 mt-2">
                                 @if (! $answer)
-                                    <p class="mt-2 text-sm italic text-slate-400">Not answered.</p>
+                                    <p class="text-sm italic text-slate-400">Not answered.</p>
                                 @elseif ($question->type === 'text')
-                                    <p class="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">{{ $answer->answer_text ?: '—' }}</p>
+                                    <p class="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">{{ $answer->answer_text ?: '—' }}</p>
 
                                     @if (is_null($answer->points_awarded))
                                         <form method="POST" action="{{ route('admin.onboarding-assessment.answers.grade', $answer) }}" class="mt-3 flex items-end gap-3">
@@ -167,7 +175,7 @@
                                         </p>
                                     @endif
                                 @else
-                                    <ul class="mt-2 space-y-1">
+                                    <ul class="space-y-1">
                                         @foreach ($question->options as $option)
                                             @php $wasSelected = $option->selected ?? in_array($option->id, $answer->selected_option_ids ?? []); @endphp
                                             <li class="flex items-center gap-1.5 text-sm {{ $option->is_correct ? 'font-medium text-emerald-600' : ($wasSelected ? 'font-medium text-red-600' : 'text-slate-400') }}">
