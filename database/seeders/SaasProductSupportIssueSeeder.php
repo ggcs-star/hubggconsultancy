@@ -59,6 +59,16 @@ class SaasProductSupportIssueSeeder extends Seeder
                 'sort_order' => 4,
             ],
 
+            [
+                'name' => 'Other',
+                'slug' => 'other',
+                'category' => 'General Support',
+                'description' =>
+                    'For anything that does not fall under one of the products above — always available to every user as a fallback.',
+                'active' => true,
+                'sort_order' => 999,
+            ],
+
         ];
 
 
@@ -444,6 +454,57 @@ class SaasProductSupportIssueSeeder extends Seeder
 
             ],
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | Other (generic fallback, not tied to a specific product)
+            |--------------------------------------------------------------------------
+            */
+
+            'other' => [
+
+                [
+                    'name' => 'General Inquiry',
+                    'module' => 'system',
+                    'default_priority' => 'low',
+                    'icon' => 'help-circle',
+                    'description' =>
+                        'A general question that does not fit any specific product.',
+                    'sort_order' => 1,
+                ],
+
+                [
+                    'name' => 'Account / Login Issue',
+                    'module' => 'authentication',
+                    'default_priority' => 'high',
+                    'icon' => 'lock',
+                    'description' =>
+                        'Trouble logging in or managing your account that is not specific to one product.',
+                    'sort_order' => 2,
+                ],
+
+                [
+                    'name' => 'Billing / Payment Issue',
+                    'module' => 'payment',
+                    'default_priority' => 'high',
+                    'icon' => 'coin',
+                    'description' =>
+                        'A billing, invoice or payment problem not tied to a specific product.',
+                    'sort_order' => 3,
+                ],
+
+                [
+                    'name' => 'Something Else',
+                    'module' => 'system',
+                    'default_priority' => 'medium',
+                    'icon' => 'help-circle',
+                    'description' =>
+                        'None of the above — describe your issue in the details field below.',
+                    'sort_order' => 4,
+                ],
+
+            ],
+
         ];
 
 
@@ -509,6 +570,25 @@ class SaasProductSupportIssueSeeder extends Seeder
                     ]
                 );
             }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Attach "Other" To Every User
+        |--------------------------------------------------------------------------
+        |
+        | Unlike the product-specific rows above, "Other" is meant to always
+        | be available as a support fallback — attach it to every existing
+        | user now; new users get it automatically via User::booted().
+        */
+
+        $otherProduct = $createdProducts['other'] ?? null;
+
+        if ($otherProduct) {
+            $otherProduct->users()->syncWithoutDetaching(
+                \App\Models\User::pluck('id')
+            );
         }
 
 

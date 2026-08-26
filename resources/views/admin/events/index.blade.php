@@ -27,7 +27,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">All Events</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $events->count() }} total event{{ $events->count() === 1 ? '' : 's' }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $events->total() }} total event{{ $events->total() === 1 ? '' : 's' }}</p>
         </div>
 
         @if ($events->count())
@@ -137,6 +137,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($events->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $events->links() }}
+                </div>
+            @endif
         @else
             <div class="px-6 py-16 text-center">
                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50">

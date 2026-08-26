@@ -394,32 +394,6 @@
 
 
                     {{-- ================================================= --}}
-                    {{-- USER DESCRIPTION --}}
-                    {{-- ================================================= --}}
-
-                    <div class="mt-6">
-
-                        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary">
-
-                            User Description
-
-                        </p>
-
-
-                        <div class="rounded-lg border border-app-border bg-surface-alt p-4">
-
-                            <p class="whitespace-pre-line text-sm leading-6 text-secondary-dark">
-
-                                {{ $ticket->description }}
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    {{-- ================================================= --}}
                     {{-- ATTACHMENT --}}
                     {{-- ================================================= --}}
 
@@ -504,7 +478,7 @@
 
                         <span class="text-xs text-secondary">
 
-                            {{ $ticket->messages->count() + 1 }}
+                            {{ $ticket->messages->count() }}
 
                             messages
 
@@ -519,87 +493,16 @@
 
 
                     {{-- ================================================= --}}
-                    {{-- ORIGINAL USER MESSAGE --}}
-                    {{-- ================================================= --}}
-
-                    <div class="flex items-start gap-3">
-
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-light text-sm font-semibold text-primary">
-
-                            {{ strtoupper(
-                                substr(
-                                    $ticket->user->name ?? 'U',
-                                    0,
-                                    1
-                                )
-                            ) }}
-
-                        </div>
-
-
-                        <div class="min-w-0 flex-1">
-
-                            <div class="flex items-center gap-2">
-
-                                <p class="text-sm font-semibold text-secondary-dark">
-
-                                    {{ $ticket->user->name ?? 'User' }}
-
-                                </p>
-
-
-                                <span class="text-xs text-secondary">
-
-                                    {{ $ticket->created_at?->format('d M Y, h:i A') }}
-
-                                </span>
-
-                            </div>
-
-
-                            <div class="mt-2 rounded-lg rounded-tl-none bg-surface-alt p-3">
-
-                                <p class="whitespace-pre-line text-sm leading-6 text-secondary-dark">
-
-                                    {{ $ticket->description }}
-
-                                </p>
-
-                            </div>
-
-
-                            {{-- Initial Attachment --}}
-                            @if (!empty($ticket->attachment))
-
-                                <div class="mt-2">
-
-                                    <a
-                                        href="{{ asset('storage/' . $ticket->attachment) }}"
-                                        target="_blank"
-                                        class="inline-flex items-center gap-2 text-xs font-medium text-primary hover:underline"
-                                    >
-
-                                        <x-icon
-                                            name="paperclip"
-                                            class="h-3.5 w-3.5"
-                                        />
-
-                                        View Attachment
-
-                                    </a>
-
-                                </div>
-
-                            @endif
-
-                        </div>
-
-                    </div>
-
-
-                    {{-- ================================================= --}}
                     {{-- REPLIES --}}
                     {{-- ================================================= --}}
+                    {{--
+                        The user's initial message is already the first row in
+                        $ticket->messages (created alongside the ticket in
+                        store()), so it renders naturally via this loop — it is
+                        NOT rendered again here separately, which used to show
+                        the same description three times (once in the "User
+                        Description" box above, twice more in this panel).
+                    --}}
 
                     @foreach ($ticket->messages as $reply)
 

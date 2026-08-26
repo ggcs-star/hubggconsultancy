@@ -16,6 +16,7 @@ class SalesToolkitItem extends Model
         'title',
         'category',
         'description',
+        'thumbnail',
         'url',
         'original_filename',
         'mime_type',
@@ -37,5 +38,10 @@ class SalesToolkitItem extends Model
     public function fileUrl(): string
     {
         return Storage::disk('public')->url($this->url);
+    }
+
+    public function thumbnailUrl(): ?string
+    {
+        return $this->thumbnail ? asset('storage/' . $this->thumbnail) : null;
     }
 }

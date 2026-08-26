@@ -23,6 +23,9 @@
         $pointsNeeded = $score->attempted && ! is_null($score->percent) && $score->percent < $score->passing_score_percent
             ? max(0, $score->passing_score_percent - $score->percent)
             : null;
+
+        $totalQuestionsInAssessment = $score->quizzes->sum('total_question_count');
+        $quizzesRemaining = max(0, $score->quiz_count - $score->attempted_quiz_count);
     @endphp
 
     @if (! $settings->is_published)
@@ -40,7 +43,7 @@
                     <img src="{{ asset('images/documents.png') }}" alt="Onboarding Assessment" class="h-28 w-28 shrink-0 object-contain sm:h-32 sm:w-32" />
                     <div>
                         <p class="font-bold text-slate-800">Onboarding Assessment</p>
-                        <p class="mt-1 text-sm text-slate-400">{{ $score->attempted_quiz_count }}/{{ $score->quiz_count }} {{ Str::plural('quiz', $score->quiz_count) }} completed</p>
+                        <p class="mt-1 text-sm text-slate-400">{{ $score->quiz_count }} {{ Str::plural('Quiz', $score->quiz_count) }} Assigned</p>
 
                         @if ($score->attempted && isset($overallStatusCopy[$score->status]))
                             <span class="badge {{ $overallStatusCopy[$score->status]['class'] }} mt-3">{{ $overallStatusCopy[$score->status]['label'] }}</span>
@@ -63,7 +66,7 @@
                                 </svg>
                                 <div class="absolute inset-0 flex flex-col items-center justify-center">
                                     <span class="text-lg font-extrabold text-slate-800">{{ $ringPercent }}%</span>
-                                    <span class="text-[10px] font-medium text-slate-400">Achieved Score</span>
+                                    <span class="text-[10px] font-medium text-slate-400">Score Achieved</span>
                                 </div>
                             </div>
 
@@ -72,16 +75,16 @@
 
                         <div class="space-y-3 text-right">
                             <div>
-                                <p class="text-2xl font-extrabold text-brand-700">{{ $score->earned_points }}/{{ $score->total_points }} <span class="text-sm font-medium text-slate-400">pts</span></p>
+                                <p class="text-2xl font-extrabold text-brand-700">{{ $score->attempted_quiz_count }}/{{ $score->quiz_count }}</p>
                                 <p class="flex items-center justify-end gap-1 text-xs text-slate-400">
-                                    Score Earned (So Far)
-                                    <x-icon name="help-circle" class="h-3 w-3" title="Total points graded across all quizzes so far" />
+                                    Quiz Completed
+                                    <x-icon name="help-circle" class="h-3 w-3" title="Number of quizzes you've submitted so far" />
                                 </p>
                             </div>
                             <div>
                                 <p class="text-2xl font-extrabold text-emerald-600">{{ $score->passing_score_percent }}%</p>
                                 <p class="flex items-center justify-end gap-1 text-xs text-slate-400">
-                                    Passing Score
+                                    Overall Passing Score
                                     <x-icon name="help-circle" class="h-3 w-3" title="The minimum score needed to pass the onboarding assessment" />
                                 </p>
                             </div>
@@ -90,24 +93,67 @@
                 @endif
             </div>
 
-            @if ($score->attempted && isset($overallStatusCopy[$score->status]) && $overallStatusCopy[$score->status]['note'])
-                <div class="mt-4 flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                    <x-icon name="help-circle" class="mt-0.5 h-4 w-4 shrink-0" />
-                    <p>{{ $overallStatusCopy[$score->status]['note'] }}</p>
+            @if ($score->attempted && ! is_null($score->percent))
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3">
+                    <p class="flex items-center gap-2 text-sm text-amber-700">
+                        <x-icon name="lightbulb" class="h-4 w-4 shrink-0" />
+                        <span class="font-semibold">Score Achieved: {{ $ringPercent }}%</span>
+                        You scored {{ $ringPercent }}% in {{ $score->attempted_quiz_count }} out of {{ $score->quiz_count }} {{ Str::plural('quiz', $score->quiz_count) }}.
+                    </p>
+                    <a href="{{ route('user.onboarding-assessment.results') }}" class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-white px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100">
+                        View My Result
+                        <x-icon name="chevron-right" class="h-3.5 w-3.5" />
+                    </a>
                 </div>
             @endif
 
-            @if ($score->attempted && ! is_null($score->percent))
+            @if (! $score->all_attempted)
                 <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand-50 px-4 py-3">
                     <p class="flex items-center gap-2 text-sm text-brand-700">
-                        <x-icon name="lightbulb" class="h-4 w-4 shrink-0" />
-                        You have earned {{ $score->earned_points }} out of {{ $score->total_points }} points from completed quizzes.
+                        <x-icon name="sparkles" class="h-4 w-4 shrink-0" />
+                        Keep going! Complete the remaining quizzes to improve your score.
                     </p>
-                    @if (! is_null($pointsNeeded))
-                        <p class="text-sm font-semibold text-brand-700">{{ $pointsNeeded }}% more needed to reach the passing score ({{ $score->passing_score_percent }}%)</p>
-                    @endif
+                    <p class="text-sm font-semibold text-brand-700">{{ $quizzesRemaining }} {{ Str::plural('quiz', $quizzesRemaining) }} remaining to complete</p>
                 </div>
             @endif
+
+            <div class="mt-6 grid grid-cols-5 gap-2 border-t border-slate-100 pt-6 sm:gap-3">
+                <div class="rounded-xl border border-slate-100 p-2 text-center sm:p-4">
+                    <span class="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-brand-600 sm:h-9 sm:w-9">
+                        <x-icon name="document" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </span>
+                    <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $score->quiz_count }}</p>
+                    <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Total Quizzes</p>
+                </div>
+                <div class="rounded-xl border border-slate-100 p-2 text-center sm:p-4">
+                    <span class="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-sky-600 sm:h-9 sm:w-9">
+                        <x-icon name="help-circle" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </span>
+                    <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $totalQuestionsInAssessment }}</p>
+                    <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Total Questions</p>
+                </div>
+                <div class="rounded-xl border border-slate-100 p-2 text-center sm:p-4">
+                    <span class="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 sm:h-9 sm:w-9">
+                        <x-icon name="check-circle" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </span>
+                    <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $score->attempted_quiz_count }}</p>
+                    <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Quizzes Completed</p>
+                </div>
+                <div class="rounded-xl border border-slate-100 p-2 text-center sm:p-4">
+                    <span class="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-500 sm:h-9 sm:w-9">
+                        <x-icon name="x" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </span>
+                    <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $quizzesRemaining }}</p>
+                    <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Quizzes Remaining</p>
+                </div>
+                <div class="rounded-xl border border-slate-100 p-2 text-center sm:p-4">
+                    <span class="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-blue-600 sm:h-9 sm:w-9">
+                        <x-icon name="coin" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </span>
+                    <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $score->passing_score_percent }}%</p>
+                    <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Overall Passing Score</p>
+                </div>
+            </div>
         </div>
 
         @if ($quizzes->isEmpty())
@@ -224,23 +270,30 @@
                                                     {{ is_null($answer?->points_awarded) ? 'Awaiting review' : $answer->points_awarded . '/' . $questionPoints . ' pts' }}
                                                 </p>
                                             @else
-                                                @php
-                                                    $selectedOptions = $question->options->filter(
-                                                        fn ($option) => $option->selected ?? in_array($option->id, $answer->selected_option_ids ?? [])
-                                                    );
-                                                @endphp
                                                 <ul class="mt-2 space-y-1">
-                                                    @forelse ($selectedOptions as $option)
-                                                        <li class="flex items-center gap-1.5 text-sm font-medium text-slate-700">
-                                                            <x-icon name="check-circle" class="h-3.5 w-3.5 text-brand-500" />
+                                                    @foreach ($question->options as $option)
+                                                        @php $wasSelected = $option->selected ?? in_array($option->id, $answer->selected_option_ids ?? []); @endphp
+                                                        <li class="flex items-center gap-1.5 text-sm {{ $option->is_correct ? 'font-medium text-emerald-600' : ($wasSelected ? 'font-medium text-red-600' : 'text-slate-400') }}">
+                                                            @if ($option->is_correct)
+                                                                <x-icon name="check-circle" class="h-3.5 w-3.5" />
+                                                            @elseif ($wasSelected)
+                                                                <x-icon name="x" class="h-3.5 w-3.5" />
+                                                            @else
+                                                                <span class="h-3.5 w-3.5"></span>
+                                                            @endif
                                                             {{ $option->option_text }}
                                                         </li>
-                                                    @empty
-                                                        <li class="text-sm italic text-slate-400">No answer selected.</li>
-                                                    @endforelse
+                                                    @endforeach
                                                 </ul>
-                                                <p class="mt-2 text-sm font-medium text-slate-600">
-                                                    {{ $answer->points_awarded ?? 0 }}/{{ $questionPoints }} pts
+                                                @php
+                                                    $awarded = $answer->points_awarded ?? 0;
+                                                    $pointsColor = $awarded >= $questionPoints ? 'text-emerald-600' : ($awarded > 0 ? 'text-amber-600' : 'text-red-600');
+                                                @endphp
+                                                <p class="mt-2 text-sm font-medium {{ $pointsColor }}">
+                                                    {{ $awarded }}/{{ $questionPoints }} pts
+                                                    @if ($awarded > 0 && $awarded < $questionPoints)
+                                                        <span class="font-normal text-slate-400">(partial credit)</span>
+                                                    @endif
                                                 </p>
                                             @endif
                                         </div>

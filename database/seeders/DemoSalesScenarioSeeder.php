@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Contest;
 use App\Models\ContestAchievement;
+use App\Models\ContestTargetType;
 use App\Models\OnboardingAssessmentAnswer;
 use App\Models\OnboardingAssessmentQuestion;
 use App\Models\OnboardingAssessmentQuiz;
@@ -46,7 +47,7 @@ class DemoSalesScenarioSeeder extends Seeder
         $contest = Contest::firstOrCreate(
             ['name' => 'GG Prime Mega Contest'],
             [
-                'target_type' => 'sales',
+                'target_type_id' => ContestTargetType::where('slug', 'sales')->value('id'),
                 'target' => '25 lakh',
                 'target_value' => 2500000,
                 'participation_type' => 'individual',

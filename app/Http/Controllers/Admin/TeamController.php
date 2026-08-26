@@ -24,8 +24,9 @@ class TeamController extends Controller
                 $query->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
             }))
             ->orderByDesc('team_members_count')
-            ->get()
-            ->map(function (User $user) {
+            ->paginate(20)
+            ->withQueryString()
+            ->through(function (User $user) {
                 $user->total_earnings = $user->totalReferralEarnings();
 
                 return $user;

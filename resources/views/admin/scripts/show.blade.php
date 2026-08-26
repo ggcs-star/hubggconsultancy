@@ -34,7 +34,17 @@
 
             @forelse ($group['items'] as $item)
                 <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 last:border-b-0">
-                    <div class="min-w-0 flex-1">
+                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                        @if ($item->type === 'document')
+                            @if ($item->thumbnailUrl())
+                                <img src="{{ $item->thumbnailUrl() }}" alt="" class="h-9 w-9 shrink-0 rounded-lg object-cover">
+                            @else
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                                    <x-icon name="document" class="h-4 w-4" />
+                                </span>
+                            @endif
+                        @endif
+                        <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
                             <p class="truncate font-semibold text-slate-800">{{ $item->title }}</p>
                             @if (! $item->is_published)
@@ -47,6 +57,7 @@
                         <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener" class="mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate text-xs text-brand-700 hover:underline">
                             {{ $item->original_filename ?? ($item->is_external ? $item->url : 'View file') }}
                         </a>
+                        </div>
                     </div>
 
                     <div class="flex shrink-0 items-center gap-1">

@@ -74,11 +74,25 @@
         @endif
     </div>
 
-    @if ($past->isNotEmpty())
+    @if ($past->isNotEmpty() || request()->filled('search'))
         <div class="card mt-6">
-            <div class="border-b border-slate-100 px-5 py-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
                 <h2 class="font-bold text-slate-800">Past Events</h2>
+
+                <form method="GET" class="flex items-center gap-2">
+                    <div class="relative">
+                        <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search past events..." class="form-input w-56 pl-9 text-sm">
+                    </div>
+                    @if (request('search'))
+                        <a href="{{ route('user.events.index') }}" class="text-xs font-semibold text-slate-500 hover:text-slate-700">Reset</a>
+                    @endif
+                </form>
             </div>
+
+            @if ($past->isEmpty())
+                <div class="px-6 py-12 text-center text-sm text-slate-400">No past events match your search.</div>
+            @endif
 
             <div class="divide-y divide-slate-100">
                 @foreach ($past as $event)
@@ -103,6 +117,12 @@
                     </div>
                 @endforeach
             </div>
+
+            @if ($past->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $past->links() }}
+                </div>
+            @endif
         </div>
     @endif
 

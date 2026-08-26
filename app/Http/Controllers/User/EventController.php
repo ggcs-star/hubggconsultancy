@@ -13,9 +13,14 @@ class EventController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
+        $search = trim((string) $request->query('search'));
 
         $upcoming = Event::published()->with('registrations')->upcoming()->get();
-        $past = Event::published()->with('registrations')->past()->get();
+
+        $past = Event::published()->with('registrations')->past()
+            ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
+            ->paginate(15)
+            ->withQueryString();
 
         return view('user.events.index', [
             'upcoming' => $upcoming,

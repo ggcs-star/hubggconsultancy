@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\CourseQuizQuestionController;
 use App\Http\Controllers\Admin\CourseQuizReviewController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
+use App\Http\Controllers\Admin\OnboardingChecklistController as AdminOnboardingChecklistController;
 use App\Http\Controllers\Admin\OnboardingAssessmentAnswerController as AdminOnboardingAssessmentAnswerController;
 use App\Http\Controllers\Admin\OnboardingAssessmentController as AdminOnboardingAssessmentController;
 use App\Http\Controllers\Admin\OnboardingAssessmentQuestionController;
@@ -24,12 +25,14 @@ use App\Http\Controllers\User\SaasProductController as UserSaasProductController
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CourseLessonVideoController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\User\CertificateController as UserCertificateController;
 use App\Http\Controllers\User\CourseController as UserCourseController;
 use App\Http\Controllers\User\CourseLessonProgressController;
 use App\Http\Controllers\User\CourseQuizAnswerController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\DocumentController as UserDocumentController;
+use App\Http\Controllers\User\OnboardingChecklistController as UserOnboardingChecklistController;
 use App\Http\Controllers\User\OnboardingAssessmentController as UserOnboardingAssessmentController;
 use App\Http\Controllers\User\PlaceholderController as UserPlaceholderController;
 use App\Http\Controllers\User\PointsController;
@@ -68,6 +71,13 @@ use App\Http\Controllers\Admin\LearningProgressController as AdminLearningProgre
 use App\Http\Controllers\User\LearningProgressController as UserLearningProgressController;
 use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\User\AnnouncementController as UserAnnouncementController;
+use App\Http\Controllers\Admin\AchieverController as AdminAchieverController;
+use App\Http\Controllers\User\AchieverController as UserAchieverController;
+use App\Http\Controllers\User\PerformanceController as UserPerformanceController;
+use App\Http\Controllers\Admin\HallOfFameController as AdminHallOfFameController;
+use App\Http\Controllers\User\HallOfFameController as UserHallOfFameController;
+use App\Http\Controllers\Admin\SuccessStoryController as AdminSuccessStoryController;
+use App\Http\Controllers\User\SuccessStoryController as UserSuccessStoryController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -316,6 +326,15 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::patch('/{document}/publish-toggle', [AdminDocumentController::class, 'togglePublish'])->name('publish.toggle');
         });
 
+        Route::prefix('onboarding-checklist')->name('onboarding-checklist.')->group(function () {
+            Route::get('/', [AdminOnboardingChecklistController::class, 'index'])->name('index');
+            Route::post('/', [AdminOnboardingChecklistController::class, 'store'])->name('store');
+            Route::put('/{onboardingChecklistItem}', [AdminOnboardingChecklistController::class, 'update'])->name('update');
+            Route::delete('/{onboardingChecklistItem}', [AdminOnboardingChecklistController::class, 'destroy'])->name('destroy');
+            Route::patch('/{onboardingChecklistItem}/publish-toggle', [AdminOnboardingChecklistController::class, 'togglePublish'])->name('publish.toggle');
+            Route::get('/progress', [AdminOnboardingChecklistController::class, 'progress'])->name('progress');
+        });
+
         Route::prefix('sales-toolkit')->name('sales-toolkit.')->group(function () {
             Route::get('/', [SalesToolkitController::class, 'index'])->name('index');
             Route::post('/', [SalesToolkitController::class, 'store'])->name('store');
@@ -345,6 +364,7 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::post('/{contest}/achievements', [AdminContestController::class, 'storeAchievement'])->name('achievements.store');
         });
         Route::delete('/contest-achievements/{achievement}', [AdminContestController::class, 'destroyAchievement'])->name('contest-achievements.destroy');
+        Route::post('/contest-target-types', [AdminContestController::class, 'storeTargetType'])->name('contest-target-types.store');
 
         Route::get('/contest-tracker', [AdminContestTrackerController::class, 'index'])->name('contest-tracker.index');
         Route::get('/leaderboard', [AdminLeaderboardController::class, 'index'])->name('leaderboard.index');
@@ -394,6 +414,18 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::patch('/{announcement}/active-toggle', [AdminAnnouncementController::class, 'toggleActive'])->name('active.toggle');
         });
 
+        Route::get('/achievers', [AdminAchieverController::class, 'index'])->name('achievers.index');
+
+        Route::get('/hall-of-fame', [AdminHallOfFameController::class, 'index'])->name('hall-of-fame.index');
+
+        Route::prefix('success-stories')->name('success-stories.')->group(function () {
+            Route::get('/', [AdminSuccessStoryController::class, 'index'])->name('index');
+            Route::post('/', [AdminSuccessStoryController::class, 'store'])->name('store');
+            Route::put('/{successStory}', [AdminSuccessStoryController::class, 'update'])->name('update');
+            Route::delete('/{successStory}', [AdminSuccessStoryController::class, 'destroy'])->name('destroy');
+            Route::patch('/{successStory}/active-toggle', [AdminSuccessStoryController::class, 'toggleActive'])->name('active.toggle');
+        });
+
         Route::prefix('faqs')->name('faqs.')->group(function () {
             Route::get('/', [FaqController::class, 'index'])->name('index');
             Route::post('/', [FaqController::class, 'store'])->name('store');
@@ -401,6 +433,7 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::delete('/{faq}', [FaqController::class, 'destroy'])->name('destroy');
             Route::patch('/{faq}/publish-toggle', [FaqController::class, 'togglePublish'])->name('publish.toggle');
         });
+        Route::post('/faq-sections', [FaqController::class, 'storeSection'])->name('faq-sections.store');
 
         Route::prefix('scripts')->name('scripts.')->group(function () {
             Route::get('/', [ScriptTopicController::class, 'index'])->name('index');
@@ -434,6 +467,9 @@ Route::middleware(['auth', 'role:user'])
 
         Route::get('/documents', [UserDocumentController::class, 'index'])->name('documents.index');
 
+        Route::get('/onboarding-checklist', [UserOnboardingChecklistController::class, 'index'])->name('onboarding-checklist.index');
+        Route::patch('/onboarding-checklist/{onboardingChecklistItem}/toggle', [UserOnboardingChecklistController::class, 'toggle'])->name('onboarding-checklist.toggle');
+
         Route::get('/sales-toolkit', [UserSalesToolkitController::class, 'index'])->name('sales-toolkit.index');
 
         Route::get('/events', [UserEventController::class, 'index'])->name('events.index');
@@ -452,10 +488,14 @@ Route::middleware(['auth', 'role:user'])
 
         Route::prefix('leads')->name('leads.')->group(function () {
             Route::get('/', [UserLeadController::class, 'index'])->name('index');
+            Route::get('/create', [UserLeadController::class, 'create'])->name('create');
+            Route::post('/', [UserLeadController::class, 'store'])->name('store');
             Route::get('/{lead}', [UserLeadController::class, 'show'])->name('show');
             Route::patch('/{lead}/status', [UserLeadController::class, 'updateStatus'])->name('status.update');
             Route::post('/{lead}/notes', [UserLeadController::class, 'storeNote'])->name('notes.store');
         });
+
+        Route::post('/campaigns', [UserLeadController::class, 'storeCampaign'])->name('campaigns.store');
 
         Route::prefix('products')->name('saas-products.')->group(function () {
             Route::get('/', [UserSaasProductController::class, 'index'])->name('index');
@@ -469,6 +509,12 @@ Route::middleware(['auth', 'role:user'])
         Route::get('/learning-progress', [UserLearningProgressController::class, 'index'])->name('learning-progress.index');
 
         Route::get('/announcements', [UserAnnouncementController::class, 'index'])->name('announcements.index');
+
+        Route::get('/my-performance', [UserPerformanceController::class, 'index'])->name('performance.index');
+
+        Route::get('/achievers', [UserAchieverController::class, 'index'])->name('achievers.index');
+        Route::get('/hall-of-fame', [UserHallOfFameController::class, 'index'])->name('hall-of-fame.index');
+        Route::get('/success-stories', [UserSuccessStoryController::class, 'index'])->name('success-stories.index');
 
         Route::get('/points', [PointsController::class, 'show'])->name('points.show');
 
@@ -526,6 +572,9 @@ Route::get('/sales-manuals/{manual}', [UserSalesManualController::class, 'show']
     Route::post('/tickets/{ticket}/reply', [UserSupportTicketController::class, 'reply'])
         ->name('tickets.reply');
 
+    Route::post('/issue-types', [UserSupportTicketController::class, 'storeIssueType'])
+        ->name('issue-types.store');
+
 });
 
 
@@ -539,5 +588,20 @@ Route::middleware(['auth', 'role:user,admin'])
         Route::post('/courses/quiz-checkpoints/{checkpoint}/answers', [CourseQuizAnswerController::class, 'store'])->name('course-quiz-answers.store');
         Route::post('/courses/lessons/{lesson}/progress', [CourseLessonProgressController::class, 'store'])->name('course-lesson-progress.store');
         Route::get('/courses/lessons/{lesson}/video', [CourseLessonVideoController::class, 'show'])->name('course-lesson-video.show');
+    });
+
+// Personal to-do/calendar — identical for admin and user accounts (each person
+// only ever sees their own tasks), so it's one shared route set rather than
+// duplicated admin.*/user.* pairs.
+Route::middleware(['auth', 'role:user,admin'])
+    ->prefix('tasks')
+    ->name('tasks.')
+    ->group(function () {
+        Route::get('/', [TaskController::class, 'index'])->name('index');
+        Route::post('/', [TaskController::class, 'store'])->name('store');
+        Route::post('/bulk-destroy', [TaskController::class, 'bulkDestroy'])->name('bulk-destroy');
+        Route::put('/{task}', [TaskController::class, 'update'])->name('update');
+        Route::patch('/{task}/toggle', [TaskController::class, 'toggleComplete'])->name('toggle');
+        Route::delete('/{task}', [TaskController::class, 'destroy'])->name('destroy');
     });
 

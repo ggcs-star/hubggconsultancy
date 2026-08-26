@@ -125,7 +125,7 @@
         </div>
     </div>
 
-    {{-- Contest Overview | Tasks | Upcoming Events --}}
+    {{-- Contest Overview | To Do List | Upcoming Events --}}
     <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="card p-5">
             <div class="flex items-center justify-between">
@@ -158,25 +158,7 @@
             @endif
         </div>
 
-        <div class="card p-5">
-            <div class="flex items-center justify-between">
-                <p class="font-bold text-slate-800">Today's Tasks</p>
-            </div>
-            <div class="mt-3 divide-y divide-slate-100">
-                @foreach ($tasks as $task)
-                    <a href="{{ $task['route'] }}" class="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:text-brand-700">
-                        <span class="flex items-center gap-2 text-slate-600">
-                            <x-icon name="check-circle" class="h-4 w-4 text-slate-300" />
-                            {{ $task['label'] }}
-                        </span>
-                        <span class="flex items-center gap-1 shrink-0">
-                            <span class="font-semibold {{ $task['count'] > 0 ? 'text-red-600' : 'text-slate-400' }}">{{ $task['count'] }}</span>
-                            <x-icon name="chevron-right" class="h-3.5 w-3.5 text-slate-300" />
-                        </span>
-                    </a>
-                @endforeach
-            </div>
-        </div>
+        @include('partials.todo-widget')
 
         <div class="card p-5">
             <div class="flex items-center justify-between">

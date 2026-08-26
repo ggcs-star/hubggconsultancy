@@ -91,7 +91,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
                 <div>
                     <h2 class="font-bold text-slate-800">All Leads</h2>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ $leads->count() }} total lead{{ $leads->count() === 1 ? '' : 's' }}</p>
+                    <p class="mt-0.5 text-xs text-slate-400">{{ $leads->total() }} total lead{{ $leads->total() === 1 ? '' : 's' }}</p>
                 </div>
                 <div class="flex items-center gap-2" x-show="selected.length > 0" x-cloak>
                     <select name="assigned_to" required class="form-input w-48">
@@ -176,6 +176,10 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $leads->links() }}
                 </div>
             @else
                 <div class="px-6 py-16 text-center">

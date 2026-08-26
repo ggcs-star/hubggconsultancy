@@ -1,6 +1,6 @@
 <x-layout title="Campaigns" title-icon="calendar" subtitle="Group leads by marketing campaign and track performance">
 
-    <div class="flex justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <a href="{{ route('admin.leads.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-800">
             <x-icon name="chevron-right" class="h-3.5 w-3.5 rotate-180" />
             Back to Leads
@@ -11,6 +11,18 @@
             Add Campaign
         </button>
     </div>
+
+    <form method="GET" class="mt-4 w-full sm:max-w-sm">
+        <div class="relative">
+            <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search campaigns..." class="form-input pl-10 {{ request('search') ? 'pr-9' : '' }}">
+            @if (request('search'))
+                <a href="{{ route('admin.campaigns.index') }}" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <x-icon name="x" class="h-4 w-4" />
+                </a>
+            @endif
+        </div>
+    </form>
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($campaigns as $campaign)
@@ -62,10 +74,20 @@
             </x-modal>
         @empty
             <div class="col-span-full py-16 text-center text-slate-400">
-                No campaigns yet. Click "Add Campaign" to create the first one.
+                @if (request('search'))
+                    No campaigns match your search.
+                @else
+                    No campaigns yet. Click "Add Campaign" to create the first one.
+                @endif
             </div>
         @endforelse
     </div>
+
+    @if ($campaigns->hasPages())
+        <div class="mt-6">
+            {{ $campaigns->links() }}
+        </div>
+    @endif
 
     <x-modal name="add-campaign" :show="$errors->isNotEmpty()" max-width="lg">
         @include('admin.campaigns._form', ['campaign' => null])

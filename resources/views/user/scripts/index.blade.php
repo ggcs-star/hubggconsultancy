@@ -46,9 +46,13 @@
 
                     <div x-show="tab === 'documents'" x-cloak class="space-y-1">
                         @forelse ($documents as $document)
-                            <a href="{{ $document->fileUrl() }}" target="_blank" rel="noopener" class="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
-                                <span class="min-w-0 truncate">{{ $document->title }}</span>
-                                <x-icon name="document" class="h-4 w-4 shrink-0 text-slate-300" />
+                            <a href="{{ $document->fileUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
+                                @if ($document->thumbnailUrl())
+                                    <img src="{{ $document->thumbnailUrl() }}" alt="" class="h-7 w-7 shrink-0 rounded-md object-cover">
+                                @else
+                                    <x-icon name="document" class="h-4 w-4 shrink-0 text-slate-300" />
+                                @endif
+                                <span class="min-w-0 flex-1 truncate">{{ $document->title }}</span>
                             </a>
                         @empty
                             <p class="px-2 py-2 text-sm text-slate-400">No documents for this topic yet.</p>

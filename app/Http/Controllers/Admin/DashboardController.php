@@ -9,20 +9,22 @@ use App\Models\Course;
 use App\Models\Event;
 use App\Models\IncentiveEntry;
 use App\Models\Lead;
-use App\Models\OnboardingAssessmentAnswer;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         return view('admin.dashboard', [
             'topPerformers' => $this->topPerformers(),
             'trainingProgress' => $this->teamTrainingProgress(),
             'leadStats' => $this->leadStats(),
             'contestProgress' => $this->contestProgress(),
-            'tasks' => $this->tasks(),
+            'myTasks' => $request->user()->tasks()
+                ->whereBetween('date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+                ->orderBy('date')->orderBy('time')->get(),
             'upcomingEvents' => Event::published()->upcoming()->take(3)->get(),
             'announcements' => Announcement::visible()->latest('published_at')->latest('id')->take(3)->get(),
             'learningProgress' => $this->teamLearningProgress(),
@@ -105,32 +107,6 @@ class DashboardController extends Controller
             'contest' => $contest,
             'leader' => $contest->rankedParticipants()->first(),
             'total_participants' => $contest->registrations_count,
-        ];
-    }
-
-    private function tasks(): array
-    {
-        return [
-            [
-                'label' => 'Unassigned leads',
-                'count' => Lead::whereNull('assigned_to')->count(),
-                'route' => route('admin.leads.index'),
-            ],
-            [
-                'label' => 'Leads overdue for follow-up',
-                'count' => Lead::needsFollowUp()->count(),
-                'route' => route('admin.leads.index'),
-            ],
-            [
-                'label' => 'Pending salesperson applications',
-                'count' => User::where('salesperson_status', 'pending')->count(),
-                'route' => route('admin.salesperson-applications'),
-            ],
-            [
-                'label' => 'Text answers awaiting grading',
-                'count' => OnboardingAssessmentAnswer::whereNull('points_awarded')->whereNull('is_correct')->count(),
-                'route' => route('admin.onboarding-assessment.index', ['tab' => 'results']),
-            ],
         ];
     }
 

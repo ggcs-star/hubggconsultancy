@@ -31,11 +31,6 @@
         @endphp
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
             <div class="relative hidden p-2 sm:block">
-                <div class="absolute inset-0 rounded-full border border-dashed border-brand-300">
-                    <span class="absolute -left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-brand-400"></span>
-                    <span class="absolute -right-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-brand-400"></span>
-                </div>
-
                 <button type="button" @click="open = !open" title="Join Us To Know More"
                     class="relative flex items-center rounded-full border border-slate-200 bg-white py-2 pl-2 pr-3 shadow-sm transition hover:shadow-md">
                     @foreach ($distinctPlatforms as $index => $link)
@@ -66,16 +61,24 @@
         </div>
 
         @php
-            $points = auth()->user()->combinedPoints();
+            $pointsUser = auth()->user();
+            $points = $pointsUser->combinedPoints();
+            $lmsPoints = $pointsUser->lmsPoints();
+            $resourcePoints = $pointsUser->resourcePoints();
 
-            // TEMP: static breakdown so the dropdown has something to show.
-            // Replace with real per-category point data once that's tracked.
+            $lmsCorrectCount = \App\Models\QuizAnswer::where('user_id', $pointsUser->id)->where('is_correct', true)->count();
+            $resourceCorrectCount = \App\Models\ResourceQuizAnswer::where('user_id', $pointsUser->id)->where('is_correct', true)->count();
+
+            $bonusEntries = $pointsUser->incentiveEntries()->whereIn('type', ['points', 'bonus'])->get();
+            $bonusTotal = (int) $bonusEntries->sum('amount');
+
+            // Real, per-category breakdown of $points->earned — every time a user
+            // watches a course/resource video and answers its quiz correctly, the
+            // points land here automatically. Bonus is shown separately since
+            // IncentiveEntry amounts aren't folded into combinedPoints().
             $pointsBreakdown = [
-                ['label' => 'Training Completion', 'sub' => 'Completed onboarding training', 'icon' => 'academic-cap', 'color' => 'bg-violet-100 text-violet-600', 'value' => 500],
-                ['label' => 'Assessments', 'sub' => 'Completed 2 assessments', 'icon' => 'edit', 'color' => 'bg-pink-100 text-pink-500', 'value' => 300],
-                ['label' => 'Certificates Earned', 'sub' => 'Earned 1 certificate', 'icon' => 'badge', 'color' => 'bg-blue-100 text-blue-500', 'value' => 250],
-                ['label' => 'Daily Login', 'sub' => 'Logged in today', 'icon' => 'calendar', 'color' => 'bg-orange-100 text-orange-500', 'value' => 50],
-                ['label' => 'Bonus Points', 'sub' => 'Achieved bonus milestone', 'icon' => 'star', 'color' => 'bg-amber-100 text-amber-500', 'value' => 150],
+                ['label' => 'Training Courses', 'sub' => $lmsCorrectCount . ' correct ' . Str::plural('answer', $lmsCorrectCount) . ' so far', 'icon' => 'academic-cap', 'color' => 'bg-violet-100 text-violet-600', 'value' => $lmsPoints->earned],
+                ['label' => 'Live & Recorded Training', 'sub' => $resourceCorrectCount . ' correct ' . Str::plural('answer', $resourceCorrectCount) . ' so far', 'icon' => 'video', 'color' => 'bg-blue-100 text-blue-500', 'value' => $resourcePoints->earned],
             ];
         @endphp
 
@@ -145,6 +148,21 @@
                                 <span class="whitespace-nowrap text-sm font-semibold text-emerald-600">+{{ $row['value'] }} pts</span>
                             </div>
                         @endforeach
+
+                        @if ($bonusEntries->isNotEmpty())
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-500">
+                                        <x-icon name="gift" class="h-4 w-4" />
+                                    </span>
+                                    <span>
+                                        <span class="block text-sm font-semibold text-slate-700">Bonus & Incentives</span>
+                                        <span class="block text-xs text-slate-400">{{ $bonusEntries->count() }} {{ Str::plural('entry', $bonusEntries->count()) }} awarded by admin</span>
+                                    </span>
+                                </div>
+                                <span class="whitespace-nowrap text-sm font-semibold text-emerald-600">+{{ $bonusTotal }} pts</span>
+                            </div>
+                        @endif
                     </div>
 
                     <span
@@ -171,6 +189,10 @@
             };
         </script>
     @endunless
+
+    <a href="{{ route('tasks.index') }}" title="Calendar" class="relative rounded-full p-2.5 text-slate-500 hover:bg-slate-100">
+        <x-icon name="calendar" class="h-5 w-5" />
+    </a>
 
     <button type="button" class="relative rounded-full p-2.5 text-slate-500 hover:bg-slate-100">
         <x-icon name="bell" class="h-5 w-5" />

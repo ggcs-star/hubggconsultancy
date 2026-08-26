@@ -21,7 +21,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">Progress by Salesperson</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $rows->count() }} {{ Str::plural('record', $rows->count()) }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $users->total() }} {{ Str::plural('salesperson', $users->total()) }}</p>
         </div>
 
         @if ($rows->isEmpty())
@@ -78,6 +78,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($users->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $users->links() }}
+                </div>
+            @endif
         @endif
     </div>
 

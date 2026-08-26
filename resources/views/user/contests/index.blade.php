@@ -14,6 +14,21 @@
         </div>
     @endunless
 
+    <div x-data="{ tab: 'all', upcomingTypeIds: @js($upcoming->pluck('target_type_id')) }">
+
+    @if ($targetTypes->isNotEmpty())
+        <div class="mb-5 flex flex-wrap gap-2">
+            <button type="button" x-on:click="tab = 'all'" class="rounded-full px-4 py-2 text-sm font-semibold transition" :class="tab === 'all' ? 'bg-brand-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'">
+                All
+            </button>
+            @foreach ($targetTypes as $targetType)
+                <button type="button" x-on:click="tab = '{{ $targetType->id }}'" class="rounded-full px-4 py-2 text-sm font-semibold transition" :class="tab === '{{ $targetType->id }}' ? 'bg-brand-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'">
+                    {{ $targetType->name }}
+                </button>
+            @endforeach
+        </div>
+    @endif
+
     <div class="space-y-5">
         @forelse ($upcoming as $contest)
             @php
@@ -23,12 +38,15 @@
                 $remaining = $registered ? $contest->remainingFor($user) : (float) $contest->target_value;
             @endphp
 
-            <div class="card p-6">
+            <div class="card p-6" x-show="tab === 'all' || tab === '{{ $contest->target_type_id }}'" x-cloak>
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div class="flex items-start gap-4">
                         <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-2xl">🏆</span>
                         <div>
                             <p class="text-lg font-bold text-slate-800">{{ $contest->name }}</p>
+                            @if ($contest->targetType)
+                                <span class="badge badge-slate mt-1">{{ $contest->targetType->name }}</span>
+                            @endif
                             @if ($contest->description)
                                 <p class="mt-0.5 text-sm text-slate-500">{{ $contest->description }}</p>
                             @endif
@@ -109,6 +127,12 @@
         @empty
             <div class="card p-10 text-center text-sm text-slate-400">No active contests right now — check back soon.</div>
         @endforelse
+
+        @if ($upcoming->isNotEmpty())
+            <div class="card p-10 text-center text-sm text-slate-400" x-show="tab !== 'all' && !upcomingTypeIds.includes(Number(tab))" x-cloak>
+                No upcoming contests in this category.
+            </div>
+        @endif
     </div>
 
     @if ($past->isNotEmpty())
@@ -120,12 +144,15 @@
             <div class="divide-y divide-slate-100">
                 @foreach ($past as $contest)
                     @php $achieved = $contest->isRegisteredBy($user) ? $contest->totalAchievementFor($user) : 0; @endphp
-                    <div class="flex flex-wrap items-center justify-between gap-4 px-5 py-4 opacity-70">
+                    <div class="flex flex-wrap items-center justify-between gap-4 px-5 py-4 opacity-70" x-show="tab === 'all' || tab === '{{ $contest->target_type_id }}'" x-cloak>
                         <div class="flex items-center gap-4">
                             <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-2xl">🏆</span>
                             <div>
                                 <p class="font-bold text-slate-700">{{ $contest->name }}</p>
                                 <p class="mt-0.5 flex items-center gap-3 text-xs text-slate-400">
+                                    @if ($contest->targetType)
+                                        <span>{{ $contest->targetType->name }}</span>
+                                    @endif
                                     <span>{{ $contest->registrations->count() }} {{ Str::plural('person', $contest->registrations->count()) }} joined</span>
                                     @if ($contest->isRegisteredBy($user))
                                         <span>Your achievement: {{ $contest->formatAmount($achieved) }}</span>
@@ -137,7 +164,15 @@
                     </div>
                 @endforeach
             </div>
+
+            @if ($past->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $past->links() }}
+                </div>
+            @endif
         </div>
     @endif
+
+    </div>
 
 </x-layout>

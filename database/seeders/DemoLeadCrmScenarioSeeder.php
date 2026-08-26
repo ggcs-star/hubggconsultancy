@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Campaign;
 use App\Models\Contest;
 use App\Models\ContestPointRule;
+use App\Models\ContestTargetType;
 use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -56,7 +57,7 @@ class DemoLeadCrmScenarioSeeder extends Seeder
             ['name' => 'GG Prime Lead Generation Challenge'],
             [
                 'description' => 'Earn points by moving your leads through the pipeline — from qualifying interest all the way to closing the sale.',
-                'target_type' => 'new_customers',
+                'target_type_id' => ContestTargetType::where('slug', 'new-customers')->value('id'),
                 'target' => '150 pts',
                 'target_value' => 150,
                 'participation_type' => 'individual',

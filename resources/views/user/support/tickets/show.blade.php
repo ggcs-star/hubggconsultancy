@@ -319,16 +319,6 @@
 
                     @endif
 
-
-                    {{-- Original Description --}}
-                    <div class="mt-4 rounded-lg bg-surface-alt p-4">
-
-                        <p class="whitespace-pre-line text-sm leading-6 text-secondary-dark">
-                            {{ $ticket->description }}
-                        </p>
-
-                    </div>
-
                 </div>
 
 
@@ -340,81 +330,17 @@
 
 
                     {{-- ================================================= --}}
-                    {{-- INITIAL USER MESSAGE --}}
-                    {{-- ================================================= --}}
-
-                    <div class="flex items-start gap-3">
-
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-light text-sm font-semibold text-primary">
-
-                            {{ strtoupper(
-                                substr(
-                                    auth()->user()->name,
-                                    0,
-                                    1
-                                )
-                            ) }}
-
-                        </div>
-
-
-                        <div class="min-w-0 flex-1">
-
-                            <div class="flex items-center gap-2">
-
-                                <p class="text-sm font-semibold text-secondary-dark">
-                                    You
-                                </p>
-
-
-                                <span class="text-xs text-secondary">
-                                    {{ $ticket->created_at?->format('d M Y, h:i A') }}
-                                </span>
-
-                            </div>
-
-
-                            <div class="mt-2 rounded-lg rounded-tl-none bg-surface-alt p-3">
-
-                                <p class="whitespace-pre-line text-sm leading-6 text-secondary-dark">
-                                    {{ $ticket->description }}
-                                </p>
-
-                            </div>
-
-
-                            {{-- Initial Attachment --}}
-                            @if ($ticket->attachment)
-
-                                <div class="mt-2">
-
-                                    <a
-                                        href="{{ asset('storage/' . $ticket->attachment) }}"
-                                        target="_blank"
-                                        class="inline-flex items-center gap-2 text-xs font-medium text-primary hover:underline"
-                                    >
-
-                                        <x-icon
-                                            name="paperclip"
-                                            class="h-3.5 w-3.5"
-                                        />
-
-                                        View Attachment
-
-                                    </a>
-
-                                </div>
-
-                            @endif
-
-                        </div>
-
-                    </div>
-
-
-                    {{-- ================================================= --}}
                     {{-- MESSAGES --}}
                     {{-- ================================================= --}}
+                    {{--
+                        The user's initial message is already the first row in
+                        $ticket->messages (created alongside the ticket in
+                        store()), so it renders naturally via this loop — it is
+                        NOT rendered again here separately, which used to show
+                        the same "wq"-style description three times: once in
+                        the "Original Description" box above, and twice more
+                        (a hardcoded bubble plus the real looped message).
+                    --}}
 
                     @foreach ($ticket->messages as $message)
 

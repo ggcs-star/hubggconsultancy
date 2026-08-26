@@ -28,7 +28,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">All Toolkit Items</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $items->count() }} total item{{ $items->count() === 1 ? '' : 's' }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $items->total() }} total item{{ $items->total() === 1 ? '' : 's' }}</p>
         </div>
 
         @if ($items->count())
@@ -50,9 +50,13 @@
                             <tr class="transition hover:bg-slate-50/60">
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-3">
-                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                                            <x-icon name="briefcase" class="h-5 w-5" />
-                                        </span>
+                                        @if ($item->thumbnailUrl())
+                                            <img src="{{ $item->thumbnailUrl() }}" alt="" class="h-10 w-10 shrink-0 rounded-lg object-cover">
+                                        @else
+                                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                                                <x-icon name="briefcase" class="h-5 w-5" />
+                                            </span>
+                                        @endif
                                         <div class="min-w-0">
                                             <p class="truncate font-semibold text-slate-800">{{ $item->title }}</p>
                                             @if ($item->description)
@@ -130,6 +134,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($items->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $items->links() }}
+                </div>
+            @endif
         @else
             <div class="px-6 py-16 text-center">
                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50">

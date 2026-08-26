@@ -36,16 +36,17 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">All Contests</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $contests->count() }} total contest{{ $contests->count() === 1 ? '' : 's' }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $contests->total() }} total contest{{ $contests->total() === 1 ? '' : 's' }}</p>
         </div>
 
         @if ($contests->count())
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[950px] text-left text-sm">
+                <table class="w-full min-w-[1050px] text-left text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wider text-slate-400">
                             <th class="px-5 py-3 font-semibold">Contest</th>
                             <th class="px-5 py-3 font-semibold">Duration</th>
+                            <th class="px-5 py-3 font-semibold">Target Type</th>
                             <th class="px-5 py-3 font-semibold">Target</th>
                             <th class="px-5 py-3 font-semibold">Reward</th>
                             <th class="px-5 py-3 font-semibold">Status</th>
@@ -66,6 +67,9 @@
                                     {{ $contest->starts_at->format('d M') }} &ndash; {{ $contest->ends_at->format('d M Y') }}
                                 </td>
 
+                                <td class="px-5 py-4">
+                                    <span class="badge badge-slate">{{ $contest->targetType->name ?? '—' }}</span>
+                                </td>
                                 <td class="px-5 py-4 text-slate-600">{{ $contest->targetLabel() }}</td>
                                 <td class="px-5 py-4 text-slate-600">{{ $contest->reward ?: '—' }}</td>
 
@@ -109,6 +113,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($contests->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $contests->links() }}
+                </div>
+            @endif
         @else
             <div class="px-6 py-16 text-center">
                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50">

@@ -13,7 +13,7 @@
 
     <a href="{{ route('admin.resources.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-800">
         <x-icon name="chevron-right" class="h-3.5 w-3.5 rotate-180" />
-        Back to Resources
+        Back to Live & Recorded Training
     </a>
 
     <div class="mt-4 card flex items-center gap-4 p-5">

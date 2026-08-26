@@ -23,6 +23,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'designation',
         'email',
         'password',
         'role',
@@ -69,6 +70,18 @@ class User extends Authenticatable
         static::creating(function (self $user) {
             if (empty($user->referral_code)) {
                 $user->referral_code = static::generateUniqueReferralCode();
+            }
+        });
+
+        // Every user gets the "Other" support product so they can always
+        // raise a ticket even when nothing else fits — see
+        // SaasProductSupportIssueSeeder for the one-time backfill of
+        // existing users when this product didn't exist yet.
+        static::created(function (self $user) {
+            $otherProduct = SaasProduct::where('slug', 'other')->first();
+
+            if ($otherProduct) {
+                $otherProduct->users()->syncWithoutDetaching([$user->id]);
             }
         });
     }
@@ -167,6 +180,21 @@ class User extends Authenticatable
         return $this->hasMany(Lead::class, 'assigned_to');
     }
 
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function onboardingChecklistCompletions(): HasMany
+    {
+        return $this->hasMany(OnboardingChecklistCompletion::class);
+    }
+
     /**
      * Points earned across every LMS course quiz assigned to this user —
      * both mid-lesson (YouTube video) checkpoints and standalone module
@@ -258,6 +286,81 @@ class User extends Authenticatable
     public function totalPoints(): int
     {
         return $this->combinedPoints()->earned + $this->totalContestPoints();
+    }
+
+    /**
+     * Points earned within a window — same sources as totalPoints() but
+     * scoped by when the quiz was graded / contest points were logged, so
+     * the Hall of Fame can rank "this month" instead of only all-time.
+     */
+    public function pointsEarnedBetween(?\Illuminate\Support\Carbon $from, ?\Illuminate\Support\Carbon $to): int
+    {
+        $lmsPoints = (int) QuizAnswer::where('user_id', $this->id)
+            ->whereNotNull('points_awarded')
+            ->when($from, fn ($query) => $query->where('graded_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('graded_at', '<=', $to))
+            ->sum('points_awarded');
+
+        $resourcePoints = (int) ResourceQuizAnswer::where('user_id', $this->id)
+            ->whereNotNull('points_awarded')
+            ->when($from, fn ($query) => $query->where('graded_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('graded_at', '<=', $to))
+            ->sum('points_awarded');
+
+        $contestPoints = (int) ContestAchievement::where('user_id', $this->id)
+            ->whereHas('contest', fn ($query) => $query->where('achievement_source', 'crm'))
+            ->when($from, fn ($query) => $query->where('created_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('created_at', '<=', $to))
+            ->sum('amount');
+
+        return $lmsPoints + $resourcePoints + $contestPoints;
+    }
+
+    public function certificatesCountBetween(?\Illuminate\Support\Carbon $from = null, ?\Illuminate\Support\Carbon $to = null): int
+    {
+        return $this->certificates()
+            ->when($from, fn ($query) => $query->where('issued_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('issued_at', '<=', $to))
+            ->count();
+    }
+
+    /**
+     * Average quiz score across every course this user holds a certificate
+     * for — the "learning score" metric on Achiever / Hall of Fame cards.
+     */
+    public function averageCourseScorePercent(): ?int
+    {
+        $percents = $this->certificates()
+            ->with('course')
+            ->get()
+            ->map(fn (Certificate $certificate) => $certificate->course?->scoreFor($this)->percent)
+            ->filter(fn ($percent) => $percent !== null);
+
+        return $percents->isEmpty() ? null : (int) round($percents->avg());
+    }
+
+    public function leadsWonCountBetween(?\Illuminate\Support\Carbon $from = null, ?\Illuminate\Support\Carbon $to = null): int
+    {
+        return Lead::where('assigned_to', $this->id)
+            ->where('status', 'won')
+            ->when($from, fn ($query) => $query->where('won_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('won_at', '<=', $to))
+            ->count();
+    }
+
+    /**
+     * Distinct calendar days with a lesson completed — used as the "Most
+     * Consistent Learner" signal instead of a raw lesson count, since a raw
+     * count would favor a single binge session over steady daily habits.
+     */
+    public function activeLearningDaysBetween(?\Illuminate\Support\Carbon $from = null, ?\Illuminate\Support\Carbon $to = null): int
+    {
+        return (int) CourseLessonProgress::where('user_id', $this->id)
+            ->where('completed', true)
+            ->when($from, fn ($query) => $query->where('completed_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('completed_at', '<=', $to))
+            ->selectRaw('COUNT(DISTINCT DATE(completed_at)) as days')
+            ->value('days');
     }
 
     public static function tierFor(int $points): string

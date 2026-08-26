@@ -1,6 +1,23 @@
 <x-layout title="Announcements" title-icon="bell" subtitle="Post updates shown on every dashboard">
 
-    <div class="flex justify-end">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <form method="GET" class="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <div class="relative w-full sm:max-w-sm">
+                <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search announcements..." class="form-input pl-10">
+            </div>
+
+            <select name="status" class="form-input w-full sm:w-48" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="active" @selected(request('status') === 'active')>Active</option>
+                <option value="hidden" @selected(request('status') === 'hidden')>Hidden</option>
+            </select>
+
+            @if (request('search') || request('status'))
+                <a href="{{ route('admin.announcements.index') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset</a>
+            @endif
+        </form>
+
         <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'add-announcement')" class="btn-primary shrink-0">
             <x-icon name="plus" class="h-4 w-4" />
             Post Announcement
@@ -10,7 +27,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">All Announcements</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $announcements->count() }} total</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $announcements->total() }} total</p>
         </div>
 
         @if ($announcements->isEmpty())
@@ -18,8 +35,14 @@
                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50">
                     <x-icon name="bell" class="h-7 w-7 text-brand-600" />
                 </div>
-                <h3 class="mt-4 font-bold text-slate-800">No announcements yet</h3>
-                <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">Click "Post Announcement" to share the first update.</p>
+                <h3 class="mt-4 font-bold text-slate-800">No announcements found</h3>
+                <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">
+                    @if (request('search') || request('status'))
+                        Try changing your search or filters.
+                    @else
+                        Click "Post Announcement" to share the first update.
+                    @endif
+                </p>
             </div>
         @else
             <div class="divide-y divide-slate-100">
@@ -65,6 +88,12 @@
                     </x-modal>
                 @endforeach
             </div>
+
+            @if ($announcements->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $announcements->links() }}
+                </div>
+            @endif
         @endif
     </div>
 

@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
+use App\Services\FileUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DocumentController extends Controller
 {
+    public function __construct(private FileUploadService $fileUploadService)
+    {
+    }
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('search'));
@@ -17,7 +22,8 @@ class DocumentController extends Controller
         $documents = Document::query()
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->ordered()
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.documents.index', [
             'documents' => $documents,
@@ -26,20 +32,34 @@ class DocumentController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        Document::create($this->validateDocument($request));
+        $data = $this->validateDocument($request);
+
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'documents');
+        }
+
+        Document::create($data);
 
         return redirect()->route('admin.documents.index')->with('status', 'Document added.');
     }
 
     public function update(Request $request, Document $document): RedirectResponse
     {
-        $document->update($this->validateDocument($request));
+        $data = $this->validateDocument($request);
+
+        if ($request->hasFile('thumbnail')) {
+            $this->fileUploadService->delete($document->thumbnail);
+            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'documents');
+        }
+
+        $document->update($data);
 
         return redirect()->route('admin.documents.index')->with('status', 'Document updated.');
     }
 
     public function destroy(Document $document): RedirectResponse
     {
+        $this->fileUploadService->delete($document->thumbnail);
         $document->delete();
 
         return redirect()->route('admin.documents.index')->with('status', 'Document deleted.');
@@ -60,6 +80,7 @@ class DocumentController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'url' => ['required', 'string', 'max:2000', 'url'],
+            'thumbnail' => ['nullable', 'image', 'max:2048'],
         ]);
     }
 }

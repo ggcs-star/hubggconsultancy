@@ -54,6 +54,10 @@
                         <input type="email" value="{{ $user->email }}" disabled class="form-input bg-slate-50 text-slate-400">
                     </div>
                     <div>
+                        <label for="designation" class="form-label">Designation / Role</label>
+                        <input id="designation" type="text" name="designation" value="{{ old('designation', $user->designation) }}" class="form-input" placeholder="e.g. Sales Executive">
+                    </div>
+                    <div>
                         <label for="phone" class="form-label">Phone Number (please add GG Number)</label>
                         <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="form-input" placeholder="+91 90000 00000">
                     </div>

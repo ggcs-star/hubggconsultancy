@@ -395,6 +395,84 @@ class SupportTicketController extends Controller
 
 
     /**
+     * User: Quick-add a new issue type under one of their assigned products,
+     * used by the "Can't find your issue?" popup on the ticket form. Becomes
+     * a real, permanently shared SupportIssueType — same quick-add pattern
+     * used for Campaigns and FAQ Sections elsewhere in the app.
+     */
+    public function storeIssueType(Request $request)
+    {
+        $data = $request->validate([
+            'saas_product_id' => [
+                'required',
+                'integer',
+                'exists:saas_products,id',
+            ],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+        ]);
+
+        $isAssigned = SaasProduct::query()
+            ->join(
+                'saas_product_user',
+                'saas_products.id',
+                '=',
+                'saas_product_user.saas_product_id'
+            )
+            ->where('saas_products.id', $data['saas_product_id'])
+            ->where('saas_product_user.user_id', auth()->id())
+            ->where('saas_products.active', true)
+            ->exists();
+
+        if (!$isAssigned) {
+            $message = 'That product is not assigned to your account.';
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->withErrors(['saas_product_id' => $message]);
+        }
+
+        $baseSlug = Str::slug($data['saas_product_id'] . '-' . $data['name']);
+        $slug = $baseSlug;
+        $suffix = 1;
+
+        while (SupportIssueType::where('slug', $slug)->exists()) {
+            $suffix++;
+            $slug = $baseSlug . '-' . $suffix;
+        }
+
+        $nextSortOrder = (int) SupportIssueType::where('saas_product_id', $data['saas_product_id'])->max('sort_order') + 1;
+
+        $issueType = SupportIssueType::create([
+            'saas_product_id' => $data['saas_product_id'],
+            'name' => $data['name'],
+            'slug' => $slug,
+            'module' => null,
+            'default_priority' => 'medium',
+            'icon' => null,
+            'description' => null,
+            'sort_order' => $nextSortOrder,
+            'status' => true,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id' => $issueType->id,
+                'name' => $issueType->name,
+                'module' => $issueType->module,
+            ]);
+        }
+
+        return back()->with('success', 'Issue added.');
+    }
+
+
+    /**
      * User: Show own ticket only
      */
     public function show(SupportTicket $ticket)

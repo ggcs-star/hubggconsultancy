@@ -15,17 +15,23 @@ class IncentiveController extends Controller
     {
         $search = trim((string) $request->query('search'));
 
-        $entries = IncentiveEntry::query()
-            ->with(['user', 'contest'])
+        $baseQuery = IncentiveEntry::query()
             ->when($search !== '', fn ($query) => $query->whereHas('user', function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
-            }))
+            }));
+
+        $totalAmount = (clone $baseQuery)->sum('amount');
+
+        $entries = $baseQuery
+            ->with(['user', 'contest'])
             ->latest('awarded_at')
             ->latest('id')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         return view('admin.incentives.index', [
             'entries' => $entries,
+            'totalAmount' => $totalAmount,
             'users' => User::where('role', 'user')->orderBy('name')->get(),
         ]);
     }

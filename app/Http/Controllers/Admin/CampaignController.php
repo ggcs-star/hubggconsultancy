@@ -11,9 +11,15 @@ use Illuminate\View\View;
 
 class CampaignController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $campaigns = Campaign::withCount('leads')->latest()->get();
+        $search = trim((string) $request->query('search'));
+
+        $campaigns = Campaign::withCount('leads')
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.campaigns.index', [
             'campaigns' => $campaigns,

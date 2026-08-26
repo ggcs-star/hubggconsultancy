@@ -23,7 +23,16 @@
         @forelse ($documents as $document)
             <div class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600 p-5">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="font-bold text-slate-800">{{ $document->title }}</p>
+                    <div class="flex min-w-0 items-center gap-3">
+                        @if ($document->thumbnailUrl())
+                            <img src="{{ $document->thumbnailUrl() }}" alt="" class="h-11 w-11 shrink-0 rounded-lg object-cover">
+                        @else
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                                <x-icon name="document" class="h-5 w-5" />
+                            </span>
+                        @endif
+                        <p class="min-w-0 truncate font-bold text-slate-800">{{ $document->title }}</p>
+                    </div>
                     <div class="flex shrink-0 items-center gap-1">
                         <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'edit-document-{{ $document->id }}')" title="Edit" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-brand-50 hover:text-brand-700">
                             <x-icon name="pencil" class="h-4 w-4" />
@@ -65,6 +74,12 @@
             </div>
         @endforelse
     </div>
+
+    @if ($documents->hasPages())
+        <div class="mt-6">
+            {{ $documents->links() }}
+        </div>
+    @endif
 
     <x-modal name="add-document" :show="$errors->isNotEmpty()" max-width="lg">
         @include('admin.documents._form', ['document' => null])

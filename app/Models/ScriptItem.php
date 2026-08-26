@@ -17,6 +17,7 @@ class ScriptItem extends Model
         'script_topic_id',
         'type',
         'title',
+        'thumbnail',
         'url',
         'is_external',
         'original_filename',
@@ -60,5 +61,10 @@ class ScriptItem extends Model
     public function fileUrl(): string
     {
         return $this->is_external ? $this->url : Storage::disk('public')->url($this->url);
+    }
+
+    public function thumbnailUrl(): ?string
+    {
+        return $this->thumbnail ? asset('storage/' . $this->thumbnail) : null;
     }
 }

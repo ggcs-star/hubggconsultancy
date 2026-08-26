@@ -31,7 +31,8 @@ class LeadController extends Controller
             ->when($assignedTo !== '', fn ($query) => $query->where('assigned_to', $assignedTo))
             ->when($campaignId !== '', fn ($query) => $query->where('campaign_id', $campaignId))
             ->latest()
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         $allLeads = Lead::all();
 

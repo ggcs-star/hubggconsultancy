@@ -6,10 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Contest;
 use App\Models\ContestAchievement;
 use App\Models\ContestPointRule;
+use App\Models\ContestTargetType;
 use App\Models\Lead;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ContestController extends Controller
@@ -20,6 +25,7 @@ class ContestController extends Controller
         $status = trim((string) $request->query('status'));
 
         $contests = Contest::query()
+            ->with('targetType')
             ->withCount('registrations')
             ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
             ->orderBy('starts_at')
@@ -31,8 +37,19 @@ class ContestController extends Controller
             $contests = $contests->filter(fn (Contest $contest) => $contest->displayStatus() === $status)->values();
         }
 
+        $perPage = 15;
+        $page = Paginator::resolveCurrentPage('page');
+
+        $paginatedContests = new LengthAwarePaginator(
+            $contests->forPage($page, $perPage)->values(),
+            $contests->count(),
+            $perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
+
         return view('admin.contests.index', [
-            'contests' => $contests,
+            'contests' => $paginatedContests,
             'eligibleCount' => User::where('role', 'user')->where('salesperson_status', 'approved')->count(),
         ]);
     }
@@ -186,6 +203,33 @@ class ContestController extends Controller
         return redirect()->route('admin.contests.participants', $contestId)->with('status', 'Achievement entry removed.');
     }
 
+    public function storeTargetType(Request $request): RedirectResponse|JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:contest_target_types,name'],
+        ]);
+
+        $baseSlug = Str::slug($data['name']);
+        $slug = $baseSlug;
+        $suffix = 1;
+
+        while (ContestTargetType::where('slug', $slug)->exists()) {
+            $suffix++;
+            $slug = $baseSlug . '-' . $suffix;
+        }
+
+        $targetType = ContestTargetType::create([
+            'name' => $data['name'],
+            'slug' => $slug,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['id' => $targetType->id, 'name' => $targetType->name]);
+        }
+
+        return back()->with('status', 'Target type added.');
+    }
+
     private function eligibleUsers()
     {
         return User::where('role', 'user')->where('salesperson_status', 'approved')->orderBy('name')->get();
@@ -196,7 +240,7 @@ class ContestController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'target_type' => ['required', 'in:sales,revenue,orders,new_customers'],
+            'target_type_id' => ['required', 'exists:contest_target_types,id'],
             'target' => ['nullable', 'string', 'max:255'],
             'target_value' => ['required', 'numeric', 'min:0.01'],
             'participation_type' => ['required', 'in:individual,team'],

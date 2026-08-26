@@ -17,4 +17,6 @@
         </div>
     </form>
 
+    @include('admin.contests._quick-add-target-type-modal')
+
 </x-layout>

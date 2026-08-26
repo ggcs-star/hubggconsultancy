@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Faq;
+use App\Models\FaqSection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -12,10 +14,11 @@ class FaqController extends Controller
 {
     public function index(): View
     {
-        $faqs = Faq::query()->ordered()->get();
+        $faqs = Faq::query()->with('section')->ordered()->get();
 
         return view('admin.faqs.index', [
             'faqs' => $faqs,
+            'sections' => FaqSection::ordered()->get(),
         ]);
     }
 
@@ -53,9 +56,25 @@ class FaqController extends Controller
         return back()->with('status', $faq->is_published ? 'FAQ published.' : 'FAQ set to draft.');
     }
 
+    public function storeSection(Request $request): RedirectResponse|JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:faq_sections,name'],
+        ]);
+
+        $section = FaqSection::create($data);
+
+        if ($request->wantsJson()) {
+            return response()->json(['id' => $section->id, 'name' => $section->name]);
+        }
+
+        return redirect()->route('admin.faqs.index')->with('status', 'Section added.');
+    }
+
     private function validateFaq(Request $request): array
     {
         return $request->validate([
+            'faq_section_id' => ['nullable', 'exists:faq_sections,id'],
             'question' => ['required', 'string', 'max:255'],
             'answer' => ['required', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],

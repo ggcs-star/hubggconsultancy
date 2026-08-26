@@ -1,4 +1,4 @@
-<x-layout title="Resources" title-icon="video" subtitle="Watch, learn and earn points along the way">
+<x-layout title="Live & Recorded Training" title-icon="video" subtitle="Watch, learn and earn points along the way">
 
     <script>
         window.resourcePlayerData = @json($playerData);

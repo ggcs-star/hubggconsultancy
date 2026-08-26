@@ -28,7 +28,16 @@
             <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener"
                 class="card flex flex-col border-l-4 border-l-brand-600 p-5 transition hover:-translate-y-0.5 hover:shadow-md">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="font-bold text-slate-800">{{ $item->title }}</p>
+                    <div class="flex min-w-0 items-center gap-3">
+                        @if ($item->thumbnailUrl())
+                            <img src="{{ $item->thumbnailUrl() }}" alt="" class="h-10 w-10 shrink-0 rounded-lg object-cover">
+                        @else
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                                <x-icon name="briefcase" class="h-5 w-5" />
+                            </span>
+                        @endif
+                        <p class="min-w-0 truncate font-bold text-slate-800">{{ $item->title }}</p>
+                    </div>
                     @if ($item->category)
                         <span class="badge badge-slate shrink-0">{{ $item->category }}</span>
                     @endif
@@ -51,5 +60,11 @@
             </div>
         @endforelse
     </div>
+
+    @if ($items->hasPages())
+        <div class="mt-6">
+            {{ $items->links() }}
+        </div>
+    @endif
 
 </x-layout>

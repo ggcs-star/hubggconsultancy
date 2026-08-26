@@ -26,6 +26,12 @@
                     </div>
                 @endforeach
             </div>
+
+            @if ($announcements->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $announcements->links() }}
+                </div>
+            @endif
         @endif
     </div>
 

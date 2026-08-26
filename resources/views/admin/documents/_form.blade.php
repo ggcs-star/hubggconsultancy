@@ -2,7 +2,7 @@
     $isEdit = (bool) $document;
 @endphp
 
-<form method="POST" action="{{ $isEdit ? route('admin.documents.update', $document) : route('admin.documents.store') }}" class="p-6">
+<form method="POST" action="{{ $isEdit ? route('admin.documents.update', $document) : route('admin.documents.store') }}" enctype="multipart/form-data" class="p-6">
     @csrf
     @if ($isEdit) @method('PUT') @endif
 
@@ -29,6 +29,15 @@
             <input type="text" name="url" value="{{ old('url', $isEdit ? $document->url : '') }}" required placeholder="https://docs.google.com/..." class="form-input">
             <x-input-error :messages="$errors->get('url')" class="mt-1" />
             <p class="mt-1 text-xs text-slate-400">Google Docs/Slides/Sheets links, or any PDF/website link — opens in a new tab.</p>
+        </div>
+
+        <div>
+            <label class="form-label">Thumbnail <span class="font-normal text-slate-400">(optional)</span></label>
+            @if ($isEdit && $document->thumbnailUrl())
+                <img src="{{ $document->thumbnailUrl() }}" alt="" class="mb-2 h-20 w-full rounded-lg object-cover">
+            @endif
+            <input type="file" name="thumbnail" accept="image/*" class="form-input">
+            <x-input-error :messages="$errors->get('thumbnail')" class="mt-1" />
         </div>
     </div>
 

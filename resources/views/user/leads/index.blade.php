@@ -39,12 +39,17 @@
         @if (request()->anyFilled(['search', 'status']))
             <a href="{{ route('user.leads.index') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset</a>
         @endif
+
+        <a href="{{ route('user.leads.create') }}" class="btn-primary sm:ml-auto">
+            <x-icon name="plus" class="h-4 w-4" />
+            Add Lead
+        </a>
     </form>
 
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">My Leads</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $leads->count() }} total lead{{ $leads->count() === 1 ? '' : 's' }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $leads->total() }} total lead{{ $leads->total() === 1 ? '' : 's' }}</p>
         </div>
 
         @if ($leads->isEmpty())
@@ -80,6 +85,10 @@
                         </div>
                     </a>
                 @endforeach
+            </div>
+
+            <div class="border-t border-slate-100 px-5 py-4">
+                {{ $leads->links() }}
             </div>
         @endif
     </div>

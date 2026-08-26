@@ -14,15 +14,23 @@ class ContestController extends Controller
     {
         $user = $request->user();
 
-        $upcoming = Contest::active()->with('registrations')->upcoming()->get();
-        $past = Contest::active()->with('registrations')->past()->get();
+        $upcoming = Contest::active()->with(['registrations', 'targetType'])->upcoming()->get();
+        $past = Contest::active()->with(['registrations', 'targetType'])->past()->paginate(15)->withQueryString();
 
         $upcoming->each(fn (Contest $contest) => $contest->finalizeIfEnded());
         $past->each(fn (Contest $contest) => $contest->finalizeIfEnded());
 
+        $targetTypes = $upcoming->merge($past->items())
+            ->pluck('targetType')
+            ->filter()
+            ->unique('id')
+            ->sortBy('sort_order')
+            ->values();
+
         return view('user.contests.index', [
             'upcoming' => $upcoming,
             'past' => $past,
+            'targetTypes' => $targetTypes,
             'user' => $user,
         ]);
     }

@@ -26,7 +26,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">All Entries</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $entries->count() }} {{ Str::plural('entry', $entries->count()) }} &middot; ₹{{ number_format($entries->sum('amount'), 2) }} total</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $entries->total() }} {{ Str::plural('entry', $entries->total()) }} &middot; ₹{{ number_format($totalAmount, 2) }} total</p>
         </div>
 
         @if ($entries->isEmpty())
@@ -82,6 +82,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($entries->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $entries->links() }}
+                </div>
+            @endif
         @endif
     </div>
 

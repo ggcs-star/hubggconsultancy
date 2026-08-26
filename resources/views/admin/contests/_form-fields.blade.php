@@ -43,11 +43,16 @@
         <div class="mt-4 space-y-5">
             <div>
                 <label class="form-label">Target Type</label>
-                <select name="target_type" required class="form-input">
-                    @foreach (['sales' => 'Sales', 'revenue' => 'Revenue', 'orders' => 'Orders', 'new_customers' => 'New Customers'] as $value => $label)
-                        <option value="{{ $value }}" @selected(old('target_type', $isEdit ? $contest->target_type : 'sales') === $value)>{{ $label }}</option>
-                    @endforeach
-                </select>
+                <div class="flex gap-2">
+                    <select name="target_type_id" required class="target-type-select form-input flex-1">
+                        @foreach (\App\Models\ContestTargetType::ordered()->get() as $targetType)
+                            <option value="{{ $targetType->id }}" @selected(old('target_type_id', $isEdit ? $contest->target_type_id : '') == $targetType->id)>{{ $targetType->name }}</option>
+                        @endforeach
+                    </select>
+                    <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'quick-add-target-type')" title="Add Target Type" class="shrink-0 rounded-xl border border-slate-200 px-3 text-slate-500 transition hover:border-brand-300 hover:text-brand-700">
+                        <x-icon name="plus" class="h-4 w-4" />
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">

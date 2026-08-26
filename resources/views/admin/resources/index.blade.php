@@ -1,4 +1,4 @@
-<x-layout title="Resources" title-icon="video" subtitle="Video library with Hindi/English links and in-video quizzes">
+<x-layout title="Live & Recorded Training" title-icon="video" subtitle="Video library with Hindi/English links and in-video quizzes">
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <form method="GET" class="w-full sm:max-w-sm">
@@ -79,6 +79,12 @@
             </div>
         @endforelse
     </div>
+
+    @if ($resources->hasPages())
+        <div class="mt-6">
+            {{ $resources->links() }}
+        </div>
+    @endif
 
     <x-modal name="add-resource" :show="$errors->isNotEmpty()" max-width="lg">
         @include('admin.resources._form', ['resource' => null])

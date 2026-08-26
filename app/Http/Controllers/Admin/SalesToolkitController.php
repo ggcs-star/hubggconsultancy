@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SalesToolkitItem;
+use App\Services\FileUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class SalesToolkitController extends Controller
 {
+    public function __construct(private FileUploadService $fileUploadService)
+    {
+    }
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('search'));
@@ -20,7 +24,8 @@ class SalesToolkitController extends Controller
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->when($category !== '', fn ($query) => $query->where('category', $category))
             ->ordered()
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
 
         $categories = SalesToolkitItem::query()
             ->whereNotNull('category')
@@ -39,6 +44,10 @@ class SalesToolkitController extends Controller
         $data = $this->validateItem($request, isCreate: true);
         $data = $this->attachFile($request, $data);
 
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'sales-toolkit-thumbnails');
+        }
+
         SalesToolkitItem::create($data);
 
         return redirect()->route('admin.sales-toolkit.index')->with('status', 'Toolkit item added.');
@@ -49,8 +58,13 @@ class SalesToolkitController extends Controller
         $data = $this->validateItem($request, isCreate: false);
 
         if ($request->hasFile('file')) {
-            Storage::disk('public')->delete($salesToolkitItem->url);
+            $this->fileUploadService->delete($salesToolkitItem->url);
             $data = $this->attachFile($request, $data);
+        }
+
+        if ($request->hasFile('thumbnail')) {
+            $this->fileUploadService->delete($salesToolkitItem->thumbnail);
+            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'sales-toolkit-thumbnails');
         }
 
         $salesToolkitItem->update($data);
@@ -60,7 +74,8 @@ class SalesToolkitController extends Controller
 
     public function destroy(SalesToolkitItem $salesToolkitItem): RedirectResponse
     {
-        Storage::disk('public')->delete($salesToolkitItem->url);
+        $this->fileUploadService->delete($salesToolkitItem->url);
+        $this->fileUploadService->delete($salesToolkitItem->thumbnail);
 
         $salesToolkitItem->delete();
 
@@ -83,6 +98,7 @@ class SalesToolkitController extends Controller
             'category' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'file' => [$isCreate ? 'required' : 'nullable', 'file', 'max:20480'],
+            'thumbnail' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
     }
@@ -91,7 +107,7 @@ class SalesToolkitController extends Controller
     {
         $file = $request->file('file');
 
-        $data['url'] = $file->store('sales-toolkit', 'public');
+        $data['url'] = $this->fileUploadService->store($file, 'sales-toolkit');
         $data['original_filename'] = $file->getClientOriginalName();
         $data['mime_type'] = $file->getClientMimeType();
         $data['file_size'] = $file->getSize();

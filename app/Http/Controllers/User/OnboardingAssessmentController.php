@@ -42,22 +42,10 @@ class OnboardingAssessmentController extends Controller
 
     public function results(Request $request, OnboardingAssessmentScorer $scorer): View
     {
-        $user = $request->user();
-
-        $score = $scorer->score($user);
-        $quizzes = $scorer->relevantQuizzes($user, withOptions: true);
-
-        $answers = $score->attempted
-            ? $user->onboardingAssessmentAnswers()->get()->keyBy('onboarding_assessment_question_id')
-            : collect();
-
-        $activeQuiz = $quizzes->firstWhere('id', (int) $request->query('quiz')) ?? $quizzes->first();
+        $score = $scorer->score($request->user());
 
         return view('user.onboarding-assessment.results', [
             'score' => $score,
-            'quizzes' => $quizzes,
-            'answers' => $answers,
-            'activeQuiz' => $activeQuiz,
         ]);
     }
 
@@ -101,11 +89,26 @@ class OnboardingAssessmentController extends Controller
 
             $optionsSnapshot = null;
 
-            if ($question->type !== 'text') {
+            if ($question->type === 'checkbox') {
+                $correctOptionIds = $question->options->where('is_correct', true)->pluck('id');
+
+                // Partial credit: points are earned in proportion to how many of the
+                // correct options were selected. Selecting a wrong option earns nothing
+                // for it but is never penalized — no negative marking.
+                $correctSelectedCount = $selectedIds->intersect($correctOptionIds)->count();
+                $totalCorrectCount = $correctOptionIds->count();
+
+                $isCorrect = $selectedIds->sort()->values()->all() === $correctOptionIds->sort()->values()->all();
+                $pointsAwarded = $totalCorrectCount > 0
+                    ? (int) round($question->points * ($correctSelectedCount / $totalCorrectCount))
+                    : 0;
+            } elseif ($question->type === 'radio') {
                 $correctOptionIds = $question->options->where('is_correct', true)->pluck('id')->sort()->values();
                 $isCorrect = $selectedIds->sort()->values()->all() === $correctOptionIds->all();
                 $pointsAwarded = $isCorrect ? $question->points : 0;
+            }
 
+            if ($question->type !== 'text') {
                 // Snapshot the exact option list as answered — options get wholesale
                 // deleted+recreated on every question edit, so this is the only reliable
                 // way to show "what the user actually saw" later, without duplicates.

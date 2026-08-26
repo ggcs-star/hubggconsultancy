@@ -25,6 +25,10 @@ class ScriptItemController extends Controller
         $data = $this->attachSource($request, $data);
         $data['script_topic_id'] = $topic->id;
 
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'script-thumbnails');
+        }
+
         ScriptItem::create($data);
 
         return redirect()->route('admin.scripts.show', $topic)->with('status', 'Item added.');
@@ -39,6 +43,11 @@ class ScriptItemController extends Controller
             $data = $this->attachSource($request, $data);
         }
 
+        if ($request->hasFile('thumbnail')) {
+            $this->fileUploadService->delete($item->thumbnail);
+            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'script-thumbnails');
+        }
+
         $item->update($data);
 
         return redirect()->route('admin.scripts.show', $item->script_topic_id)->with('status', 'Item updated.');
@@ -49,6 +58,7 @@ class ScriptItemController extends Controller
         $topicId = $item->script_topic_id;
 
         $this->fileUploadService->delete($item->is_external ? null : $item->url);
+        $this->fileUploadService->delete($item->thumbnail);
         $item->delete();
 
         return redirect()->route('admin.scripts.show', $topicId)->with('status', 'Item deleted.');
@@ -71,6 +81,7 @@ class ScriptItemController extends Controller
         $rules = [
             'type' => ['required', 'in:video,document'],
             'title' => ['required', 'string', 'max:255'],
+            'thumbnail' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
 

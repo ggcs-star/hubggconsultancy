@@ -1,6 +1,6 @@
-<x-layout title="Courses">
+<x-layout title="Training / LMS">
     <div>
-        <h1 class="text-2xl font-semibold text-secondary-dark">Courses</h1>
+        <h1 class="text-2xl font-semibold text-secondary-dark">Training / LMS</h1>
         <p class="mt-1 text-sm text-secondary">Short videos with quizzes along the way</p>
     </div>
 

@@ -1,6 +1,6 @@
 <x-layout title="Pending Quiz Reviews">
     <nav class="flex items-center gap-2 text-sm text-secondary">
-        <a href="{{ route('admin.courses.index') }}" class="hover:text-primary">Courses</a>
+        <a href="{{ route('admin.courses.index') }}" class="hover:text-primary">Training / LMS</a>
         <x-icon name="chevron-right" class="w-3.5 h-3.5" />
         <span class="font-medium text-secondary-dark">Pending Reviews</span>
     </nav>

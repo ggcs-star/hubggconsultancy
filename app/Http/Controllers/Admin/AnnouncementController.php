@@ -10,9 +10,19 @@ use Illuminate\View\View;
 
 class AnnouncementController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $announcements = Announcement::latest('published_at')->latest('id')->get();
+        $search = trim((string) $request->query('search'));
+        $status = trim((string) $request->query('status'));
+
+        $announcements = Announcement::query()
+            ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
+            ->when($status === 'active', fn ($query) => $query->where('is_active', true))
+            ->when($status === 'hidden', fn ($query) => $query->where('is_active', false))
+            ->latest('published_at')
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.announcements.index', [
             'announcements' => $announcements,

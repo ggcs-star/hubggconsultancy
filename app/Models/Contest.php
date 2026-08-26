@@ -17,7 +17,7 @@ class Contest extends Model
     protected $fillable = [
         'name',
         'description',
-        'target_type',
+        'target_type_id',
         'target',
         'target_value',
         'participation_type',
@@ -64,6 +64,11 @@ class Contest extends Model
     public function pointRules(): HasMany
     {
         return $this->hasMany(ContestPointRule::class);
+    }
+
+    public function targetType(): BelongsTo
+    {
+        return $this->belongsTo(ContestTargetType::class);
     }
 
     public function pointRuleFor(string $leadStatus): ?ContestPointRule

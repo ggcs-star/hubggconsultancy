@@ -175,45 +175,26 @@
                         required
                         class="mt-1.5 w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary"
                     >
-
                         <option value="">
-                            Select an issue
+                            Select a product first
                         </option>
-
-
-                        {{-- Dynamic Issue Types --}}
-                        @forelse ($issueTypes as $issueType)
-
-                            <option
-                                value="{{ $issueType->id }}"
-                                @selected(old('issue_type_id') == $issueType->id)
-                            >
-
-                                {{ $issueType->name }}
-
-                                @if ($issueType->module)
-                                    — {{ ucfirst($issueType->module) }}
-                                @endif
-
-                            </option>
-
-                        @empty
-
-                            <option
-                                value=""
-                                disabled
-                            >
-                                No support issues are currently available
-                            </option>
-
-                        @endforelse
-
                     </select>
 
 
                     <p class="mt-1.5 text-xs text-secondary">
                         Please select the option that best matches your problem.
                     </p>
+
+                    <button
+                        type="button"
+                        id="add-issue-type-trigger"
+                        x-data=""
+                        x-on:click.prevent="$dispatch('open-modal', 'quick-add-issue-type')"
+                        disabled
+                        class="mt-2 text-xs font-semibold text-primary hover:text-primary/80 disabled:cursor-not-allowed disabled:text-secondary disabled:opacity-60"
+                    >
+                        Can't find your issue? + Add one
+                    </button>
 
                 </div>
 
@@ -381,6 +362,32 @@
     </div>
 
 
+    {{-- Quick-add a new issue type under the selected product --}}
+    <x-modal name="quick-add-issue-type" max-width="md">
+        <form id="quick-add-issue-type-form" onsubmit="return submitQuickAddIssueType(event)">
+            <div class="flex items-center justify-between border-b border-app-border px-6 py-4">
+                <h2 class="text-lg font-semibold text-secondary-dark">Add an Issue</h2>
+                <button type="button" x-on:click="$dispatch('close')" class="text-secondary hover:text-secondary-dark">
+                    <x-icon name="x" class="h-5 w-5" />
+                </button>
+            </div>
+
+            <div class="space-y-3 px-6 py-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-secondary">Describe your issue in a few words</label>
+                    <input type="text" id="quick-issue-type-name" required placeholder="e.g. Export button not working" class="mt-1.5 w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary">
+                </div>
+                <p id="quick-issue-type-error" class="hidden text-sm text-danger"></p>
+            </div>
+
+            <div class="flex justify-end gap-3 border-t border-app-border px-6 py-4">
+                <button type="button" x-on:click="$dispatch('close')" class="rounded-lg border border-app-border bg-white px-4 py-2.5 text-sm font-medium text-secondary-dark hover:bg-surface-alt">Cancel</button>
+                <button type="submit" class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90">Add Issue</button>
+            </div>
+        </form>
+    </x-modal>
+
+
     {{-- Dynamic Product + Issue Information --}}
    <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -444,7 +451,7 @@
 
         /*
         |--------------------------------------------------------------------------
-        | Issue Type Information
+        | Issue Type Options — filtered by the selected product
         |--------------------------------------------------------------------------
         */
 
@@ -452,17 +459,120 @@
         const issueDescription = document.getElementById('issue-description');
         const issueDescriptionText = document.getElementById('issue-description-text');
 
-        const issueDescriptions = {!! $issueTypes->pluck('description', 'id')->toJson() !!};
+        const issuesByProduct = {!! $issueTypes->groupBy('saas_product_id')->map(function ($group) {
+            return $group->map(fn ($issueType) => [
+                'id' => $issueType->id,
+                'name' => $issueType->name,
+                'module' => $issueType->module,
+                'description' => $issueType->description,
+            ])->values();
+        })->toJson() !!};
+
+        const oldIssueTypeId = '{{ old('issue_type_id') }}';
+        const addIssueTypeTrigger = document.getElementById('add-issue-type-trigger');
+
+        function populateIssueOptions() {
+
+            const productId = productSelect.value;
+            const issues = issuesByProduct[productId] ?? [];
+
+            addIssueTypeTrigger.disabled = !productId;
+
+            issueSelect.innerHTML = '';
+
+            if (!productId) {
+                issueSelect.add(new Option('Select a product first', ''));
+                updateIssueDescription();
+                return;
+            }
+
+            if (issues.length === 0) {
+                issueSelect.add(new Option('No support issues are currently available', '', true, true));
+                updateIssueDescription();
+                return;
+            }
+
+            issueSelect.add(new Option('Select an issue', ''));
+
+            issues.forEach(function (issue) {
+                const label = issue.module ? issue.name + ' — ' + issue.module.charAt(0).toUpperCase() + issue.module.slice(1) : issue.name;
+                const isSelected = oldIssueTypeId !== '' && String(issue.id) === oldIssueTypeId;
+                issueSelect.add(new Option(label, issue.id, isSelected, isSelected));
+            });
+
+            updateIssueDescription();
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Quick-add an Issue Type — "Can't find your issue?" popup
+        |--------------------------------------------------------------------------
+        */
+
+        window.submitQuickAddIssueType = async function (event) {
+            event.preventDefault();
+
+            const nameInput = document.getElementById('quick-issue-type-name');
+            const errorEl = document.getElementById('quick-issue-type-error');
+            errorEl.classList.add('hidden');
+
+            const productId = productSelect.value;
+
+            if (!productId) {
+                errorEl.textContent = 'Select a product first.';
+                errorEl.classList.remove('hidden');
+                return false;
+            }
+
+            try {
+                const response = await fetch('{{ route('user.support.issue-types.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                    },
+                    body: JSON.stringify({ saas_product_id: productId, name: nameInput.value }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    errorEl.textContent = data.errors?.name?.[0] ?? data.message ?? 'Could not add the issue.';
+                    errorEl.classList.remove('hidden');
+                    return false;
+                }
+
+                if (!issuesByProduct[productId]) {
+                    issuesByProduct[productId] = [];
+                }
+                issuesByProduct[productId].push({ id: data.id, name: data.name, module: data.module, description: null });
+
+                populateIssueOptions();
+                issueSelect.value = String(data.id);
+                updateIssueDescription();
+
+                nameInput.value = '';
+                window.dispatchEvent(new CustomEvent('close-modal', { detail: 'quick-add-issue-type' }));
+            } catch (error) {
+                errorEl.textContent = 'Something went wrong. Please try again.';
+                errorEl.classList.remove('hidden');
+            }
+
+            return false;
+        };
 
 
         function updateIssueDescription() {
 
+            const productId = productSelect.value;
             const issueId = issueSelect.value;
-            const description = issueDescriptions[issueId];
+            const issue = (issuesByProduct[productId] ?? []).find((item) => String(item.id) === issueId);
 
-            if (description) {
+            if (issue && issue.description) {
 
-                issueDescriptionText.textContent = description;
+                issueDescriptionText.textContent = issue.description;
 
                 issueDescription.classList.remove('hidden');
 
@@ -475,14 +585,12 @@
         }
 
 
-        if (issueSelect) {
+        if (issueSelect && productSelect) {
 
-            issueSelect.addEventListener(
-                'change',
-                updateIssueDescription
-            );
+            productSelect.addEventListener('change', populateIssueOptions);
+            issueSelect.addEventListener('change', updateIssueDescription);
 
-            updateIssueDescription();
+            populateIssueOptions();
         }
 
     });

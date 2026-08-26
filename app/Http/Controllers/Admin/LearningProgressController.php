@@ -27,7 +27,8 @@ class LearningProgressController extends Controller
                     ->orderBy('title');
             }])
             ->orderBy('name')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         $rows = collect();
 
@@ -44,6 +45,7 @@ class LearningProgressController extends Controller
         return view('admin.learning-progress.index', [
             'rows' => $rows,
             'courses' => $courses,
+            'users' => $users,
         ]);
     }
 }

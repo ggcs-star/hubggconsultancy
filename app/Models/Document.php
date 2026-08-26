@@ -14,6 +14,7 @@ class Document extends Model
     protected $fillable = [
         'title',
         'description',
+        'thumbnail',
         'url',
         'is_published',
         'sort_order',
@@ -26,5 +27,10 @@ class Document extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
+    }
+
+    public function thumbnailUrl(): ?string
+    {
+        return $this->thumbnail ? asset('storage/' . $this->thumbnail) : null;
     }
 }

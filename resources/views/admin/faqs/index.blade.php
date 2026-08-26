@@ -19,6 +19,7 @@
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wider text-slate-400">
                             <th class="px-5 py-3 font-semibold">Question</th>
+                            <th class="px-5 py-3 font-semibold">Section</th>
                             <th class="px-5 py-3 font-semibold">Status</th>
                             <th class="px-5 py-3 font-semibold">Sort Order</th>
                             <th class="px-5 py-3 text-right font-semibold">Actions</th>
@@ -38,6 +39,10 @@
                                             <p class="mt-0.5 max-w-md truncate text-xs text-slate-400">{{ $faq->answer }}</p>
                                         </div>
                                     </div>
+                                </td>
+
+                                <td class="px-5 py-4">
+                                    <span class="badge badge-slate">{{ $faq->section->name ?? 'No section' }}</span>
                                 </td>
 
                                 <td class="px-5 py-4">
@@ -83,7 +88,7 @@
                             </tr>
 
                             <x-modal name="edit-faq-{{ $faq->id }}" :show="false" max-width="lg">
-                                @include('admin.faqs._form', ['faq' => $faq])
+                                @include('admin.faqs._form', ['faq' => $faq, 'sections' => $sections])
                             </x-modal>
                         @endforeach
                     </tbody>
@@ -101,7 +106,9 @@
     </div>
 
     <x-modal name="add-faq" :show="$errors->isNotEmpty()" max-width="lg">
-        @include('admin.faqs._form', ['faq' => null])
+        @include('admin.faqs._form', ['faq' => null, 'sections' => $sections])
     </x-modal>
+
+    @include('admin.faqs._quick-add-section-modal')
 
 </x-layout>

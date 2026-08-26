@@ -1,6 +1,6 @@
 <x-layout :title="$course->title . ' — Preview'">
     <nav class="flex items-center gap-2 text-sm text-secondary">
-        <a href="{{ route('admin.courses.index') }}" class="hover:text-primary">Courses</a>
+        <a href="{{ route('admin.courses.index') }}" class="hover:text-primary">Training / LMS</a>
         <x-icon name="chevron-right" class="w-3.5 h-3.5" />
         <a href="{{ route('admin.courses.show', $course) }}" class="hover:text-primary">{{ $course->title }}</a>
         <x-icon name="chevron-right" class="w-3.5 h-3.5" />

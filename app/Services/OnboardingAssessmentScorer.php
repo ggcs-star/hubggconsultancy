@@ -38,6 +38,15 @@ class OnboardingAssessmentScorer
         $pendingCount = (int) $quizResults->sum('pending_count');
         $questionCount = (int) $quizResults->sum('question_count');
 
+        // The full point value of the entire assessment, including quizzes the
+        // user hasn't attempted yet — unlike $totalPoints above, which only
+        // counts points from questions actually answered so far. Already-scored
+        // quizzes keep their locked (snapshotted) total; unattempted quizzes use
+        // their current live point values since there's no snapshot yet.
+        $fullTotalPoints = (int) $quizResults->sum(
+            fn (object $q) => $q->attempted ? $q->total_points : (int) $q->quiz->questions->sum('points')
+        );
+
         $attemptedQuizzes = $quizResults->filter(fn (object $q) => $q->attempted);
         $attempted = $attemptedQuizzes->isNotEmpty();
         $allAttempted = $quizzes->isNotEmpty() && $attemptedQuizzes->count() === $quizzes->count();
@@ -62,6 +71,7 @@ class OnboardingAssessmentScorer
             'attempted_quiz_count' => $attemptedQuizzes->count(),
             'submitted_at' => $submittedAt,
             'total_points' => $totalPoints,
+            'full_total_points' => $fullTotalPoints,
             'graded_points' => $gradedPoints,
             'earned_points' => $earnedPoints,
             'percent' => $percent,

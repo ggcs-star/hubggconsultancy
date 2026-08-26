@@ -15,7 +15,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">Salespersons With a Team</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $referrers->count() }} {{ Str::plural('salesperson', $referrers->count()) }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $referrers->total() }} {{ Str::plural('salesperson', $referrers->total()) }}</p>
         </div>
 
         @if ($referrers->isEmpty())
@@ -61,6 +61,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($referrers->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $referrers->links() }}
+                </div>
+            @endif
         @endif
     </div>
 

@@ -1,7 +1,7 @@
-<x-layout title="Courses">
+<x-layout title="Training / LMS">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-secondary-dark">Courses</h1>
+            <h1 class="text-2xl font-semibold text-secondary-dark">Training / LMS</h1>
             <p class="mt-1 text-sm text-secondary">
                 Build courses — modules, lessons, and quiz checkpoints trainees complete for a score
             </p>

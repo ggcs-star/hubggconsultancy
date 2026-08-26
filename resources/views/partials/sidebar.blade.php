@@ -111,7 +111,8 @@
             [
                 'label' => 'Onboarding',
                 'icon' => 'check-circle',
-                'route' => null,
+                'route' => $isAdmin ? 'admin.onboarding-checklist.index' : 'user.onboarding-checklist.index',
+                'activePattern' => $isAdmin ? 'admin.onboarding-checklist.*' : null,
             ],
             ['label' => 'Partner Journey', 'icon' => 'sparkles', 'route' => null],
         ],
@@ -142,10 +143,19 @@
         ],
     ];
 
+    $performanceItems = [];
+    if (! $isAdmin) {
+        $performanceItems[] = [
+            'label' => 'My Performance',
+            'icon' => 'trending-up',
+            'route' => 'user.performance.index',
+        ];
+    }
+
     $navGroups[] = [
         'heading' => 'Performance',
         'items' => [
-            ['label' => 'My Performance', 'icon' => 'trending-up', 'route' => null],
+            ...$performanceItems,
             [
                 'label' => 'Ranking / Leaderboard',
                 'icon' => 'star',
@@ -173,8 +183,24 @@
     $navGroups[] = [
         'heading' => 'Recognition',
         'items' => [
-            ['label' => 'Achievers / Hall of Fame', 'icon' => 'star', 'route' => null],
-            ['label' => 'Success Stories', 'icon' => 'lightbulb', 'route' => null],
+            [
+                'label' => 'Achievers',
+                'icon' => 'star',
+                'route' => $isAdmin ? 'admin.achievers.index' : 'user.achievers.index',
+                'activePattern' => $isAdmin ? 'admin.achievers.*' : null,
+            ],
+            [
+                'label' => 'Hall of Fame',
+                'icon' => 'sparkles',
+                'route' => $isAdmin ? 'admin.hall-of-fame.index' : 'user.hall-of-fame.index',
+                'activePattern' => $isAdmin ? 'admin.hall-of-fame.*' : null,
+            ],
+            [
+                'label' => 'Success Stories',
+                'icon' => 'lightbulb',
+                'route' => $isAdmin ? 'admin.success-stories.index' : 'user.success-stories.index',
+                'activePattern' => $isAdmin ? 'admin.success-stories.*' : null,
+            ],
         ],
     ];
 

@@ -87,6 +87,16 @@
             <x-input-error :messages="$errors->get('file')" class="mt-1" />
         </div>
 
+        <div x-show="type === 'document'" x-cloak>
+            <label class="form-label">Thumbnail <span class="font-normal text-slate-400">(optional)</span></label>
+            @if ($isEdit && $item->thumbnailUrl())
+                <img src="{{ $item->thumbnailUrl() }}" alt="" class="mb-2 h-20 w-full rounded-lg object-cover">
+            @endif
+            <input type="file" name="thumbnail" accept="image/*" class="form-input">
+            <p class="mt-1 text-xs text-slate-400">Shown instead of the generic file icon in the list.</p>
+            <x-input-error :messages="$errors->get('thumbnail')" class="mt-1" />
+        </div>
+
         <div>
             <label class="form-label">Sort Order</label>
             <input type="number" name="sort_order" value="{{ old('sort_order', $isEdit ? $item->sort_order : '') }}" min="0" placeholder="0" class="form-input w-32">
