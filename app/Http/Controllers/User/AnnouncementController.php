@@ -10,7 +10,7 @@ class AnnouncementController extends Controller
 {
     public function index(): View
     {
-        $announcements = Announcement::visible()->latest('published_at')->latest('id')->paginate(15);
+        $announcements = Announcement::visible()->latest('published_at')->latest('id')->paginate(10);
 
         return view('user.announcements.index', [
             'announcements' => $announcements,

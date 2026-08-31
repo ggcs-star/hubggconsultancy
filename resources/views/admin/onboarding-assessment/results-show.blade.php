@@ -70,8 +70,8 @@
                         </div>
                         @if (! is_null($score->percent))
                             <div>
-                                <p class="text-2xl font-extrabold text-emerald-600">{{ $score->passing_score_percent }}%</p>
-                                <p class="text-xs text-slate-400">Passing Score</p>
+                                <p class="text-2xl font-extrabold text-emerald-600">{{ $score->passing_score_percent }} <span class="text-sm font-medium text-slate-400">/ 100 %</span></p>
+                                <p class="text-xs text-slate-400">Target Passing Score</p>
                             </div>
                         @endif
                     </div>

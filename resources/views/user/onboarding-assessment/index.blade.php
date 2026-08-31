@@ -14,11 +14,7 @@
         ];
         $scoreByQuizId = collect($score->quizzes)->keyBy(fn ($q) => $q->quiz->id);
 
-        // Progress ring geometry.
         $ringPercent = $score->percent ?? 0;
-        $ringRadius = 45;
-        $ringCircumference = 2 * M_PI * $ringRadius;
-        $ringOffset = $ringCircumference * (1 - min(max($ringPercent, 0), 100) / 100);
 
         $pointsNeeded = $score->attempted && ! is_null($score->percent) && $score->percent < $score->passing_score_percent
             ? max(0, $score->passing_score_percent - $score->percent)
@@ -26,6 +22,7 @@
 
         $totalQuestionsInAssessment = $score->quizzes->sum('total_question_count');
         $quizzesRemaining = max(0, $score->quiz_count - $score->attempted_quiz_count);
+        $firstRemainingQuiz = $quizzes->first(fn ($candidate) => ! ($scoreByQuizId->get($candidate->id)?->attempted));
     @endphp
 
     @if (! $settings->is_published)
@@ -40,7 +37,7 @@
         <div class="card p-6">
             <div class="flex flex-wrap items-center justify-between gap-6">
                 <div class="flex items-center gap-4">
-                    <img src="{{ asset('images/documents.png') }}" alt="Onboarding Assessment" class="h-28 w-28 shrink-0 object-contain sm:h-32 sm:w-32" />
+                    <img src="{{ asset('favicon.png') }}" alt="Onboarding Assessment" class="h-28 w-28 shrink-0 object-contain sm:h-32 sm:w-32" />
                     <div>
                         <p class="font-bold text-slate-800">Onboarding Assessment</p>
                         <p class="mt-1 text-sm text-slate-400">{{ $score->quiz_count }} {{ Str::plural('Quiz', $score->quiz_count) }} Assigned</p>
@@ -54,20 +51,9 @@
                 @if ($score->attempted)
                     <div class="flex items-center gap-6">
                         @if (! is_null($score->percent))
-                            <div class="relative flex h-24 w-24 shrink-0 items-center justify-center">
-                                <svg class="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
-                                    <circle cx="50" cy="50" r="{{ $ringRadius }}" fill="none" stroke="#ede9fe" stroke-width="10" />
-                                    <circle
-                                        cx="50" cy="50" r="{{ $ringRadius }}" fill="none" stroke="#7c3aed" stroke-width="10"
-                                        stroke-linecap="round"
-                                        stroke-dasharray="{{ $ringCircumference }}"
-                                        stroke-dashoffset="{{ $ringOffset }}"
-                                    />
-                                </svg>
-                                <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span class="text-lg font-extrabold text-slate-800">{{ $ringPercent }}%</span>
-                                    <span class="text-[10px] font-medium text-slate-400">Score Achieved</span>
-                                </div>
+                            <div class="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-brand-700 bg-gradient-to-br from-brand-600 to-brand-700 p-2 text-center shadow-lg shadow-brand-200">
+                                <span class="text-lg font-extrabold text-white">{{ $ringPercent }}%</span>
+                                <span class="text-[10px] font-medium leading-tight text-brand-100">Score Achieved</span>
                             </div>
 
                             <div class="hidden h-16 w-px shrink-0 bg-slate-200 sm:block"></div>
@@ -75,16 +61,13 @@
 
                         <div class="space-y-3 text-right">
                             <div>
-                                <p class="text-2xl font-extrabold text-brand-700">{{ $score->attempted_quiz_count }}/{{ $score->quiz_count }}</p>
-                                <p class="flex items-center justify-end gap-1 text-xs text-slate-400">
-                                    Quiz Completed
-                                    <x-icon name="help-circle" class="h-3 w-3" title="Number of quizzes you've submitted so far" />
-                                </p>
+                                <p class="text-2xl font-extrabold text-brand-700">{{ $score->earned_points }}/{{ $score->full_total_points }} <span class="text-sm font-medium text-slate-400">pts</span></p>
+                                <p class="flex items-center justify-end gap-1 text-xs text-slate-400">Score Earned (So Far)</p>
                             </div>
                             <div>
-                                <p class="text-2xl font-extrabold text-emerald-600">{{ $score->passing_score_percent }}%</p>
+                                <p class="text-2xl font-extrabold text-emerald-600">{{ $score->passing_score_percent }} <span class="text-sm font-medium text-slate-400">/ 100 %</span></p>
                                 <p class="flex items-center justify-end gap-1 text-xs text-slate-400">
-                                    Overall Passing Score
+                                    Target Passing Score
                                     <x-icon name="help-circle" class="h-3 w-3" title="The minimum score needed to pass the onboarding assessment" />
                                 </p>
                             </div>
@@ -113,7 +96,14 @@
                         <x-icon name="sparkles" class="h-4 w-4 shrink-0" />
                         Keep going! Complete the remaining quizzes to improve your score.
                     </p>
-                    <p class="text-sm font-semibold text-brand-700">{{ $quizzesRemaining }} {{ Str::plural('quiz', $quizzesRemaining) }} remaining to complete</p>
+                    @if ($firstRemainingQuiz)
+                        <a href="{{ route('user.onboarding-assessment.index', ['quiz' => $firstRemainingQuiz->id]) }}" class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-100">
+                            {{ $quizzesRemaining }} {{ Str::plural('quiz', $quizzesRemaining) }} remaining to complete
+                            <x-icon name="chevron-right" class="h-3.5 w-3.5" />
+                        </a>
+                    @else
+                        <p class="text-sm font-semibold text-brand-700">{{ $quizzesRemaining }} {{ Str::plural('quiz', $quizzesRemaining) }} remaining to complete</p>
+                    @endif
                 </div>
             @endif
 
@@ -139,19 +129,23 @@
                     <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $score->attempted_quiz_count }}</p>
                     <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Quizzes Completed</p>
                 </div>
-                <div class="rounded-xl border border-slate-100 p-2 text-center sm:p-4">
+                @php $remainingTag = $firstRemainingQuiz ? 'a' : 'div'; @endphp
+                <{{ $remainingTag }}
+                    @if ($firstRemainingQuiz) href="{{ route('user.onboarding-assessment.index', ['quiz' => $firstRemainingQuiz->id]) }}" title="Go to your next remaining quiz" @endif
+                    class="rounded-xl border border-slate-100 p-2 text-center transition sm:p-4 {{ $firstRemainingQuiz ? 'cursor-pointer hover:border-brand-200 hover:bg-brand-50/40' : '' }}"
+                >
                     <span class="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-500 sm:h-9 sm:w-9">
                         <x-icon name="x" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </span>
                     <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $quizzesRemaining }}</p>
                     <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Quizzes Remaining</p>
-                </div>
+                </{{ $remainingTag }}>
                 <div class="rounded-xl border border-slate-100 p-2 text-center sm:p-4">
-                    <span class="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-blue-600 sm:h-9 sm:w-9">
-                        <x-icon name="coin" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span class="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-600 sm:h-9 sm:w-9">
+                        <x-icon name="badge" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </span>
-                    <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $score->passing_score_percent }}%</p>
-                    <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Overall Passing Score</p>
+                    <p class="mt-2 text-sm font-extrabold text-slate-800 sm:text-lg">{{ $score->passing_score_percent }} <span class="text-[10px] font-medium text-slate-400 sm:text-xs">/100 %</span></p>
+                    <p class="text-[10px] leading-tight text-slate-400 sm:text-xs">Target Passing Score</p>
                 </div>
             </div>
         </div>

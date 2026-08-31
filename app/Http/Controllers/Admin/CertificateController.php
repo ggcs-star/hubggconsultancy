@@ -13,7 +13,7 @@ class CertificateController extends Controller
     {
         return view('admin.certificates.index', [
             'courses' => Course::orderBy('title')->get(),
-            'certificates' => Certificate::with(['user', 'course'])->latest('issued_at')->paginate(15),
+            'certificates' => Certificate::with(['user', 'course'])->latest('issued_at')->paginate(10),
         ]);
     }
 }

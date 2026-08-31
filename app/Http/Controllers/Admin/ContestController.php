@@ -37,7 +37,7 @@ class ContestController extends Controller
             $contests = $contests->filter(fn (Contest $contest) => $contest->displayStatus() === $status)->values();
         }
 
-        $perPage = 15;
+        $perPage = 10;
         $page = Paginator::resolveCurrentPage('page');
 
         $paginatedContests = new LengthAwarePaginator(

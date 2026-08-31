@@ -25,7 +25,7 @@ class SupportTicketController extends Controller
         ])
             ->where('user_id', $userId)
             ->latest()
-            ->paginate(15);
+            ->paginate(10);
 
         $stats = [
             'total' => SupportTicket::where(

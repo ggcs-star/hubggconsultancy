@@ -21,7 +21,7 @@ class SalesToolkitController extends Controller
             }))
             ->when($category !== '', fn ($query) => $query->where('category', $category))
             ->ordered()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         $categories = SalesToolkitItem::published()

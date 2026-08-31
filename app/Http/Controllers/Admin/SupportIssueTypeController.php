@@ -115,7 +115,7 @@ class SupportIssueTypeController extends Controller
         $issueTypes = $query
             ->orderBy('sort_order')
             ->orderByDesc('id')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
 

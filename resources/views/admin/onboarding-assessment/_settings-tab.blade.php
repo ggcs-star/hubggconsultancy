@@ -8,7 +8,7 @@
             @method('PUT')
 
             <div>
-                <label class="form-label">Passing Score (%)</label>
+                <label class="form-label">Target Passing Score (%)</label>
                 <input type="number" name="passing_score_percent" min="1" max="100" value="{{ old('passing_score_percent', $settings->passing_score_percent) }}" required class="form-input">
                 <p class="mt-1 text-xs text-slate-400">Applied to the combined score across every quiz (total points earned &divide; total points possible).</p>
             </div>

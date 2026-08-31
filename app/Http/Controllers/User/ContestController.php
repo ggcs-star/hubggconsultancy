@@ -15,7 +15,7 @@ class ContestController extends Controller
         $user = $request->user();
 
         $upcoming = Contest::active()->with(['registrations', 'targetType'])->upcoming()->get();
-        $past = Contest::active()->with(['registrations', 'targetType'])->past()->paginate(15)->withQueryString();
+        $past = Contest::active()->with(['registrations', 'targetType'])->past()->paginate(10)->withQueryString();
 
         $upcoming->each(fn (Contest $contest) => $contest->finalizeIfEnded());
         $past->each(fn (Contest $contest) => $contest->finalizeIfEnded());

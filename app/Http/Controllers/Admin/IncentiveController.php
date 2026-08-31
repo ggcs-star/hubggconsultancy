@@ -26,7 +26,7 @@ class IncentiveController extends Controller
             ->with(['user', 'contest'])
             ->latest('awarded_at')
             ->latest('id')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.incentives.index', [

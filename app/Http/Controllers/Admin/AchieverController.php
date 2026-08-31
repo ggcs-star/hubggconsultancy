@@ -23,7 +23,7 @@ class AchieverController extends Controller
         $certificates = Certificate::with(['user', 'course'])
             ->issuedBetween($from, $to)
             ->latest('issued_at')
-            ->paginate(12)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.achievers.index', [

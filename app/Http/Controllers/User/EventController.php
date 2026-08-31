@@ -19,7 +19,7 @@ class EventController extends Controller
 
         $past = Event::published()->with('registrations')->past()
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('user.events.index', [

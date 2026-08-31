@@ -14,9 +14,6 @@
         ];
 
         $ringPercent = $score->percent ?? 0;
-        $ringRadius = 45;
-        $ringCircumference = 2 * M_PI * $ringRadius;
-        $ringOffset = $ringCircumference * (1 - min(max($ringPercent, 0), 100) / 100);
 
         $totalQuestionsInAssessment = $score->quizzes->sum('total_question_count');
         $totalAnswered = $score->quizzes->sum('question_count');
@@ -39,7 +36,7 @@
         <div class="card p-6">
             <div class="flex flex-wrap items-center justify-between gap-6">
                 <div class="flex items-center gap-4">
-                    <img src="{{ asset('images/documents.png') }}" alt="Onboarding Assessment" class="h-28 w-28 shrink-0 object-contain sm:h-32 sm:w-32" />
+                    <img src="{{ asset('favicon.png') }}" alt="Onboarding Assessment" class="h-28 w-28 shrink-0 object-contain sm:h-32 sm:w-32" />
                     <div>
                         <p class="font-bold text-slate-800">Onboarding Assessment</p>
                         <p class="mt-1 text-sm text-slate-400">{{ $score->attempted_quiz_count }}/{{ $score->quiz_count }} {{ Str::plural('section', $score->quiz_count) }} completed</p>
@@ -52,20 +49,9 @@
 
                 <div class="flex items-center gap-6">
                     @if (! is_null($score->percent))
-                        <div class="relative flex h-24 w-24 shrink-0 items-center justify-center">
-                            <svg class="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="{{ $ringRadius }}" fill="none" stroke="#ede9fe" stroke-width="10" />
-                                <circle
-                                    cx="50" cy="50" r="{{ $ringRadius }}" fill="none" stroke="#7c3aed" stroke-width="10"
-                                    stroke-linecap="round"
-                                    stroke-dasharray="{{ $ringCircumference }}"
-                                    stroke-dashoffset="{{ $ringOffset }}"
-                                />
-                            </svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                <span class="text-lg font-extrabold text-slate-800">{{ $ringPercent }}%</span>
-                                <span class="text-[10px] font-medium text-slate-400">Achieved Score</span>
-                            </div>
+                        <div class="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-brand-700 bg-gradient-to-br from-brand-600 to-brand-700 p-2 text-center shadow-lg shadow-brand-200">
+                            <span class="text-lg font-extrabold text-white">{{ $ringPercent }}%</span>
+                            <span class="text-[10px] font-medium leading-tight text-brand-100">Achieved Score</span>
                         </div>
 
                         <div class="hidden h-16 w-px shrink-0 bg-slate-200 sm:block"></div>
@@ -78,8 +64,8 @@
                         </div>
                         @if (! is_null($score->percent))
                             <div>
-                                <p class="text-2xl font-extrabold text-emerald-600">{{ $score->passing_score_percent }}%</p>
-                                <p class="flex items-center justify-end gap-1 text-xs text-slate-400">Passing Score</p>
+                                <p class="text-2xl font-extrabold text-emerald-600">{{ $score->passing_score_percent }} <span class="text-sm font-medium text-slate-400">/ 100 %</span></p>
+                                <p class="flex items-center justify-end gap-1 text-xs text-slate-400">Target Passing Score</p>
                             </div>
                         @endif
                     </div>

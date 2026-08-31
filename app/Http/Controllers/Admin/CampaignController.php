@@ -18,7 +18,7 @@ class CampaignController extends Controller
         $campaigns = Campaign::withCount('leads')
             ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
             ->latest()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.campaigns.index', [

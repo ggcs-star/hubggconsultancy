@@ -21,7 +21,7 @@ class AnnouncementController extends Controller
             ->when($status === 'hidden', fn ($query) => $query->where('is_active', false))
             ->latest('published_at')
             ->latest('id')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.announcements.index', [

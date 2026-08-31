@@ -27,7 +27,7 @@ class LearningProgressController extends Controller
                     ->orderBy('title');
             }])
             ->orderBy('name')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         $rows = collect();

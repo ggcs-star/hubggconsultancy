@@ -16,7 +16,7 @@ class DocumentController extends Controller
         $documents = Document::published()
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->ordered()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('user.documents.index', [

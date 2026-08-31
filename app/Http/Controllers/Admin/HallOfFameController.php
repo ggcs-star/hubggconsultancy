@@ -3,36 +3,99 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\HallOfFameService;
-use App\Traits\ResolvesPeriod;
+use App\Models\HallOfFameEntry;
+use App\Services\FileUploadService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class HallOfFameController extends Controller
 {
-    use ResolvesPeriod;
-
-    public function __construct(private HallOfFameService $hallOfFameService)
+    public function __construct(private FileUploadService $fileUploadService)
     {
     }
 
     public function index(Request $request): View
     {
-        $period = in_array($request->string('period')->value(), ['month', 'quarter'], true)
-            ? $request->string('period')->value()
-            : 'all';
+        $search = trim((string) $request->query('search'));
+        $pointsMin = $request->query('points_min');
+        $pointsMax = $request->query('points_max');
+        $periodFrom = $request->query('period_from');
+        $periodTo = $request->query('period_to');
 
-        [$from, $to] = $this->resolvePeriodRange($period);
-
-        $ranked = $this->hallOfFameService->rankedUsers($from, $to);
+        $entries = HallOfFameEntry::query()
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->when(filled($pointsMin), fn ($query) => $query->where('points', '>=', $pointsMin))
+            ->when(filled($pointsMax), fn ($query) => $query->where('points', '<=', $pointsMax))
+            ->inPeriod($periodFrom, $periodTo)
+            ->ordered()
+            ->get();
 
         return view('admin.hall-of-fame.index', [
-            'period' => $period,
-            'podium' => $ranked->filter(fn ($row) => $row->points > 0)->sortByDesc('points')->values()->take(3),
-            'topSales' => $ranked->filter(fn ($row) => $row->leadsWon > 0)->sortByDesc('leadsWon')->first(),
-            'topLearning' => $ranked->filter(fn ($row) => $row->learningScore !== null)->sortByDesc('learningScore')->first(),
-            'topCertifications' => $ranked->filter(fn ($row) => $row->certificates > 0)->sortByDesc('certificates')->first(),
-            'topConsistent' => $ranked->filter(fn ($row) => $row->activeDays > 0)->sortByDesc('activeDays')->first(),
+            'entries' => $entries,
+            'search' => $search,
+            'pointsMin' => $pointsMin,
+            'pointsMax' => $pointsMax,
+            'periodFrom' => $periodFrom,
+            'periodTo' => $periodTo,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $this->validateEntry($request);
+        $data['created_by'] = auth()->id();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $this->fileUploadService->store($request->file('image'), 'hall-of-fame');
+        }
+
+        HallOfFameEntry::create($data);
+
+        return redirect()->route('admin.hall-of-fame.index')->with('status', 'Hall of Fame entry added.');
+    }
+
+    public function update(Request $request, HallOfFameEntry $hallOfFameEntry): RedirectResponse
+    {
+        $data = $this->validateEntry($request);
+
+        if ($request->hasFile('image')) {
+            $this->fileUploadService->delete($hallOfFameEntry->image);
+            $data['image'] = $this->fileUploadService->store($request->file('image'), 'hall-of-fame');
+        }
+
+        $hallOfFameEntry->update($data);
+
+        return redirect()->route('admin.hall-of-fame.index')->with('status', 'Hall of Fame entry updated.');
+    }
+
+    public function destroy(HallOfFameEntry $hallOfFameEntry): RedirectResponse
+    {
+        $this->fileUploadService->delete($hallOfFameEntry->image);
+        $hallOfFameEntry->delete();
+
+        return redirect()->route('admin.hall-of-fame.index')->with('status', 'Hall of Fame entry deleted.');
+    }
+
+    public function toggleActive(Request $request, HallOfFameEntry $hallOfFameEntry): RedirectResponse
+    {
+        $data = $request->validate(['is_active' => ['required', 'boolean']]);
+
+        $hallOfFameEntry->update($data);
+
+        return back()->with('status', $hallOfFameEntry->is_active ? 'Entry shown.' : 'Entry hidden.');
+    }
+
+    private function validateEntry(Request $request): array
+    {
+        return $request->validate([
+            'rank' => ['required', 'integer', 'min:1'],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'points' => ['required', 'integer', 'min:0'],
+            'period_start' => ['nullable', 'date'],
+            'period_end' => ['nullable', 'date', 'after_or_equal:period_start'],
+            'image' => ['nullable', 'image', 'max:2048'],
         ]);
     }
 }

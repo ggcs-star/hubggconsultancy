@@ -85,7 +85,7 @@ class SalesManualController extends Controller
         }
 
         $manuals = $query
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view(

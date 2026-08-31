@@ -22,7 +22,7 @@ class DocumentController extends Controller
         $documents = Document::query()
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->ordered()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.documents.index', [

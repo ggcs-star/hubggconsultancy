@@ -141,6 +141,15 @@ class Lead extends Model
         };
     }
 
+    public function priorityBadgeClass(): string
+    {
+        return match ($this->priority) {
+            'high' => 'bg-red-50 text-red-600',
+            'medium' => 'badge-amber',
+            default => 'badge-slate',
+        };
+    }
+
     /**
      * Other leads sharing this phone number — the basic "is this a fake or
      * duplicate lead" signal, surfaced as a warning rather than a hard block

@@ -24,7 +24,7 @@ class SalesToolkitController extends Controller
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->when($category !== '', fn ($query) => $query->where('category', $category))
             ->ordered()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         $categories = SalesToolkitItem::query()

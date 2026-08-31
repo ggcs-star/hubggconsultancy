@@ -1,4 +1,4 @@
-<x-layout title="Lead Detail">
+<x-layout title="Lead Detail" title-icon="users" :subtitle="$lead->name">
 
     <a href="{{ route('admin.leads.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-800">
         <x-icon name="chevron-right" class="h-3.5 w-3.5 rotate-180" />
@@ -23,8 +23,8 @@
     <div class="card mt-4 p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="flex items-center gap-4">
-                <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-700 text-lg font-bold text-white">
-                    {{ strtoupper(substr($lead->name, 0, 1)) }}
+                <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-lg font-bold text-violet-700">
+                    {{ strtoupper(substr($lead->company ?: $lead->name, 0, 2)) }}
                 </span>
                 <div>
                     <p class="text-lg font-bold text-slate-800">{{ $lead->name }}</p>
@@ -38,46 +38,14 @@
                         @if ($lead->phone)
                             <span class="flex items-center gap-1"><x-icon name="phone" class="h-3.5 w-3.5" /> {{ $lead->phone }}</span>
                         @endif
-                        @if ($lead->source)
-                            <span class="badge badge-slate">{{ $lead->source }}</span>
-                        @endif
-                        @if ($lead->campaign)
-                            <a href="{{ route('admin.campaigns.show', $lead->campaign) }}" class="badge badge-slate hover:bg-slate-200">{{ $lead->campaign->name }}</a>
-                        @endif
                     </div>
                 </div>
             </div>
-            <a href="{{ route('admin.leads.edit', $lead) }}" class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Edit Lead</a>
         </div>
     </div>
 
-    <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="card p-5">
-            <p class="text-xs text-slate-400">Status</p>
-            <span class="badge {{ $lead->statusBadgeClass() }} mt-2">{{ $lead->statusLabel() }}</span>
-        </div>
-        <div class="card p-5">
-            <p class="text-xs text-slate-400">Assigned To</p>
-            <p class="mt-1 font-semibold text-slate-800">{{ $lead->assignee?->name ?? 'Unassigned' }}</p>
-        </div>
-        <div class="card p-5">
-            <p class="text-xs text-slate-400">Product / Value</p>
-            <p class="mt-1 font-semibold text-slate-800">
-                {{ $lead->product ?: '—' }}
-                @if ($lead->expected_value)
-                    <span class="text-brand-700">(₹{{ number_format($lead->expected_value, 0) }})</span>
-                @endif
-            </p>
-        </div>
-        <div class="card p-5">
-            <p class="text-xs text-slate-400">Next Follow-up</p>
-            <p class="mt-1 font-semibold {{ $lead->isOverdue() ? 'text-red-600' : 'text-slate-800' }}">
-                {{ $lead->next_follow_up_at?->format('d M Y') ?? '—' }}
-                @if ($lead->isOverdue())
-                    <span class="text-xs font-normal">(Overdue)</span>
-                @endif
-            </p>
-        </div>
+    <div class="mt-6">
+        @include('partials.lead-detail-info', ['lead' => $lead, 'campaignRoute' => 'admin.campaigns.show'])
     </div>
 
     <div class="mt-6 card">

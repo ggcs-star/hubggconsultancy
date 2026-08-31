@@ -10,7 +10,7 @@ class SuccessStoryController extends Controller
 {
     public function index(): View
     {
-        $successStories = SuccessStory::visible()->ordered()->paginate(6)->withQueryString();
+        $successStories = SuccessStory::visible()->ordered()->paginate(10)->withQueryString();
 
         return view('user.success-stories.index', [
             'successStories' => $successStories,

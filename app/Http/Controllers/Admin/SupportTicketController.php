@@ -105,7 +105,7 @@ class SupportTicketController extends Controller
         */
 
         $tickets = $query
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
 

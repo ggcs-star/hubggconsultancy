@@ -18,6 +18,11 @@ class LeadController extends Controller
         $status = trim((string) $request->query('status'));
         $assignedTo = trim((string) $request->query('assigned_to'));
         $campaignId = trim((string) $request->query('campaign_id'));
+        $product = trim((string) $request->query('product'));
+        $valueMin = trim((string) $request->query('value_min'));
+        $valueMax = trim((string) $request->query('value_max'));
+        $followUpFrom = trim((string) $request->query('follow_up_from'));
+        $followUpTo = trim((string) $request->query('follow_up_to'));
 
         $leads = Lead::query()
             ->with(['assignee', 'campaign'])
@@ -30,8 +35,13 @@ class LeadController extends Controller
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->when($assignedTo !== '', fn ($query) => $query->where('assigned_to', $assignedTo))
             ->when($campaignId !== '', fn ($query) => $query->where('campaign_id', $campaignId))
+            ->when($product !== '', fn ($query) => $query->where('product', 'like', "%{$product}%"))
+            ->when($valueMin !== '', fn ($query) => $query->where('expected_value', '>=', $valueMin))
+            ->when($valueMax !== '', fn ($query) => $query->where('expected_value', '<=', $valueMax))
+            ->when($followUpFrom !== '', fn ($query) => $query->whereDate('next_follow_up_at', '>=', $followUpFrom))
+            ->when($followUpTo !== '', fn ($query) => $query->whereDate('next_follow_up_at', '<=', $followUpTo))
             ->latest()
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         $allLeads = Lead::all();
@@ -86,6 +96,17 @@ class LeadController extends Controller
         $lead->update($this->validateLead($request));
 
         return redirect()->route('admin.leads.index')->with('status', 'Lead updated.');
+    }
+
+    public function updateStatus(Request $request, Lead $lead): RedirectResponse
+    {
+        $data = $request->validate([
+            'status' => ['required', 'in:' . implode(',', array_keys(Lead::statusLabels()))],
+        ]);
+
+        $lead->update($data);
+
+        return back()->with('status', 'Lead status updated.');
     }
 
     public function destroy(Lead $lead): RedirectResponse
@@ -159,14 +180,34 @@ class LeadController extends Controller
     private function dashboardStats($leads): array
     {
         return [
-            'new' => $leads->where('status', 'new')->count(),
-            'follow_ups' => $leads->filter(fn (Lead $lead) => $lead->next_follow_up_at
+            'new' => $this->statWithTrend($leads, fn (Lead $lead) => $lead->status === 'new'),
+            'follow_ups' => $this->statWithTrend($leads, fn (Lead $lead) => $lead->next_follow_up_at
                 && ! in_array($lead->status, Lead::TERMINAL_STATUSES, true)
-                && $lead->next_follow_up_at->lte(now()))->count(),
-            'qualified' => $leads->where('status', 'qualified')->count(),
-            'opportunities' => $leads->whereIn('status', ['proposal', 'negotiation'])->count(),
-            'won' => $leads->where('status', 'won')->count(),
+                && $lead->next_follow_up_at->lte(now())),
+            'qualified' => $this->statWithTrend($leads, fn (Lead $lead) => $lead->status === 'qualified'),
+            'opportunities' => $this->statWithTrend($leads, fn (Lead $lead) => in_array($lead->status, ['proposal', 'negotiation'], true)),
+            'won' => $this->statWithTrend($leads, fn (Lead $lead) => $lead->status === 'won', 'won_at'),
         ];
+    }
+
+    private function statWithTrend($leads, callable $matches, string $dateField = 'created_at'): array
+    {
+        $value = $leads->filter($matches)->count();
+
+        $now = now();
+        $currentStart = $now->copy()->subDays(7);
+        $previousStart = $now->copy()->subDays(14);
+
+        $inWindow = fn (Lead $lead, $start, $end) => $lead->{$dateField} && $lead->{$dateField}->between($start, $end);
+
+        $current = $leads->filter(fn (Lead $lead) => $matches($lead) && $inWindow($lead, $currentStart, $now))->count();
+        $previous = $leads->filter(fn (Lead $lead) => $matches($lead) && $inWindow($lead, $previousStart, $currentStart))->count();
+
+        $trend = $previous > 0
+            ? (int) round((($current - $previous) / $previous) * 100)
+            : ($current > 0 ? 100 : 0);
+
+        return ['value' => $value, 'trend' => $trend];
     }
 
     private function pipelineFunnel($leads): array

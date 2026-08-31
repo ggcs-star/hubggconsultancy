@@ -21,7 +21,7 @@ class EventController extends Controller
             ->when($status === 'published', fn ($query) => $query->where('is_published', true))
             ->when($status === 'draft', fn ($query) => $query->where('is_published', false))
             ->orderBy('starts_at')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.events.index', [

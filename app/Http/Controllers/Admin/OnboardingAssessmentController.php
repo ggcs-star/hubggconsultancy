@@ -38,7 +38,7 @@ class OnboardingAssessmentController extends Controller
                 $questionsPage = $selectedQuiz->questions()
                     ->with('options')
                     ->orderBy('sort_order')
-                    ->paginate(5, ['*'], 'qpage')
+                    ->paginate(10, ['*'], 'qpage')
                     ->withQueryString();
             }
         }
@@ -132,7 +132,7 @@ class OnboardingAssessmentController extends Controller
 
         $rows = $rows->values();
 
-        $perPage = 15;
+        $perPage = 10;
         $page = $request->integer('page', 1);
 
         return new LengthAwarePaginator(

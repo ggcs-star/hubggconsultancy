@@ -391,6 +391,7 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::get('/{lead}', [AdminLeadController::class, 'show'])->name('show');
             Route::get('/{lead}/edit', [AdminLeadController::class, 'edit'])->name('edit');
             Route::put('/{lead}', [AdminLeadController::class, 'update'])->name('update');
+            Route::patch('/{lead}/status', [AdminLeadController::class, 'updateStatus'])->name('status.update');
             Route::delete('/{lead}', [AdminLeadController::class, 'destroy'])->name('destroy');
             Route::post('/{lead}/notes', [AdminLeadController::class, 'storeNote'])->name('notes.store');
         });
@@ -416,7 +417,13 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
 
         Route::get('/achievers', [AdminAchieverController::class, 'index'])->name('achievers.index');
 
-        Route::get('/hall-of-fame', [AdminHallOfFameController::class, 'index'])->name('hall-of-fame.index');
+        Route::prefix('hall-of-fame')->name('hall-of-fame.')->group(function () {
+            Route::get('/', [AdminHallOfFameController::class, 'index'])->name('index');
+            Route::post('/', [AdminHallOfFameController::class, 'store'])->name('store');
+            Route::put('/{hallOfFameEntry}', [AdminHallOfFameController::class, 'update'])->name('update');
+            Route::delete('/{hallOfFameEntry}', [AdminHallOfFameController::class, 'destroy'])->name('destroy');
+            Route::patch('/{hallOfFameEntry}/active-toggle', [AdminHallOfFameController::class, 'toggleActive'])->name('active.toggle');
+        });
 
         Route::prefix('success-stories')->name('success-stories.')->group(function () {
             Route::get('/', [AdminSuccessStoryController::class, 'index'])->name('index');
@@ -490,6 +497,9 @@ Route::middleware(['auth', 'role:user'])
             Route::get('/', [UserLeadController::class, 'index'])->name('index');
             Route::get('/create', [UserLeadController::class, 'create'])->name('create');
             Route::post('/', [UserLeadController::class, 'store'])->name('store');
+            Route::get('/{lead}/edit', [UserLeadController::class, 'edit'])->name('edit');
+            Route::put('/{lead}', [UserLeadController::class, 'update'])->name('update');
+            Route::delete('/{lead}', [UserLeadController::class, 'destroy'])->name('destroy');
             Route::get('/{lead}', [UserLeadController::class, 'show'])->name('show');
             Route::patch('/{lead}/status', [UserLeadController::class, 'updateStatus'])->name('status.update');
             Route::post('/{lead}/notes', [UserLeadController::class, 'storeNote'])->name('notes.store');

@@ -17,7 +17,7 @@ class SuccessStoryController extends Controller
 
     public function index(): View
     {
-        $successStories = SuccessStory::ordered()->paginate(12)->withQueryString();
+        $successStories = SuccessStory::ordered()->paginate(10)->withQueryString();
 
         return view('admin.success-stories.index', [
             'successStories' => $successStories,
