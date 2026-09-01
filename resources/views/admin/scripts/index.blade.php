@@ -58,6 +58,10 @@
         @endforelse
     </div>
 
+    <div class="mt-6">
+        {{ $topics->links() }}
+    </div>
+
     <x-modal name="add-topic" :show="$errors->isNotEmpty()" max-width="lg">
         @include('admin.scripts._form', ['topic' => null])
     </x-modal>

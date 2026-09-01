@@ -147,11 +147,9 @@
                 </table>
             </div>
 
-            @if ($items->hasPages())
-                <div class="border-t border-slate-100 px-5 py-4">
-                    {{ $items->links() }}
-                </div>
-            @endif
+            <div class="border-t border-slate-100 px-5 py-4">
+                {{ $items->links() }}
+            </div>
         @else
             <div class="px-6 py-16 text-center">
                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50">

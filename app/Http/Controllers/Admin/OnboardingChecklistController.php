@@ -14,7 +14,7 @@ class OnboardingChecklistController extends Controller
 {
     public function index(): View
     {
-        $items = OnboardingChecklistItem::ordered()->withCount('completions')->get();
+        $items = OnboardingChecklistItem::ordered()->withCount('completions')->paginate(10)->withQueryString();
 
         return view('admin.onboarding-checklist.index', [
             'items' => $items,

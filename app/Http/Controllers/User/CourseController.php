@@ -26,8 +26,9 @@ class CourseController extends Controller
             ->where('is_published', true)
             ->withCount('lessons')
             ->orderBy('title')
-            ->get()
-            ->map(function ($course) use ($user) {
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function ($course) use ($user) {
                 $course->score = $course->scoreFor($user);
 
                 return $course;

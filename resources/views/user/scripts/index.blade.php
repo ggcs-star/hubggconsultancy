@@ -85,4 +85,8 @@
         @endforelse
     </div>
 
+    <div class="mt-6">
+        {{ $topics->links() }}
+    </div>
+
 </x-layout>

@@ -37,4 +37,8 @@
             </div>
         @endforelse
     </div>
+
+    <div class="mt-6">
+        {{ $courses->links() }}
+    </div>
 </x-layout>

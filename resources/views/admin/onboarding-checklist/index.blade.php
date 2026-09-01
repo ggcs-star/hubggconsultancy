@@ -14,7 +14,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">Checklist Steps</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $items->count() }} step{{ $items->count() === 1 ? '' : 's' }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $items->total() }} step{{ $items->total() === 1 ? '' : 's' }}</p>
         </div>
 
         @if ($items->isEmpty())
@@ -31,7 +31,7 @@
                     <div class="flex items-start justify-between gap-3 px-5 py-4">
                         <div class="flex items-start gap-3">
                             <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-brand-600">
-                                {{ $loop->iteration }}
+                                {{ $items->firstItem() + $loop->index }}
                             </span>
                             <div>
                                 <p class="font-semibold text-slate-800">{{ $item->title }}</p>
@@ -78,6 +78,10 @@
                 @endforeach
             </div>
         @endif
+    </div>
+
+    <div class="mt-6">
+        {{ $items->links() }}
     </div>
 
     <x-modal name="add-checklist-item" :show="$errors->isNotEmpty()" max-width="lg">

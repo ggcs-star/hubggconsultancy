@@ -501,15 +501,11 @@
             {{-- PAGINATION --}}
             {{-- ================================================= --}}
 
-            @if ($manuals->hasPages())
+            <div class="mt-6">
 
-                <div class="mt-6">
+                {{ $manuals->links() }}
 
-                    {{ $manuals->links() }}
-
-                </div>
-
-            @endif
+            </div>
 
 
         @else

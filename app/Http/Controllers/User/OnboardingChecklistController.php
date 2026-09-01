@@ -12,13 +12,18 @@ class OnboardingChecklistController extends Controller
 {
     public function index(Request $request): View
     {
-        $items = OnboardingChecklistItem::published()->ordered()->get();
+        $items = OnboardingChecklistItem::published()->ordered()->paginate(10)->withQueryString();
 
         $completedIds = $request->user()->onboardingChecklistCompletions()->pluck('onboarding_checklist_item_id');
+
+        $totalCount = OnboardingChecklistItem::published()->count();
+        $completedCount = OnboardingChecklistItem::published()->whereIn('id', $completedIds)->count();
 
         return view('user.onboarding-checklist.index', [
             'items' => $items,
             'completedIds' => $completedIds,
+            'totalCount' => $totalCount,
+            'completedCount' => $completedCount,
         ]);
     }
 

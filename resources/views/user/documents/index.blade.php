@@ -61,10 +61,8 @@
         @endforelse
     </div>
 
-    @if ($documents->hasPages())
-        <div class="mt-6">
-            {{ $documents->links() }}
-        </div>
-    @endif
+    <div class="mt-6">
+        {{ $documents->links() }}
+    </div>
 
 </x-layout>

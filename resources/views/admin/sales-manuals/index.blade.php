@@ -799,15 +799,11 @@
 
 
             {{-- Pagination --}}
-            @if ($manuals->hasPages())
+            <div class="border-t border-app-border px-5 py-4">
 
-                <div class="border-t border-app-border px-5 py-4">
+                {{ $manuals->links() }}
 
-                    {{ $manuals->links() }}
-
-                </div>
-
-            @endif
+            </div>
 
         @else
 

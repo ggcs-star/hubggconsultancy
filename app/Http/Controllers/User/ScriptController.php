@@ -24,11 +24,11 @@ class ScriptController extends Controller
         }
 
         $topics = ScriptTopic::published()
+            ->whereHas('items', fn ($query) => $query->published()->language($language))
             ->with(['items' => fn ($query) => $query->published()->language($language)->ordered()])
             ->ordered()
-            ->get()
-            ->filter(fn (ScriptTopic $topic) => $topic->items->isNotEmpty())
-            ->values();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('user.scripts.index', [
             'topics' => $topics,

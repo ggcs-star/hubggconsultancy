@@ -26,7 +26,7 @@ class SaasProductController extends Controller
             });
         })
             ->ordered()
-            ->paginate(10)
+            ->paginate(9)
             ->withQueryString();
 
         return view('admin.saas-products.index', [

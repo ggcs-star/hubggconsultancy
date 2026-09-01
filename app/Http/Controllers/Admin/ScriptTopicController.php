@@ -13,7 +13,7 @@ class ScriptTopicController extends Controller
 {
     public function index(): View
     {
-        $topics = ScriptTopic::withCount('items')->ordered()->get();
+        $topics = ScriptTopic::withCount('items')->ordered()->paginate(10)->withQueryString();
 
         return view('admin.scripts.index', [
             'topics' => $topics,

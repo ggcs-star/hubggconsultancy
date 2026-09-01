@@ -1,8 +1,7 @@
 <x-layout title="Onboarding Checklist" title-icon="check-circle" subtitle="Work through these steps to get fully set up">
 
     @php
-        $total = $items->count();
-        $completedCount = $items->filter(fn ($item) => $completedIds->contains($item->id))->count();
+        $total = $totalCount;
         $percent = $total > 0 ? (int) round($completedCount / $total * 100) : 0;
         $ringRadius = 40;
         $ringCircumference = 2 * M_PI * $ringRadius;
@@ -75,6 +74,10 @@
         @empty
             <div class="card p-10 text-center text-sm text-slate-400">No onboarding steps have been added yet.</div>
         @endforelse
+    </div>
+
+    <div class="mt-6">
+        {{ $items->links() }}
     </div>
 
 </x-layout>
