@@ -33,8 +33,9 @@ class ResourcePlayerPayloadBuilder
             return [
                 'id' => $resource->id,
                 'title' => $resource->title,
-                'hindi' => $this->buildLanguage($resource, 'hindi', $resource->hindi_youtube_url, $answersByQuestionId),
                 'english' => $this->buildLanguage($resource, 'english', $resource->english_youtube_url, $answersByQuestionId),
+                'hindi' => $this->buildLanguage($resource, 'hindi', $resource->hindi_youtube_url, $answersByQuestionId),
+                'gujarati' => $this->buildLanguage($resource, 'gujarati', $resource->gujarati_youtube_url, $answersByQuestionId),
             ];
         })->keyBy('id')->all();
     }

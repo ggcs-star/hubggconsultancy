@@ -19,10 +19,13 @@ class LeaderboardController extends Controller
             ?? $contests->first(fn (Contest $contest) => $contest->displayStatus() === 'active')
             ?? $contests->first();
 
+        $lastUpdated = $selectedContest ? $selectedContest->achievements()->max('created_at') : null;
+
         return view('admin.leaderboard.index', [
             'contests' => $contests,
             'selectedContest' => $selectedContest,
             'ranked' => $selectedContest ? $selectedContest->rankedParticipants() : collect(),
+            'lastUpdated' => $lastUpdated ? \Illuminate\Support\Carbon::parse($lastUpdated) : null,
         ]);
     }
 }

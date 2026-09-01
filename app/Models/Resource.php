@@ -18,8 +18,10 @@ class Resource extends Model
         'thumbnail',
         'hindi_thumbnail',
         'english_thumbnail',
+        'gujarati_thumbnail',
         'hindi_youtube_url',
         'english_youtube_url',
+        'gujarati_youtube_url',
         'is_published',
         'sort_order',
     ];
@@ -48,13 +50,14 @@ class Resource extends Model
         return $this->checkpoints()->where('language', $language)->orderBy('sort_order');
     }
 
-    // Falls back to the other language's thumbnail, then the legacy shared thumbnail
+    // Falls back to the other languages' thumbnails, then the legacy shared thumbnail
     // (from before per-language thumbnails existed), when one hasn't been uploaded.
     public function thumbnailFor(string $language): ?string
     {
         return match ($language) {
-            'hindi' => $this->hindi_thumbnail ?: $this->english_thumbnail ?: $this->thumbnail,
-            'english' => $this->english_thumbnail ?: $this->hindi_thumbnail ?: $this->thumbnail,
+            'hindi' => $this->hindi_thumbnail ?: $this->english_thumbnail ?: $this->gujarati_thumbnail ?: $this->thumbnail,
+            'english' => $this->english_thumbnail ?: $this->hindi_thumbnail ?: $this->gujarati_thumbnail ?: $this->thumbnail,
+            'gujarati' => $this->gujarati_thumbnail ?: $this->english_thumbnail ?: $this->hindi_thumbnail ?: $this->thumbnail,
             default => $this->thumbnail,
         };
     }

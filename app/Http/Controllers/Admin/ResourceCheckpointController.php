@@ -48,7 +48,7 @@ class ResourceCheckpointController extends Controller
     private function validateCheckpoint(Request $request): array
     {
         $validated = $request->validate([
-            'language' => ['required', 'in:hindi,english'],
+            'language' => ['required', 'in:hindi,english,gujarati'],
             'minutes' => ['required', 'integer', 'min:0'],
             'seconds' => ['required', 'integer', 'min:0', 'max:59'],
             'title' => ['nullable', 'string', 'max:255'],

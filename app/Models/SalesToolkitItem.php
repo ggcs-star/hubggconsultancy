@@ -16,6 +16,7 @@ class SalesToolkitItem extends Model
         'title',
         'category',
         'description',
+        'language',
         'thumbnail',
         'url',
         'original_filename',

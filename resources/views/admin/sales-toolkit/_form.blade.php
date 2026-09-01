@@ -35,6 +35,17 @@
             <textarea name="description" rows="3" class="form-input" placeholder="Shown on the item card">{{ old('description', $isEdit ? $item->description : '') }}</textarea>
         </div>
 
+        <div>
+            <label class="form-label">Language</label>
+            <select name="language" class="form-input">
+                @php $selectedLanguage = old('language', $isEdit ? $item->language : 'english'); @endphp
+                <option value="english" @selected($selectedLanguage === 'english')>English</option>
+                <option value="hindi" @selected($selectedLanguage === 'hindi')>Hindi</option>
+                <option value="gujarati" @selected($selectedLanguage === 'gujarati')>Gujarati</option>
+            </select>
+            <x-input-error :messages="$errors->get('language')" class="mt-1" />
+        </div>
+
         <div x-data="{ fileName: null }">
             <label class="form-label">File</label>
 

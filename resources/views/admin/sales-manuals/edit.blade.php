@@ -149,6 +149,37 @@
 
                     </div>
 
+
+                    {{-- Language --}}
+                    <div>
+
+                        <x-input-label
+                            for="language"
+                            value="Language *"
+                            class="uppercase text-xs tracking-wide" />
+
+                        <select
+                            id="language"
+                            name="language"
+                            required
+                            class="mt-1.5 w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary">
+
+                            <option value="english" @selected(old('language', $manual->language) === 'english')>
+                                English
+                            </option>
+
+                            <option value="hindi" @selected(old('language', $manual->language) === 'hindi')>
+                                Hindi
+                            </option>
+
+                            <option value="gujarati" @selected(old('language', $manual->language) === 'gujarati')>
+                                Gujarati
+                            </option>
+
+                        </select>
+
+                    </div>
+
                 </div>
 
 

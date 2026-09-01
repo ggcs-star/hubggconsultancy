@@ -14,6 +14,7 @@ class Document extends Model
     protected $fillable = [
         'title',
         'description',
+        'language',
         'thumbnail',
         'url',
         'is_published',

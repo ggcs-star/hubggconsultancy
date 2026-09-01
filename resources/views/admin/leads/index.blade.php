@@ -1,6 +1,21 @@
 <x-layout title="Leads / CRM" title-icon="users" subtitle="Manage and track every lead across your sales pipeline">
 
-    @include('partials.lead-stat-cards')
+    @php
+        $periodTabs = ['all' => 'All Time', 'today' => 'Today', 'week' => 'This Week', 'month' => 'This Month'];
+    @endphp
+
+    <div class="flex flex-wrap gap-2">
+        @foreach ($periodTabs as $key => $label)
+            <a href="{{ route('admin.leads.index', array_merge(request()->except(['period', 'page']), $key === 'all' ? [] : ['period' => $key])) }}"
+                class="rounded-full px-4 py-2 text-sm font-semibold transition {{ $period === $key ? 'bg-brand-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </div>
+
+    <div class="mt-6">
+        @include('partials.lead-stat-cards')
+    </div>
 
     @php
         $pipelineStageColors = [
@@ -89,15 +104,6 @@
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-xs font-semibold text-slate-500">Value Range (₹)</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" name="value_min" min="0" step="0.01" value="{{ request('value_min') }}" placeholder="Min" class="form-input">
-                        <span class="text-slate-400">–</span>
-                        <input type="number" name="value_max" min="0" step="0.01" value="{{ request('value_max') }}" placeholder="Max" class="form-input">
-                    </div>
-                </div>
-
-                <div>
                     <label class="mb-1.5 block text-xs font-semibold text-slate-500">Follow-up Date</label>
                     <div class="flex items-center gap-2">
                         <input type="date" name="follow_up_from" value="{{ request('follow_up_from') }}" class="form-input">
@@ -108,7 +114,7 @@
             </div>
 
             <div class="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                @if (request()->anyFilled(['search', 'status', 'assigned_to', 'campaign_id', 'product', 'value_min', 'value_max', 'follow_up_from', 'follow_up_to']))
+                @if (request()->anyFilled(['search', 'status', 'assigned_to', 'campaign_id', 'product', 'follow_up_from', 'follow_up_to']))
                     <a href="{{ route('admin.leads.index') }}" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Clear All</a>
                 @endif
                 <button type="submit" class="btn-primary">
@@ -151,16 +157,17 @@
 
             @if ($leads->count())
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[1050px] text-left text-sm">
+                    <table class="w-full min-w-[1180px] text-left text-sm">
                         <thead>
                             <tr class="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wider text-slate-400">
                                 <th class="w-10 px-5 py-3"></th>
                                 <th class="px-5 py-3 font-semibold">Lead</th>
                                 <th class="px-5 py-3 font-semibold">Contact</th>
-                                <th class="px-5 py-3 font-semibold">Product / Value</th>
+                                <th class="px-5 py-3 font-semibold">Product</th>
                                 <th class="px-5 py-3 font-semibold">Assigned To</th>
                                 <th class="px-5 py-3 font-semibold">Status</th>
                                 <th class="px-5 py-3 font-semibold">Follow-up</th>
+                                <th class="px-5 py-3 font-semibold">Created On</th>
                                 <th class="px-5 py-3 text-right font-semibold">Actions</th>
                             </tr>
                         </thead>
@@ -195,9 +202,6 @@
                                     </td>
                                     <td class="px-5 py-4 text-slate-500">
                                         {{ $lead->product ?: '—' }}
-                                        @if ($lead->expected_value)
-                                            <p class="text-xs text-slate-400">₹{{ number_format($lead->expected_value, 0) }}</p>
-                                        @endif
                                     </td>
                                     <td class="px-5 py-4 text-slate-600">
                                         @if ($lead->assignee)
@@ -238,11 +242,20 @@
                                             <span class="text-slate-400">—</span>
                                         @endif
                                     </td>
+                                    <td class="px-5 py-4 text-slate-500">
+                                        {{ $lead->created_at->format('d M Y') }}
+                                    </td>
                                     <td class="px-5 py-4">
                                         <div class="flex items-center justify-end gap-1">
                                             <a href="{{ route('admin.leads.show', $lead) }}" title="View" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition hover:bg-slate-100">
                                                 <x-icon name="eye" class="h-4 w-4" />
                                             </a>
+                                            <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'lead-notes-{{ $lead->id }}')" title="Notes" class="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 text-sky-600 transition hover:bg-sky-100">
+                                                <x-icon name="list" class="h-4 w-4" />
+                                                @if ($lead->notes->count())
+                                                    <span class="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-sky-600 px-1 text-[10px] font-bold text-white">{{ $lead->notes->count() }}</span>
+                                                @endif
+                                            </button>
                                             <a href="{{ route('admin.leads.edit', $lead) }}" title="Edit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-violet-200 bg-violet-50 text-violet-600 transition hover:bg-violet-100">
                                                 <x-icon name="pencil" class="h-4 w-4" />
                                             </a>
@@ -256,6 +269,41 @@
                                         </div>
                                     </td>
                                 </tr>
+
+                                <x-modal name="lead-notes-{{ $lead->id }}" :show="false" max-width="lg">
+                                    <div class="flex max-h-[85vh] flex-col">
+                                        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                                            <div>
+                                                <h2 class="text-lg font-bold text-slate-800">Activity & Notes</h2>
+                                                <p class="mt-0.5 text-sm text-slate-400">{{ $lead->name }}</p>
+                                            </div>
+                                            <button type="button" x-on:click="$dispatch('close')" class="text-slate-400 hover:text-slate-600">
+                                                <x-icon name="x" class="h-5 w-5" />
+                                            </button>
+                                        </div>
+
+                                        <div class="overflow-y-auto">
+                                            <form method="POST" action="{{ route('admin.leads.notes.store', $lead) }}" class="space-y-3 border-b border-slate-100 p-5">
+                                                @csrf
+                                                <textarea name="note" rows="2" required placeholder="Add a note — e.g. called on 25 Aug, said call back next week" class="form-input"></textarea>
+                                                <button type="submit" class="btn-primary">Add Note</button>
+                                            </form>
+
+                                            @if ($lead->notes->isEmpty())
+                                                <div class="px-6 py-10 text-center text-sm text-slate-400">No notes yet.</div>
+                                            @else
+                                                <div class="divide-y divide-slate-100">
+                                                    @foreach ($lead->notes as $note)
+                                                        <div class="px-5 py-4">
+                                                            <p class="text-sm text-slate-700">{{ $note->note }}</p>
+                                                            <p class="mt-1 text-xs text-slate-400">{{ $note->user?->name ?? 'Unknown' }} &middot; {{ $note->created_at->format('d M Y, h:i A') }}</p>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </x-modal>
                             @endforeach
                         </tbody>
                     </table>
@@ -271,7 +319,7 @@
                     </div>
                     <h3 class="mt-4 font-bold text-slate-800">No leads found</h3>
                     <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">
-                        @if (request()->anyFilled(['search', 'status', 'assigned_to', 'campaign_id', 'product', 'value_min', 'value_max', 'follow_up_from', 'follow_up_to']))
+                        @if (request()->anyFilled(['search', 'status', 'assigned_to', 'campaign_id', 'product', 'follow_up_from', 'follow_up_to']))
                             Try changing your search or filters.
                         @else
                             Click "Add Lead" to create the first one.

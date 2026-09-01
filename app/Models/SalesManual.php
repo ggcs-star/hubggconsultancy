@@ -13,6 +13,7 @@ class SalesManual extends Model
         'slug',
         'type',
         'category',
+        'language',
         'description',
         'content',
         'cover_image',

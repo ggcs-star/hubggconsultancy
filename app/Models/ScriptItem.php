@@ -17,6 +17,7 @@ class ScriptItem extends Model
         'script_topic_id',
         'type',
         'title',
+        'language',
         'thumbnail',
         'url',
         'is_external',
@@ -56,6 +57,11 @@ class ScriptItem extends Model
     public function scopeDocuments(Builder $query): Builder
     {
         return $query->where('type', 'document');
+    }
+
+    public function scopeLanguage(Builder $query, string $language): Builder
+    {
+        return $query->where('language', $language);
     }
 
     public function fileUrl(): string

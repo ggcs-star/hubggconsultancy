@@ -14,9 +14,15 @@ class ResourceController extends Controller
     {
         $resources = Resource::published()->with('checkpoints.questions.options')->ordered()->get();
 
+        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+            ->filter(fn ($lang) => $resources->contains(fn (Resource $resource) => filled($resource->{$lang . '_youtube_url'})))
+            ->values()
+            ->all();
+
         return view('user.resources.index', [
             'resources' => $resources,
             'playerData' => $payloadBuilder->build($resources, $request->user()),
+            'availableLanguages' => $availableLanguages,
         ]);
     }
 }

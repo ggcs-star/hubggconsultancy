@@ -3,15 +3,28 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\ScriptItem;
 use App\Models\ScriptTopic;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ScriptController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+            ->filter(fn ($lang) => ScriptItem::published()->language($lang)->whereHas('topic', fn ($query) => $query->published())->exists())
+            ->values()
+            ->all();
+
+        $language = $request->query('language');
+
+        if (! $language || ! in_array($language, $availableLanguages, true)) {
+            $language = $availableLanguages[0] ?? 'english';
+        }
+
         $topics = ScriptTopic::published()
-            ->with(['items' => fn ($query) => $query->published()->ordered()])
+            ->with(['items' => fn ($query) => $query->published()->language($language)->ordered()])
             ->ordered()
             ->get()
             ->filter(fn (ScriptTopic $topic) => $topic->items->isNotEmpty())
@@ -19,6 +32,8 @@ class ScriptController extends Controller
 
         return view('user.scripts.index', [
             'topics' => $topics,
+            'language' => $language,
+            'availableLanguages' => $availableLanguages,
         ]);
     }
 }

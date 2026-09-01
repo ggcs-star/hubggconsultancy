@@ -19,10 +19,12 @@ class SalesToolkitController extends Controller
     {
         $search = trim((string) $request->query('search'));
         $category = trim((string) $request->query('category'));
+        $language = trim((string) $request->query('language'));
 
         $items = SalesToolkitItem::query()
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->when($category !== '', fn ($query) => $query->where('category', $category))
+            ->when($language !== '', fn ($query) => $query->where('language', $language))
             ->ordered()
             ->paginate(10)
             ->withQueryString();
@@ -97,6 +99,7 @@ class SalesToolkitController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'language' => ['required', 'in:english,hindi,gujarati'],
             'file' => [$isCreate ? 'required' : 'nullable', 'file', 'max:20480'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],

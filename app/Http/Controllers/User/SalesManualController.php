@@ -13,10 +13,24 @@ class SalesManualController extends Controller
      */
     public function index(Request $request)
     {
+        $visible = fn () => SalesManual::where('status', 'published')->where('is_active', true);
+
+        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+            ->filter(fn ($lang) => $visible()->where('language', $lang)->exists())
+            ->values()
+            ->all();
+
+        $language = $request->query('language');
+
+        if (! $language || ! in_array($language, $availableLanguages, true)) {
+            $language = $availableLanguages[0] ?? 'english';
+        }
+
         $query = SalesManual::query()
             ->with('attachments')
             ->where('status', 'published')
             ->where('is_active', true)
+            ->where('language', $language)
             ->orderByDesc('is_pinned')
             ->orderByDesc('is_featured')
             ->orderBy('sort_order')
@@ -99,7 +113,7 @@ class SalesManualController extends Controller
 
         return view(
             'user.sales-manuals.index',
-            compact('manuals')
+            compact('manuals', 'language', 'availableLanguages')
         );
     }
 

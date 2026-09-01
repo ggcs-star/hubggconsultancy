@@ -1,6 +1,17 @@
 <x-layout title="Scripts & Objection Handling" title-icon="book-open" subtitle="Pick a topic to watch a script in action and read the playbook">
 
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    {{-- Language switch — only languages with at least one published script item get a tab. --}}
+    @if (count($availableLanguages) >= 1)
+        <div class="flex items-center justify-end gap-2">
+            @foreach ($availableLanguages as $value)
+                <a href="{{ route('user.scripts.index', ['language' => $value]) }}" class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
+                    {{ ucfirst($value) }}
+                </a>
+            @endforeach
+        </div>
+    @endif
+
+    <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($topics as $topic)
             @php
                 $videos = $topic->items->where('type', 'video')->values();
@@ -69,7 +80,7 @@
             </div>
         @empty
             <div class="card col-span-full p-10 text-center text-sm text-slate-400">
-                No scripts or objection-handling topics have been added yet.
+                No {{ ucfirst($language) }} scripts or objection-handling topics have been added yet.
             </div>
         @endforelse
     </div>

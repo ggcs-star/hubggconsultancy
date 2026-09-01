@@ -22,8 +22,8 @@
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($resources as $resource)
             <div class="card flex flex-col overflow-hidden">
-                @if ($resource->thumbnailFor('hindi'))
-                    <img src="{{ asset('storage/' . $resource->thumbnailFor('hindi')) }}" alt="" class="h-40 w-full object-cover">
+                @if ($resource->thumbnailFor('english'))
+                    <img src="{{ asset('storage/' . $resource->thumbnailFor('english')) }}" alt="" class="h-40 w-full object-cover">
                 @else
                     <div class="flex h-40 w-full items-center justify-center bg-slate-100 text-slate-300">
                         <x-icon name="video" class="h-10 w-10" />
@@ -51,8 +51,9 @@
 
                     <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-400">
                         <span>{{ $resource->checkpoints_count }} {{ Str::plural('checkpoint', $resource->checkpoints_count) }}</span>
-                        @if ($resource->hindi_youtube_url)<span class="badge badge-slate">Hindi</span>@endif
                         @if ($resource->english_youtube_url)<span class="badge badge-slate">English</span>@endif
+                        @if ($resource->hindi_youtube_url)<span class="badge badge-slate">Hindi</span>@endif
+                        @if ($resource->gujarati_youtube_url)<span class="badge badge-slate">Gujarati</span>@endif
                     </div>
 
                     <div class="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">

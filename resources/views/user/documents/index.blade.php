@@ -1,16 +1,30 @@
 <x-layout title="Documents" title-icon="document" subtitle="Guides, plans and presentations — click any card to open it">
 
-    <form method="GET" class="w-full sm:max-w-sm">
-        <div class="relative">
-            <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search documents..." class="form-input pl-10 {{ request('search') ? 'pr-9' : '' }}">
-            @if (request('search'))
-                <a href="{{ route('user.documents.index') }}" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                    <x-icon name="x" class="h-4 w-4" />
-                </a>
-            @endif
-        </div>
-    </form>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <form method="GET" class="w-full sm:max-w-sm">
+            <input type="hidden" name="language" value="{{ $language }}">
+            <div class="relative">
+                <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search documents..." class="form-input pl-10 {{ request('search') ? 'pr-9' : '' }}">
+                @if (request('search'))
+                    <a href="{{ route('user.documents.index', ['language' => $language]) }}" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        <x-icon name="x" class="h-4 w-4" />
+                    </a>
+                @endif
+            </div>
+        </form>
+
+        {{-- Language switch — only languages with at least one document get a tab. --}}
+        @if (count($availableLanguages) >= 1)
+            <div class="flex items-center gap-2">
+                @foreach ($availableLanguages as $value)
+                    <a href="{{ route('user.documents.index', ['language' => $value, 'search' => request('search')]) }}" class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
+                        {{ ucfirst($value) }}
+                    </a>
+                @endforeach
+            </div>
+        @endif
+    </div>
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($documents as $document)
@@ -41,7 +55,7 @@
                 @if (request('search'))
                     No documents match your search.
                 @else
-                    No documents have been added yet.
+                    No {{ ucfirst($language) }} documents have been added yet.
                 @endif
             </div>
         @endforelse

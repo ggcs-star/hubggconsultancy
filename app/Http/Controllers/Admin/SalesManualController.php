@@ -58,6 +58,20 @@ class SalesManualController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Language Filter
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('language')) {
+
+            $query->where(
+                'language',
+                $request->language
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | Status Filter
         |--------------------------------------------------------------------------
         */
@@ -128,6 +142,11 @@ class SalesManualController extends Controller
                 'nullable',
                 'string',
                 'max:255',
+            ],
+
+            'language' => [
+                'required',
+                'in:english,hindi,gujarati',
             ],
 
             'description' => [
@@ -265,6 +284,9 @@ class SalesManualController extends Controller
             'category' =>
                 $validated['category'] ?? null,
 
+            'language' =>
+                $validated['language'],
+
             'description' =>
                 $validated['description'] ?? null,
 
@@ -375,6 +397,11 @@ class SalesManualController extends Controller
                 'nullable',
                 'string',
                 'max:255',
+            ],
+
+            'language' => [
+                'required',
+                'in:english,hindi,gujarati',
             ],
 
             'description' => [
@@ -535,6 +562,9 @@ class SalesManualController extends Controller
 
             'category' =>
                 $validated['category'] ?? null,
+
+            'language' =>
+                $validated['language'],
 
             'description' =>
                 $validated['description'] ?? null,

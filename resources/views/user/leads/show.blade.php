@@ -57,29 +57,4 @@
         </form>
     </div>
 
-    <div class="mt-6 card">
-        <div class="border-b border-slate-100 px-5 py-4">
-            <h2 class="font-bold text-slate-800">Activity & Notes</h2>
-        </div>
-
-        <form method="POST" action="{{ route('user.leads.notes.store', $lead) }}" class="space-y-3 border-b border-slate-100 p-5">
-            @csrf
-            <textarea name="note" rows="2" required placeholder="Add a note — e.g. called on 25 Aug, said call back next week" class="form-input"></textarea>
-            <button type="submit" class="btn-primary">Add Note</button>
-        </form>
-
-        @if ($lead->notes->isEmpty())
-            <div class="px-6 py-10 text-center text-sm text-slate-400">No notes yet.</div>
-        @else
-            <div class="divide-y divide-slate-100">
-                @foreach ($lead->notes as $note)
-                    <div class="px-5 py-4">
-                        <p class="text-sm text-slate-700">{{ $note->note }}</p>
-                        <p class="mt-1 text-xs text-slate-400">{{ $note->user?->name ?? 'Unknown' }} &middot; {{ $note->created_at->format('d M Y, h:i A') }}</p>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </div>
-
 </x-layout>

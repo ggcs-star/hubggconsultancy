@@ -25,6 +25,17 @@
         </div>
 
         <div>
+            <label class="form-label">Language</label>
+            <select name="language" class="form-input">
+                @php $selectedLanguage = old('language', $isEdit ? $document->language : 'english'); @endphp
+                <option value="english" @selected($selectedLanguage === 'english')>English</option>
+                <option value="hindi" @selected($selectedLanguage === 'hindi')>Hindi</option>
+                <option value="gujarati" @selected($selectedLanguage === 'gujarati')>Gujarati</option>
+            </select>
+            <x-input-error :messages="$errors->get('language')" class="mt-1" />
+        </div>
+
+        <div>
             <label class="form-label">Link</label>
             <input type="text" name="url" value="{{ old('url', $isEdit ? $document->url : '') }}" required placeholder="https://docs.google.com/..." class="form-input">
             <x-input-error :messages="$errors->get('url')" class="mt-1" />

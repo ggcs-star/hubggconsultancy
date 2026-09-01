@@ -14,7 +14,14 @@
                 @endforeach
             </select>
 
-            @if (request('search') || request('category'))
+            <select name="language" class="form-input w-full sm:w-40" onchange="this.form.submit()">
+                <option value="">All Languages</option>
+                <option value="english" @selected(request('language') === 'english')>English</option>
+                <option value="hindi" @selected(request('language') === 'hindi')>Hindi</option>
+                <option value="gujarati" @selected(request('language') === 'gujarati')>Gujarati</option>
+            </select>
+
+            @if (request('search') || request('category') || request('language'))
                 <a href="{{ route('admin.sales-toolkit.index') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset</a>
             @endif
         </form>
@@ -38,6 +45,7 @@
                         <tr class="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wider text-slate-400">
                             <th class="px-5 py-3 font-semibold">Item</th>
                             <th class="px-5 py-3 font-semibold">Category</th>
+                            <th class="px-5 py-3 font-semibold">Language</th>
                             <th class="px-5 py-3 font-semibold">File</th>
                             <th class="px-5 py-3 font-semibold">Status</th>
                             <th class="px-5 py-3 font-semibold">Sort Order</th>
@@ -72,6 +80,10 @@
                                     @else
                                         <span class="text-slate-400">—</span>
                                     @endif
+                                </td>
+
+                                <td class="px-5 py-4">
+                                    <span class="badge badge-slate">{{ ucfirst($item->language) }}</span>
                                 </td>
 
                                 <td class="px-5 py-4">

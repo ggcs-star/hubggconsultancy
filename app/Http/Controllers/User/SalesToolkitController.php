@@ -14,12 +14,24 @@ class SalesToolkitController extends Controller
         $search = trim((string) $request->query('search'));
         $category = trim((string) $request->query('category'));
 
+        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+            ->filter(fn ($lang) => SalesToolkitItem::published()->where('language', $lang)->exists())
+            ->values()
+            ->all();
+
+        $language = $request->query('language');
+
+        if (! $language || ! in_array($language, $availableLanguages, true)) {
+            $language = $availableLanguages[0] ?? 'english';
+        }
+
         $items = SalesToolkitItem::published()
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
             }))
             ->when($category !== '', fn ($query) => $query->where('category', $category))
+            ->where('language', $language)
             ->ordered()
             ->paginate(10)
             ->withQueryString();
@@ -33,6 +45,8 @@ class SalesToolkitController extends Controller
         return view('user.sales-toolkit.index', [
             'items' => $items,
             'categories' => $categories,
+            'language' => $language,
+            'availableLanguages' => $availableLanguages,
         ]);
     }
 }

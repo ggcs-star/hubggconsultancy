@@ -1,0 +1,23 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('resources', function (Blueprint $table) {
+            $table->string('gujarati_thumbnail')->nullable()->after('english_thumbnail');
+            $table->string('gujarati_youtube_url')->nullable()->after('english_youtube_url');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('resources', function (Blueprint $table) {
+            $table->dropColumn(['gujarati_thumbnail', 'gujarati_youtube_url']);
+        });
+    }
+};

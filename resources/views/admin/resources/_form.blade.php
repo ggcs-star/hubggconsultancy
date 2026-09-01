@@ -27,7 +27,16 @@
             <textarea name="description" rows="3" class="form-input" placeholder="Shown on the resource card, with a See More toggle">{{ old('description', $isEdit ? $resource->description : '') }}</textarea>
         </div>
 
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div>
+                <label class="form-label">English Thumbnail</label>
+                @if ($isEdit && $resource->english_thumbnail)
+                    <img src="{{ asset('storage/' . $resource->english_thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
+                @endif
+                <input type="file" name="english_thumbnail" accept="image/*" class="form-input">
+                <x-input-error :messages="$errors->get('english_thumbnail')" class="mt-1" />
+            </div>
+
             <div>
                 <label class="form-label">Hindi Thumbnail</label>
                 @if ($isEdit && $resource->hindi_thumbnail)
@@ -38,15 +47,21 @@
             </div>
 
             <div>
-                <label class="form-label">English Thumbnail</label>
-                @if ($isEdit && $resource->english_thumbnail)
-                    <img src="{{ asset('storage/' . $resource->english_thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
+                <label class="form-label">Gujarati Thumbnail</label>
+                @if ($isEdit && $resource->gujarati_thumbnail)
+                    <img src="{{ asset('storage/' . $resource->gujarati_thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
                 @endif
-                <input type="file" name="english_thumbnail" accept="image/*" class="form-input">
-                <x-input-error :messages="$errors->get('english_thumbnail')" class="mt-1" />
+                <input type="file" name="gujarati_thumbnail" accept="image/*" class="form-input">
+                <x-input-error :messages="$errors->get('gujarati_thumbnail')" class="mt-1" />
             </div>
         </div>
-        <p class="-mt-3 text-xs text-slate-400">Shown on the resource card depending on which language tab a learner has selected. If a language's thumbnail is left blank, the other language's is used instead.</p>
+        <p class="-mt-3 text-xs text-slate-400">Shown on the resource card depending on which language tab a learner has selected. If a language's thumbnail is left blank, another language's is used instead.</p>
+
+        <div>
+            <label class="form-label">English YouTube Link</label>
+            <input type="text" name="english_youtube_url" value="{{ old('english_youtube_url', $isEdit ? $resource->english_youtube_url : '') }}" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
+            <x-input-error :messages="$errors->get('english_youtube_url')" class="mt-1" />
+        </div>
 
         <div>
             <label class="form-label">Hindi YouTube Link</label>
@@ -55,9 +70,9 @@
         </div>
 
         <div>
-            <label class="form-label">English YouTube Link</label>
-            <input type="text" name="english_youtube_url" value="{{ old('english_youtube_url', $isEdit ? $resource->english_youtube_url : '') }}" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
-            <x-input-error :messages="$errors->get('english_youtube_url')" class="mt-1" />
+            <label class="form-label">Gujarati YouTube Link</label>
+            <input type="text" name="gujarati_youtube_url" value="{{ old('gujarati_youtube_url', $isEdit ? $resource->gujarati_youtube_url : '') }}" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
+            <x-input-error :messages="$errors->get('gujarati_youtube_url')" class="mt-1" />
         </div>
 
         <p class="text-xs text-slate-400">Playlist links are supported too — they just open on YouTube directly, with no in-page checkpoint quiz (a single video is needed to track watch time).</p>

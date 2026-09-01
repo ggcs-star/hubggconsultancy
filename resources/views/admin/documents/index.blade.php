@@ -2,11 +2,12 @@
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <form method="GET" class="w-full sm:max-w-sm">
+            <input type="hidden" name="language" value="{{ request('language') }}">
             <div class="relative">
                 <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search documents..." class="form-input pl-10 {{ request('search') ? 'pr-9' : '' }}">
                 @if (request('search'))
-                    <a href="{{ route('admin.documents.index') }}" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <a href="{{ route('admin.documents.index', ['language' => request('language')]) }}" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                         <x-icon name="x" class="h-4 w-4" />
                     </a>
                 @endif
@@ -17,6 +18,14 @@
             <x-icon name="plus" class="h-4 w-4" />
             Add Document
         </button>
+    </div>
+
+    <div class="mt-4 flex items-center gap-2">
+        @foreach (['' => 'All', 'english' => 'English', 'hindi' => 'Hindi', 'gujarati' => 'Gujarati'] as $value => $label)
+            <a href="{{ route('admin.documents.index', ['language' => $value, 'search' => request('search')]) }}" class="rounded-lg px-4 py-1.5 text-sm font-semibold transition {{ request('language', '') === $value ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
+                {{ $label }}
+            </a>
+        @endforeach
     </div>
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -32,7 +41,10 @@
 
                 <div class="flex flex-1 flex-col p-5" x-data="{ expanded: false }">
                     <div class="flex items-start justify-between gap-2">
-                        <p class="font-bold text-slate-800">{{ $document->title }}</p>
+                        <div class="min-w-0">
+                            <p class="font-bold text-slate-800">{{ $document->title }}</p>
+                            <span class="badge badge-slate mt-1">{{ ucfirst($document->language) }}</span>
+                        </div>
                         <div class="flex shrink-0 items-center gap-1">
                             <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'edit-document-{{ $document->id }}')" title="Edit" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-brand-50 hover:text-brand-700">
                                 <x-icon name="pencil" class="h-4 w-4" />

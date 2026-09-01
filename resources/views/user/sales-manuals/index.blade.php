@@ -1,18 +1,19 @@
-<x-layout title="Sales Manuals">
+<x-layout title="Sales Manuals" subtitle="Access the sales resources uploaded by your admin team.">
 
     {{-- ========================================================= --}}
-    {{-- HEADER --}}
+    {{-- LANGUAGE SWITCH --}}
     {{-- ========================================================= --}}
 
-    <div>
-        <h1 class="text-2xl font-semibold text-secondary-dark">
-            Sales Manuals
-        </h1>
-
-        <p class="mt-1 text-sm text-secondary">
-            Access the sales resources uploaded by your admin team.
-        </p>
-    </div>
+    {{-- Only languages with at least one published manual get a tab. --}}
+    @if (count($availableLanguages) >= 1)
+        <div class="flex items-center justify-end gap-2">
+            @foreach ($availableLanguages as $value)
+                <a href="{{ route('user.manuals', ['language' => $value, 'search' => request('search')]) }}" class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-primary text-white shadow-sm' : 'bg-surface-alt text-secondary hover:bg-app-border/40' }}">
+                    {{ ucfirst($value) }}
+                </a>
+            @endforeach
+        </div>
+    @endif
 
 
     {{-- ========================================================= --}}
@@ -22,8 +23,10 @@
     <form
         method="GET"
         action="{{ route('user.manuals') }}"
-        class="mt-6 rounded-xl border border-app-border bg-white p-4"
+        class="mt-4 rounded-xl border border-app-border bg-white p-4"
     >
+
+        <input type="hidden" name="language" value="{{ $language }}">
 
         <div class="flex flex-col gap-3 sm:flex-row">
 

@@ -1,6 +1,5 @@
 @php
-    $videos = $topic->items->where('type', 'video')->sortBy('sort_order')->values();
-    $documents = $topic->items->where('type', 'document')->sortBy('sort_order')->values();
+    $languages = ['english' => 'English', 'hindi' => 'Hindi', 'gujarati' => 'Gujarati'];
 @endphp
 
 <x-layout title="Manage Items" title-icon="book-open" subtitle="{{ $topic->title }}">
@@ -24,74 +23,94 @@
         </button>
     </div>
 
-    @foreach ([['label' => 'Videos', 'icon' => 'video', 'items' => $videos], ['label' => 'Documents', 'icon' => 'document', 'items' => $documents]] as $group)
-        <div class="mt-6 card">
-            <div class="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
-                <x-icon name="{{ $group['icon'] }}" class="h-4 w-4 text-slate-400" />
-                <h2 class="font-bold text-slate-800">{{ $group['label'] }}</h2>
-                <span class="badge badge-slate">{{ $group['items']->count() }}</span>
-            </div>
-
-            @forelse ($group['items'] as $item)
-                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 last:border-b-0">
-                    <div class="flex min-w-0 flex-1 items-center gap-3">
-                        @if ($item->type === 'document')
-                            @if ($item->thumbnailUrl())
-                                <img src="{{ $item->thumbnailUrl() }}" alt="" class="h-9 w-9 shrink-0 rounded-lg object-cover">
-                            @else
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                                    <x-icon name="document" class="h-4 w-4" />
-                                </span>
-                            @endif
-                        @endif
-                        <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-2">
-                            <p class="truncate font-semibold text-slate-800">{{ $item->title }}</p>
-                            @if (! $item->is_published)
-                                <span class="badge badge-slate shrink-0">Draft</span>
-                            @endif
-                            @if ($item->is_external)
-                                <span class="badge badge-slate shrink-0">Link</span>
-                            @endif
-                        </div>
-                        <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener" class="mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate text-xs text-brand-700 hover:underline">
-                            {{ $item->original_filename ?? ($item->is_external ? $item->url : 'View file') }}
-                        </a>
-                        </div>
-                    </div>
-
-                    <div class="flex shrink-0 items-center gap-1">
-                        <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'edit-item-{{ $item->id }}')" title="Edit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-violet-200 bg-violet-50 text-violet-600 transition hover:bg-violet-100">
-                            <x-icon name="pencil" class="h-4 w-4" />
-                        </button>
-
-                        <form method="POST" action="{{ route('admin.script-items.publish.toggle', $item) }}">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="is_published" value="{{ $item->is_published ? '0' : '1' }}">
-                            <button type="submit" title="{{ $item->is_published ? 'Move to Draft' : 'Publish' }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-green-200 bg-green-50 text-green-600 transition hover:bg-green-100">
-                                <x-icon name="{{ $item->is_published ? 'eye-off' : 'check-circle' }}" class="h-4 w-4" />
-                            </button>
-                        </form>
-
-                        <form method="POST" action="{{ route('admin.script-items.destroy', $item) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete \'{{ $item->title }}\'?', target: $el })">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" title="Delete" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100">
-                                <x-icon name="trash" class="h-4 w-4" />
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <x-modal name="edit-item-{{ $item->id }}" :show="false" max-width="lg">
-                    @include('admin.scripts._item-form', ['item' => $item, 'topic' => $topic])
-                </x-modal>
-            @empty
-                <p class="px-5 py-8 text-center text-sm text-slate-400">No {{ strtolower($group['label']) }} yet.</p>
-            @endforelse
+    <div class="mt-6" x-data="{ activeLang: 'english' }">
+        <div class="flex items-center gap-6 border-b border-slate-200">
+            @foreach ($languages as $value => $label)
+                <button type="button" x-on:click="activeLang = '{{ $value }}'" class="flex items-center gap-2 border-b-2 px-1 pb-3 text-sm font-semibold transition"
+                    :class="activeLang === '{{ $value }}' ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-400 hover:text-slate-600'">
+                    {{ $label }}
+                    <span class="badge badge-slate">{{ $topic->items->where('language', $value)->count() }}</span>
+                </button>
+            @endforeach
         </div>
-    @endforeach
+
+        @foreach ($languages as $value => $label)
+            @php
+                $videos = $topic->items->where('language', $value)->where('type', 'video')->sortBy('sort_order')->values();
+                $documents = $topic->items->where('language', $value)->where('type', 'document')->sortBy('sort_order')->values();
+            @endphp
+            <div x-show="activeLang === '{{ $value }}'" x-cloak>
+                @foreach ([['label' => 'Videos', 'icon' => 'video', 'items' => $videos], ['label' => 'Documents', 'icon' => 'document', 'items' => $documents]] as $group)
+                    <div class="mt-6 card">
+                        <div class="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
+                            <x-icon name="{{ $group['icon'] }}" class="h-4 w-4 text-slate-400" />
+                            <h2 class="font-bold text-slate-800">{{ $group['label'] }}</h2>
+                            <span class="badge badge-slate">{{ $group['items']->count() }}</span>
+                        </div>
+
+                        @forelse ($group['items'] as $item)
+                            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 last:border-b-0">
+                                <div class="flex min-w-0 flex-1 items-center gap-3">
+                                    @if ($item->type === 'document')
+                                        @if ($item->thumbnailUrl())
+                                            <img src="{{ $item->thumbnailUrl() }}" alt="" class="h-9 w-9 shrink-0 rounded-lg object-cover">
+                                        @else
+                                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                                                <x-icon name="document" class="h-4 w-4" />
+                                            </span>
+                                        @endif
+                                    @endif
+                                    <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <p class="truncate font-semibold text-slate-800">{{ $item->title }}</p>
+                                        @if (! $item->is_published)
+                                            <span class="badge badge-slate shrink-0">Draft</span>
+                                        @endif
+                                        @if ($item->is_external)
+                                            <span class="badge badge-slate shrink-0">Link</span>
+                                        @endif
+                                    </div>
+                                    <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener" class="mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate text-xs text-brand-700 hover:underline">
+                                        {{ $item->original_filename ?? ($item->is_external ? $item->url : 'View file') }}
+                                    </a>
+                                    </div>
+                                </div>
+
+                                <div class="flex shrink-0 items-center gap-1">
+                                    <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'edit-item-{{ $item->id }}')" title="Edit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-violet-200 bg-violet-50 text-violet-600 transition hover:bg-violet-100">
+                                        <x-icon name="pencil" class="h-4 w-4" />
+                                    </button>
+
+                                    <form method="POST" action="{{ route('admin.script-items.publish.toggle', $item) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="is_published" value="{{ $item->is_published ? '0' : '1' }}">
+                                        <button type="submit" title="{{ $item->is_published ? 'Move to Draft' : 'Publish' }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-green-200 bg-green-50 text-green-600 transition hover:bg-green-100">
+                                            <x-icon name="{{ $item->is_published ? 'eye-off' : 'check-circle' }}" class="h-4 w-4" />
+                                        </button>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('admin.script-items.destroy', $item) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete \'{{ $item->title }}\'?', target: $el })">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" title="Delete" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100">
+                                            <x-icon name="trash" class="h-4 w-4" />
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <x-modal name="edit-item-{{ $item->id }}" :show="false" max-width="lg">
+                                @include('admin.scripts._item-form', ['item' => $item, 'topic' => $topic])
+                            </x-modal>
+                        @empty
+                            <p class="px-5 py-8 text-center text-sm text-slate-400">No {{ $label }} {{ strtolower($group['label']) }} yet.</p>
+                        @endforelse
+                    </div>
+                @endforeach
+            </div>
+        @endforeach
+    </div>
 
     <x-modal name="add-item" :show="$errors->isNotEmpty()" max-width="lg">
         @include('admin.scripts._item-form', ['item' => null, 'topic' => $topic])

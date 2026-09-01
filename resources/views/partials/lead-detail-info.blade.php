@@ -48,10 +48,6 @@
             <dd class="mt-1.5 font-semibold text-slate-800">{{ $lead->product ?: '—' }}</dd>
         </div>
         <div>
-            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Expected Value</dt>
-            <dd class="mt-1.5 font-semibold text-slate-800">{{ $lead->expected_value ? '₹' . number_format($lead->expected_value, 0) : '—' }}</dd>
-        </div>
-        <div>
             <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Next Follow-up</dt>
             <dd class="mt-1.5 font-semibold {{ $lead->isOverdue() ? 'text-red-600' : 'text-slate-800' }}">
                 {{ $lead->next_follow_up_at?->format('d M Y') ?? '—' }}

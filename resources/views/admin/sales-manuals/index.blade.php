@@ -203,6 +203,44 @@
             </div>
 
 
+            {{-- Language --}}
+            <div>
+
+                <select
+                    name="language"
+                    class="w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary"
+                >
+
+                    <option value="">
+                        All Languages
+                    </option>
+
+                    <option
+                        value="english"
+                        @selected(request('language') === 'english')
+                    >
+                        English
+                    </option>
+
+                    <option
+                        value="hindi"
+                        @selected(request('language') === 'hindi')
+                    >
+                        Hindi
+                    </option>
+
+                    <option
+                        value="gujarati"
+                        @selected(request('language') === 'gujarati')
+                    >
+                        Gujarati
+                    </option>
+
+                </select>
+
+            </div>
+
+
             {{-- Filter Buttons --}}
             <div class="flex gap-2 md:col-span-4">
 
@@ -278,6 +316,10 @@
 
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-secondary">
                                 Type
+                            </th>
+
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-secondary">
+                                Language
                             </th>
 
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-secondary">
@@ -440,6 +482,16 @@
                                         </span>
 
                                     </div>
+
+                                </td>
+
+
+                                {{-- Language --}}
+                                <td class="px-5 py-4">
+
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                        {{ ucfirst($manual->language) }}
+                                    </span>
 
                                 </td>
 

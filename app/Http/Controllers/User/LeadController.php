@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Lead;
+use App\Traits\ResolvesPeriod;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,22 +13,34 @@ use Illuminate\View\View;
 
 class LeadController extends Controller
 {
+    use ResolvesPeriod;
+
     public function index(Request $request): View
     {
+        $period = in_array($request->query('period'), ['today', 'week', 'month'], true) ? $request->query('period') : 'all';
+        [$periodFrom, $periodTo] = $this->resolvePeriodRange($period);
+
         $search = trim((string) $request->query('search'));
         $status = trim((string) $request->query('status'));
         $campaignId = trim((string) $request->query('campaign_id'));
         $product = trim((string) $request->query('product'));
-        $valueMin = trim((string) $request->query('value_min'));
-        $valueMax = trim((string) $request->query('value_max'));
         $followUpFrom = trim((string) $request->query('follow_up_from'));
         $followUpTo = trim((string) $request->query('follow_up_to'));
         $userId = $request->user()->id;
 
-        $myLeads = Lead::assignedTo($userId)->get();
+        $myLeads = Lead::assignedTo($userId)
+            ->when($periodFrom, fn ($query) => $query->where(function ($query) use ($periodFrom, $periodTo) {
+                $query->whereBetween('created_at', [$periodFrom, $periodTo])
+                    ->orWhereBetween('next_follow_up_at', [$periodFrom, $periodTo]);
+            }))
+            ->get();
 
         $leads = Lead::assignedTo($userId)
-            ->with('campaign')
+            ->with(['campaign', 'notes.user'])
+            ->when($periodFrom, fn ($query) => $query->where(function ($query) use ($periodFrom, $periodTo) {
+                $query->whereBetween('created_at', [$periodFrom, $periodTo])
+                    ->orWhereBetween('next_follow_up_at', [$periodFrom, $periodTo]);
+            }))
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -37,8 +50,6 @@ class LeadController extends Controller
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->when($campaignId !== '', fn ($query) => $query->where('campaign_id', $campaignId))
             ->when($product !== '', fn ($query) => $query->where('product', 'like', "%{$product}%"))
-            ->when($valueMin !== '', fn ($query) => $query->where('expected_value', '>=', $valueMin))
-            ->when($valueMax !== '', fn ($query) => $query->where('expected_value', '<=', $valueMax))
             ->when($followUpFrom !== '', fn ($query) => $query->whereDate('next_follow_up_at', '>=', $followUpFrom))
             ->when($followUpTo !== '', fn ($query) => $query->whereDate('next_follow_up_at', '<=', $followUpTo))
             ->latest()
@@ -47,6 +58,7 @@ class LeadController extends Controller
 
         return view('user.leads.index', [
             'leads' => $leads,
+            'period' => $period,
             'statusLabels' => Lead::statusLabels(),
             'campaigns' => Campaign::orderByDesc('created_at')->get(),
             'stats' => [
@@ -57,6 +69,26 @@ class LeadController extends Controller
                 'won' => $this->statWithTrend($myLeads, fn (Lead $lead) => $lead->status === 'won', 'won_at'),
             ],
         ]);
+    }
+
+    private function uniqueNameAndPhoneRule(Request $request, ?int $excludeId = null): \Closure
+    {
+        return function ($attribute, $value, $fail) use ($request, $excludeId) {
+            if (! $value) {
+                return;
+            }
+
+            $name = trim((string) $request->input('name'));
+
+            $exists = Lead::where('phone', $value)
+                ->where('name', $name)
+                ->when($excludeId, fn ($query) => $query->where('id', '!=', $excludeId))
+                ->exists();
+
+            if ($exists) {
+                $fail('A lead with this name and phone number already exists.');
+            }
+        };
     }
 
     private function statWithTrend($leads, callable $matches, string $dateField = 'created_at'): array
@@ -91,12 +123,11 @@ class LeadController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30', $this->uniqueNameAndPhoneRule($request)],
             'company' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
             'campaign_id' => ['nullable', 'exists:campaigns,id'],
             'product' => ['nullable', 'string', 'max:255'],
-            'expected_value' => ['nullable', 'numeric', 'min:0'],
             'priority' => ['required', 'in:low,medium,high'],
             'next_follow_up_at' => ['nullable', 'date'],
         ]);
@@ -114,7 +145,7 @@ class LeadController extends Controller
             $status .= ' Note: ' . $duplicates->count() . ' existing lead(s) already share this phone number — check for duplicates.';
         }
 
-        return redirect()->route('user.leads.show', $lead)->with('status', $status);
+        return redirect()->route('user.leads.index')->with('status', $status);
     }
 
     public function edit(Request $request, Lead $lead): View
@@ -134,12 +165,11 @@ class LeadController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30', $this->uniqueNameAndPhoneRule($request, $lead->id)],
             'company' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
             'campaign_id' => ['nullable', 'exists:campaigns,id'],
             'product' => ['nullable', 'string', 'max:255'],
-            'expected_value' => ['nullable', 'numeric', 'min:0'],
             'priority' => ['required', 'in:low,medium,high'],
             'status' => ['required', 'in:' . implode(',', array_keys(Lead::statusLabels()))],
             'next_follow_up_at' => ['nullable', 'date'],
@@ -212,6 +242,6 @@ class LeadController extends Controller
             'note' => $data['note'],
         ]);
 
-        return redirect()->route('user.leads.show', $lead)->with('status', 'Note added.');
+        return back()->with('status', 'Note added.');
     }
 }

@@ -6,7 +6,7 @@
         function resourceLibrary(data) {
             return {
                 data,
-                selectedTab: 'hindi',
+                selectedTab: {{ Illuminate\Support\Js::from($availableLanguages[0] ?? 'english') }},
                 searchTerm: '',
                 activeResourceId: null,
                 activeLanguage: null,
@@ -160,36 +160,39 @@
                 </button>
             </div>
 
-            {{-- Language switch — pick Hindi or English to see that language's videos only --}}
-            <div class="flex items-center gap-2">
-                <button type="button" x-on:click="stopVideo(); selectedTab = 'hindi'" class="rounded-lg px-5 py-2 text-sm font-semibold transition"
-                    :class="selectedTab === 'hindi' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'">
-                    Hindi
-                </button>
-                <button type="button" x-on:click="stopVideo(); selectedTab = 'english'" class="rounded-lg px-5 py-2 text-sm font-semibold transition"
-                    :class="selectedTab === 'english' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'">
-                    English
-                </button>
-            </div>
+            {{-- Language switch — only languages with at least one video get a tab. --}}
+            @if (count($availableLanguages) >= 1)
+                <div class="flex items-center gap-2">
+                    @foreach ($availableLanguages as $value)
+                        <button type="button" x-on:click="stopVideo(); selectedTab = '{{ $value }}'" class="rounded-lg px-5 py-2 text-sm font-semibold transition"
+                            :class="selectedTab === '{{ $value }}' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'">
+                            {{ ucfirst($value) }}
+                        </button>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($resources as $resource)
-                @continue(! $resource->hindi_youtube_url && ! $resource->english_youtube_url)
+                @continue(! $resource->hindi_youtube_url && ! $resource->english_youtube_url && ! $resource->gujarati_youtube_url)
                 <div class="card flex flex-col overflow-hidden" x-data="{ expanded: false }"
-                    x-show="(selectedTab === 'hindi' ? {{ $resource->hindi_youtube_url ? 'true' : 'false' }} : {{ $resource->english_youtube_url ? 'true' : 'false' }}) && (searchTerm.trim() === '' || {{ \Illuminate\Support\Js::from(strtolower($resource->title)) }}.includes(searchTerm.trim().toLowerCase()))"
+                    x-show="data[{{ $resource->id }}]?.[selectedTab] && (searchTerm.trim() === '' || {{ \Illuminate\Support\Js::from(strtolower($resource->title)) }}.includes(searchTerm.trim().toLowerCase()))"
                     x-cloak>
                     {{-- The frame itself is the player — click anywhere on it to play, no separate button. --}}
                     <div id="resource-frame-{{ $resource->id }}" class="relative aspect-video w-full shrink-0 bg-black">
                         <template x-if="! isPlaying({{ $resource->id }}, selectedTab)">
                             <div class="group relative h-full w-full cursor-pointer" x-on:click="openVideo({{ $resource->id }}, selectedTab)">
-                                @if ($resource->thumbnailFor('hindi'))
-                                    <img x-show="selectedTab === 'hindi'" src="{{ asset('storage/' . $resource->thumbnailFor('hindi')) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover transition group-hover:brightness-90">
-                                @endif
                                 @if ($resource->thumbnailFor('english'))
                                     <img x-show="selectedTab === 'english'" src="{{ asset('storage/' . $resource->thumbnailFor('english')) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover transition group-hover:brightness-90">
                                 @endif
-                                @if (! $resource->thumbnailFor('hindi') && ! $resource->thumbnailFor('english'))
+                                @if ($resource->thumbnailFor('hindi'))
+                                    <img x-show="selectedTab === 'hindi'" src="{{ asset('storage/' . $resource->thumbnailFor('hindi')) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover transition group-hover:brightness-90">
+                                @endif
+                                @if ($resource->thumbnailFor('gujarati'))
+                                    <img x-show="selectedTab === 'gujarati'" src="{{ asset('storage/' . $resource->thumbnailFor('gujarati')) }}" alt="{{ $resource->title }}" class="h-full w-full object-cover transition group-hover:brightness-90">
+                                @endif
+                                @if (! $resource->thumbnailFor('english') && ! $resource->thumbnailFor('hindi') && ! $resource->thumbnailFor('gujarati'))
                                     <div class="flex h-full w-full items-center justify-center bg-slate-800 text-slate-500">
                                         <x-icon name="video" class="h-10 w-10" />
                                     </div>
@@ -229,14 +232,18 @@
             @endforelse
 
             @php
-                $hindiEmpty = $resources->where('hindi_youtube_url', '!=', null)->isEmpty() ? 'true' : 'false';
                 $englishEmpty = $resources->where('english_youtube_url', '!=', null)->isEmpty() ? 'true' : 'false';
+                $hindiEmpty = $resources->where('hindi_youtube_url', '!=', null)->isEmpty() ? 'true' : 'false';
+                $gujaratiEmpty = $resources->where('gujarati_youtube_url', '!=', null)->isEmpty() ? 'true' : 'false';
             @endphp
+            <p class="card col-span-full p-10 text-center text-sm text-slate-400" x-show="selectedTab === 'english' && {{ $englishEmpty }}" x-cloak>
+                No English resources yet.
+            </p>
             <p class="card col-span-full p-10 text-center text-sm text-slate-400" x-show="selectedTab === 'hindi' && {{ $hindiEmpty }}" x-cloak>
                 No Hindi resources yet.
             </p>
-            <p class="card col-span-full p-10 text-center text-sm text-slate-400" x-show="selectedTab === 'english' && {{ $englishEmpty }}" x-cloak>
-                No English resources yet.
+            <p class="card col-span-full p-10 text-center text-sm text-slate-400" x-show="selectedTab === 'gujarati' && {{ $gujaratiEmpty }}" x-cloak>
+                No Gujarati resources yet.
             </p>
         </div>
 

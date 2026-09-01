@@ -1,27 +1,41 @@
 <x-layout title="Sales Toolkit" title-icon="briefcase" subtitle="Scripts, decks and templates — click any card to open it">
 
-    <form method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div class="relative w-full sm:max-w-sm">
-            <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search toolkit items..." class="form-input pl-10">
-        </div>
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <form method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <input type="hidden" name="language" value="{{ $language }}">
+            <div class="relative w-full sm:max-w-sm">
+                <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search toolkit items..." class="form-input pl-10">
+            </div>
 
-        <select name="category" class="form-input w-full sm:w-56" onchange="this.form.submit()">
-            <option value="">All Categories</option>
-            @foreach ($categories as $category)
-                <option value="{{ $category }}" @selected(request('category') === $category)>{{ $category }}</option>
-            @endforeach
-        </select>
+            <select name="category" class="form-input w-full sm:w-56" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                @foreach ($categories as $category)
+                    <option value="{{ $category }}" @selected(request('category') === $category)>{{ $category }}</option>
+                @endforeach
+            </select>
 
-        <button type="submit" class="btn-primary shrink-0 sm:w-auto">
-            <x-icon name="search" class="h-4 w-4" />
-            Search
-        </button>
+            <button type="submit" class="btn-primary shrink-0 sm:w-auto">
+                <x-icon name="search" class="h-4 w-4" />
+                Search
+            </button>
 
-        @if (request('search') || request('category'))
-            <a href="{{ route('user.sales-toolkit.index') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset</a>
+            @if (request('search') || request('category'))
+                <a href="{{ route('user.sales-toolkit.index', ['language' => $language]) }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset</a>
+            @endif
+        </form>
+
+        {{-- Language switch — only languages with at least one toolkit item get a tab. --}}
+        @if (count($availableLanguages) >= 1)
+            <div class="flex items-center gap-2">
+                @foreach ($availableLanguages as $value)
+                    <a href="{{ route('user.sales-toolkit.index', ['language' => $value, 'search' => request('search'), 'category' => request('category')]) }}" class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
+                        {{ ucfirst($value) }}
+                    </a>
+                @endforeach
+            </div>
         @endif
-    </form>
+    </div>
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($items as $item)
@@ -55,7 +69,7 @@
                 @if (request('search') || request('category'))
                     No toolkit items match your search or filter.
                 @else
-                    No toolkit items have been added yet.
+                    No {{ ucfirst($language) }} toolkit items have been added yet.
                 @endif
             </div>
         @endforelse

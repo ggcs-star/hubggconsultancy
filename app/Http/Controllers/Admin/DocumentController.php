@@ -18,9 +18,11 @@ class DocumentController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('search'));
+        $language = trim((string) $request->query('language'));
 
         $documents = Document::query()
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
+            ->when($language !== '', fn ($query) => $query->where('language', $language))
             ->ordered()
             ->paginate(10)
             ->withQueryString();
@@ -79,6 +81,7 @@ class DocumentController extends Controller
         return $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'language' => ['required', 'in:english,hindi,gujarati'],
             'url' => ['required', 'string', 'max:2000', 'url'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
         ]);

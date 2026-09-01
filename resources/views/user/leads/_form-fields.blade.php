@@ -20,14 +20,11 @@
         <div>
             <label class="form-label">Phone</label>
             <input type="text" name="phone" value="{{ old('phone', $isEdit ? $lead->phone : '') }}" placeholder="e.g. +91 90000 00000" class="form-input">
+            <x-input-error :messages="$errors->get('phone')" class="mt-1" />
         </div>
         <div>
             <label class="form-label">Interested In (Product)</label>
             <input type="text" name="product" value="{{ old('product', $isEdit ? $lead->product : '') }}" placeholder="e.g. UPOS" class="form-input">
-        </div>
-        <div>
-            <label class="form-label">Expected Value (₹)</label>
-            <input type="number" name="expected_value" step="0.01" min="0" value="{{ old('expected_value', $isEdit ? $lead->expected_value : '') }}" placeholder="e.g. 15000" class="form-input">
         </div>
         <div>
             <label class="form-label">Source</label>
