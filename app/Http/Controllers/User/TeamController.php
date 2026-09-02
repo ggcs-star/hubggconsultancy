@@ -86,6 +86,7 @@ class TeamController extends Controller
 
         return view('user.team.index', [
             'apiError' => false,
+            'user' => $user,
             'truncated' => $tree['truncated'] ?? false,
             'rootNode' => $rootNode,
             'rootPurchase' => $rootPurchase,
