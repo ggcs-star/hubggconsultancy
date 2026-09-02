@@ -59,6 +59,7 @@ class TeamController extends Controller
                 : null;
 
             return (object) [
+                'user_id' => $member['user_id'],
                 'level' => $member['level'],
                 'purchase_code' => $member['purchase_code'],
                 'name' => $member['name'],
@@ -71,6 +72,14 @@ class TeamController extends Controller
                 'document_complete' => $documents?->complete ?? false,
             ];
         })->values();
+
+        $progressByUserId = $rows->filter(fn ($row) => $row->user_id !== null)
+            ->keyBy(fn ($row) => (string) $row->user_id)
+            ->map(fn ($row) => (object) [
+                'on_platform' => $row->on_platform,
+                'video_percent' => $row->video_percent,
+                'document_percent' => $row->document_percent,
+            ]);
 
         $ownVideo = $this->videoProgress($user);
         $ownDocuments = $this->documentProgress(
@@ -92,6 +101,7 @@ class TeamController extends Controller
             'rootPurchase' => $rootPurchase,
             'ownVideoPercent' => $ownVideo->percent,
             'ownDocumentPercent' => $ownDocuments->percent,
+            'progressByUserId' => $progressByUserId,
             'rows' => $rows,
             'stats' => [
                 'total_members' => $totalMembers,

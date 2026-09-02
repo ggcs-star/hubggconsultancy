@@ -34,7 +34,13 @@
 
             <div x-show="tab === 'tree'" x-cloak class="overflow-x-auto p-6">
                 @if ($rootNode)
-                    <x-team-tree-node :node="$rootNode" :is-root="true" />
+                    <x-team-tree-node
+                        :node="$rootNode"
+                        :is-root="true"
+                        :progress-by-user-id="$progressByUserId"
+                        :total-members="$stats['total_members']"
+                        :root-purchase="$rootPurchase"
+                    />
                 @else
                     <p class="text-center text-sm text-slate-400">No team data available.</p>
                 @endif
