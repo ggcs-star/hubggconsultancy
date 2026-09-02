@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContentView;
 use App\Models\SalesManual;
 use Illuminate\Http\Request;
 
@@ -121,7 +122,7 @@ class SalesManualController extends Controller
     /**
      * User: View single manual
      */
-    public function show(SalesManual $manual)
+    public function show(Request $request, SalesManual $manual)
     {
         /*
         |--------------------------------------------------------------------------
@@ -144,6 +145,7 @@ class SalesManualController extends Controller
 
         $manual->load('attachments');
 
+        ContentView::record($request->user(), $manual);
 
         return view(
             'user.sales-manuals.show',

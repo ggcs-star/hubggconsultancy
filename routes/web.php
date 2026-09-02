@@ -473,11 +473,13 @@ Route::middleware(['auth', 'role:user'])
         Route::post('/resource-quiz-checkpoints/{checkpoint}/answers', [ResourceQuizAnswerController::class, 'store'])->name('resource-quiz-answers.store');
 
         Route::get('/documents', [UserDocumentController::class, 'index'])->name('documents.index');
+        Route::get('/documents/{document}/open', [UserDocumentController::class, 'open'])->name('documents.open');
 
         Route::get('/onboarding-checklist', [UserOnboardingChecklistController::class, 'index'])->name('onboarding-checklist.index');
         Route::patch('/onboarding-checklist/{onboardingChecklistItem}/toggle', [UserOnboardingChecklistController::class, 'toggle'])->name('onboarding-checklist.toggle');
 
         Route::get('/sales-toolkit', [UserSalesToolkitController::class, 'index'])->name('sales-toolkit.index');
+        Route::get('/sales-toolkit/{salesToolkitItem}/open', [UserSalesToolkitController::class, 'open'])->name('sales-toolkit.open');
 
         Route::get('/events', [UserEventController::class, 'index'])->name('events.index');
         Route::post('/events/{event}/register', [UserEventController::class, 'register'])->name('events.register');
@@ -515,6 +517,7 @@ Route::middleware(['auth', 'role:user'])
         Route::get('/faqs', [UserFaqController::class, 'index'])->name('faqs.index');
 
         Route::get('/scripts', [UserScriptController::class, 'index'])->name('scripts.index');
+        Route::get('/scripts/items/{scriptItem}/open', [UserScriptController::class, 'open'])->name('scripts.items.open');
 
         Route::get('/learning-progress', [UserLearningProgressController::class, 'index'])->name('learning-progress.index');
 

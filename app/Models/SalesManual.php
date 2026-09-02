@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,6 +34,11 @@ class SalesManual extends Model
         'is_pinned' => 'boolean',
         'published_at' => 'datetime',
     ];
+
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('status', 'published')->where('is_active', true);
+    }
 
     public function attachments(): HasMany
     {

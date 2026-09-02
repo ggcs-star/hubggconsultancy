@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContentView;
 use App\Models\SalesToolkitItem;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -48,5 +50,14 @@ class SalesToolkitController extends Controller
             'language' => $language,
             'availableLanguages' => $availableLanguages,
         ]);
+    }
+
+    public function open(Request $request, SalesToolkitItem $salesToolkitItem): RedirectResponse
+    {
+        abort_unless($salesToolkitItem->is_published, 404);
+
+        ContentView::record($request->user(), $salesToolkitItem);
+
+        return redirect()->away($salesToolkitItem->fileUrl());
     }
 }

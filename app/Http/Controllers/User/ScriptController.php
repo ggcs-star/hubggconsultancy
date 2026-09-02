@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContentView;
 use App\Models\ScriptItem;
 use App\Models\ScriptTopic;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -35,5 +37,14 @@ class ScriptController extends Controller
             'language' => $language,
             'availableLanguages' => $availableLanguages,
         ]);
+    }
+
+    public function open(Request $request, ScriptItem $scriptItem): RedirectResponse
+    {
+        abort_unless($scriptItem->is_published, 404);
+
+        ContentView::record($request->user(), $scriptItem);
+
+        return redirect()->away($scriptItem->fileUrl());
     }
 }

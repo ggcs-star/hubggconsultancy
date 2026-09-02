@@ -31,4 +31,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'team_api' => [
+        'base_url' => env('TEAM_API_BASE_URL'),
+        'id' => env('TEAM_API_ID'),
+        'secret' => env('TEAM_API_SECRET'),
+    ],
+
 ];

@@ -62,8 +62,9 @@
                         <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="form-input" placeholder="+91 90000 00000">
                     </div>
                     <div>
-                        <label for="gg_user_id" class="form-label">GG UserId</label>
-                        <input id="gg_user_id" type="text" name="gg_user_id" value="{{ old('gg_user_id', $user->gg_user_id) }}" class="form-input" placeholder="GG UserId">
+                        <label for="gg_user_id" class="form-label">GG UserId <span class="text-red-500">*</span></label>
+                        <input id="gg_user_id" type="text" name="gg_user_id" value="{{ old('gg_user_id', $user->gg_user_id) }}" required class="form-input" placeholder="GG UserId">
+                        <p class="mt-1 text-xs text-slate-400">Your Prime GG user ID — required to view your team.</p>
                     </div>
                     <div>
                         <label for="highest_qualification" class="form-label">Highest Qualification</label>

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContentView;
 use App\Models\Document;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -36,5 +38,14 @@ class DocumentController extends Controller
             'language' => $language,
             'availableLanguages' => $availableLanguages,
         ]);
+    }
+
+    public function open(Request $request, Document $document): RedirectResponse
+    {
+        abort_unless($document->is_published, 404);
+
+        ContentView::record($request->user(), $document);
+
+        return redirect()->away($document->url);
     }
 }

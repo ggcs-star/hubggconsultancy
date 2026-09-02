@@ -39,7 +39,7 @@
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($items as $item)
-            <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener"
+            <a href="{{ route('user.sales-toolkit.open', $item) }}" target="_blank" rel="noopener"
                 class="card flex flex-col border-l-4 border-l-brand-600 p-5 transition hover:-translate-y-0.5 hover:shadow-md">
                 <div class="flex items-start justify-between gap-2">
                     <div class="flex min-w-0 items-center gap-3">

@@ -46,7 +46,7 @@
                 <div class="flex-1 px-5 py-4">
                     <div x-show="tab === 'videos'" x-cloak class="space-y-1">
                         @forelse ($videos as $video)
-                            <a href="{{ $video->fileUrl() }}" target="_blank" rel="noopener" class="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
+                            <a href="{{ route('user.scripts.items.open', $video) }}" target="_blank" rel="noopener" class="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
                                 <span class="min-w-0 truncate">{{ $video->title }}</span>
                                 <x-icon name="play-circle" class="h-4 w-4 shrink-0 text-slate-300" />
                             </a>
@@ -57,7 +57,7 @@
 
                     <div x-show="tab === 'documents'" x-cloak class="space-y-1">
                         @forelse ($documents as $document)
-                            <a href="{{ $document->fileUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
+                            <a href="{{ route('user.scripts.items.open', $document) }}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
                                 @if ($document->thumbnailUrl())
                                     <img src="{{ $document->thumbnailUrl() }}" alt="" class="h-7 w-7 shrink-0 rounded-md object-cover">
                                 @else
@@ -72,7 +72,7 @@
                 </div>
 
                 @if ($startLink)
-                    <a href="{{ $startLink->fileUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-sm font-semibold text-brand-700 hover:text-brand-800">
+                    <a href="{{ route('user.scripts.items.open', $startLink) }}" target="_blank" rel="noopener" class="flex items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-sm font-semibold text-brand-700 hover:text-brand-800">
                         Start Learning
                         <x-icon name="chevron-right" class="h-4 w-4" />
                     </a>
