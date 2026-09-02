@@ -12,9 +12,19 @@ use Illuminate\View\View;
 
 class FaqController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $faqs = Faq::query()->with('section')->ordered()->get();
+        $search = trim((string) $request->query('search'));
+
+        $faqs = Faq::query()
+            ->with('section')
+            ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
+                $query->where('question', 'like', "%{$search}%")
+                    ->orWhere('answer', 'like', "%{$search}%");
+            }))
+            ->ordered()
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.faqs.index', [
             'faqs' => $faqs,

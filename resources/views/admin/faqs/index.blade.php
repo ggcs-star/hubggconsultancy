@@ -1,6 +1,18 @@
 <x-layout title="FAQ" title-icon="help-circle" subtitle="Manage the frequently asked questions salespeople see">
 
-    <div class="flex justify-end">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <form method="GET" class="w-full sm:max-w-sm">
+            <div class="relative">
+                <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search FAQs..." class="form-input pl-10 {{ request('search') ? 'pr-9' : '' }}">
+                @if (request('search'))
+                    <a href="{{ route('admin.faqs.index') }}" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        <x-icon name="x" class="h-4 w-4" />
+                    </a>
+                @endif
+            </div>
+        </form>
+
         <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'add-faq')" class="btn-primary shrink-0">
             <x-icon name="plus" class="h-4 w-4" />
             Add FAQ
@@ -10,7 +22,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">All FAQs</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $faqs->count() }} total question{{ $faqs->count() === 1 ? '' : 's' }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $faqs->total() }} total question{{ $faqs->total() === 1 ? '' : 's' }}</p>
         </div>
 
         @if ($faqs->count())
@@ -94,13 +106,23 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="border-t border-slate-100 px-5 py-4">
+                {{ $faqs->links() }}
+            </div>
         @else
             <div class="px-6 py-16 text-center">
                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50">
                     <x-icon name="help-circle" class="h-7 w-7 text-brand-600" />
                 </div>
                 <h3 class="mt-4 font-bold text-slate-800">No FAQs found</h3>
-                <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">Click "Add FAQ" to create the first one.</p>
+                <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">
+                    @if (request('search'))
+                        No FAQs match "{{ request('search') }}".
+                    @else
+                        Click "Add FAQ" to create the first one.
+                    @endif
+                </p>
             </div>
         @endif
     </div>
