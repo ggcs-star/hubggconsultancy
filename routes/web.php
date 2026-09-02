@@ -439,6 +439,10 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::put('/{faq}', [FaqController::class, 'update'])->name('update');
             Route::delete('/{faq}', [FaqController::class, 'destroy'])->name('destroy');
             Route::patch('/{faq}/publish-toggle', [FaqController::class, 'togglePublish'])->name('publish.toggle');
+            // FAQs are edited via modal, not a standalone page — if a GET ever
+            // hits this URL (stale link, browser autocomplete, refresh mid-save),
+            // send the admin back to the list instead of a 405 error page.
+            Route::get('/{faq}', fn () => redirect()->route('admin.faqs.index'));
         });
         Route::post('/faq-sections', [FaqController::class, 'storeSection'])->name('faq-sections.store');
 
