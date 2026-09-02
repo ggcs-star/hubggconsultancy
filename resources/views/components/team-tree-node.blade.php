@@ -36,7 +36,7 @@
         ->implode('');
 @endphp
 
-<div class="relative flex flex-col items-center px-4 pt-6">
+<div class="relative flex w-max flex-col items-center px-4 pt-6">
     @unless ($isRoot)
         @if (! $isFirst)
             <div class="absolute left-0 right-1/2 top-0 h-px {{ $c['line'] }}"></div>
