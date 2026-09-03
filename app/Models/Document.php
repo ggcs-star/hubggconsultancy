@@ -32,6 +32,30 @@ class Document extends Model
 
     public function thumbnailUrl(): ?string
     {
-        return $this->thumbnail ? asset('storage/' . $this->thumbnail) : null;
+        if ($this->thumbnail) {
+            return asset('storage/' . $this->thumbnail);
+        }
+
+        $fileId = $this->driveFileId();
+
+        return $fileId ? "https://drive.google.com/thumbnail?id={$fileId}&sz=w1000" : null;
+    }
+
+    /**
+     * Extract the file ID from a Google Drive/Docs/Sheets/Slides URL so we
+     * can fall back to Drive's own thumbnail when no thumbnail was uploaded.
+     * Only works if the file is shared as "Anyone with the link".
+     */
+    private function driveFileId(): ?string
+    {
+        if (preg_match('#/d/([a-zA-Z0-9_-]{10,})#', $this->url, $matches)) {
+            return $matches[1];
+        }
+
+        if (preg_match('/[?&]id=([a-zA-Z0-9_-]{10,})/', $this->url, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 }

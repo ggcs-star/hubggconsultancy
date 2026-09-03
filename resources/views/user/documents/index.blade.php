@@ -30,13 +30,14 @@
         @forelse ($documents as $document)
             <a href="{{ $document->url }}" target="_blank" rel="noopener"
                 class="card flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md">
-                @if ($document->thumbnailUrl())
-                    <img src="{{ $document->thumbnailUrl() }}" alt="" class="h-40 w-full object-cover">
-                @else
-                    <div class="flex h-40 w-full items-center justify-center bg-slate-100 text-slate-300">
+                <div class="relative h-40 w-full">
+                    <div class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-300">
                         <x-icon name="document" class="h-10 w-10" />
                     </div>
-                @endif
+                    @if ($document->thumbnailUrl())
+                        <img src="{{ $document->thumbnailUrl() }}" alt="" class="absolute inset-0 h-40 w-full object-cover" onerror="this.remove()">
+                    @endif
+                </div>
 
                 <div class="flex flex-1 flex-col p-5" x-data="{ expanded: false }">
                     <p class="font-bold text-slate-800">{{ $document->title }}</p>
