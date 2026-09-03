@@ -128,7 +128,7 @@
                              only after clicking View. --}}
 
                         @if (!empty($manual->cover_image))
-                            <div class="flex h-44 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-56">
+                            <div class="flex h-36 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-44">
                                 <img
                                     src="{{ asset('storage/' . ltrim($manual->cover_image, '/')) }}"
                                     alt="{{ $manual->title }}"
@@ -146,7 +146,7 @@
                             @endphp
 
                             @if ($firstIsImage)
-                                <div class="flex h-56 w-full items-center justify-center overflow-hidden bg-slate-50">
+                                <div class="flex h-44 w-full items-center justify-center overflow-hidden bg-slate-50">
                                     <img
                                         src="{{ $firstFileUrl }}"
                                         alt="{{ $firstAttachment->file_name }}"
@@ -155,21 +155,21 @@
                                     >
                                 </div>
                             @else
-                                <div class="flex h-44 items-center justify-center bg-surface-alt sm:h-56">
+                                <div class="flex h-36 items-center justify-center bg-surface-alt sm:h-44">
                                     <div class="flex h-20 w-20 items-center justify-center rounded-2xl {{ $manualIconBg }}">
                                         <x-icon name="{{ $manualIcon }}" class="h-10 w-10" />
                                     </div>
                                 </div>
                             @endif
                         @else
-                            <div class="flex h-44 w-full items-center justify-center bg-surface-alt sm:h-56">
+                            <div class="flex h-36 w-full items-center justify-center bg-surface-alt sm:h-44">
                                 <div class="flex h-20 w-20 items-center justify-center rounded-2xl {{ $manualIconBg }}">
                                     <x-icon name="{{ $manualIcon }}" class="h-10 w-10" />
                                 </div>
                             </div>
                         @endif
 
-                        <div class="flex flex-1 flex-col p-4 sm:p-5">
+                        <div class="flex min-h-[300px] flex-1 flex-col p-4">
                             {{-- RESOURCE INFORMATION --}}
                             <div class="flex items-start gap-3">
                                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $manualIconBg }}">
@@ -194,13 +194,13 @@
                             </div>
 
                             @if ($manual->description)
-                                <p class="mt-4 text-sm leading-6 text-secondary">
+                                <p class="mt-2 text-sm leading-6 text-secondary">
                                     {{ $manual->description }}
                                 </p>
                             @endif
 
                             @if ($manual->content)
-                                <div class="mt-4 max-h-32 overflow-hidden rounded-lg border border-app-border bg-surface-alt p-3">
+                                <div class="mt-2 max-h-32 overflow-hidden rounded-lg border border-app-border bg-surface-alt p-3">
                                     <p class="whitespace-pre-wrap text-sm leading-6 text-secondary-dark">{{ $manual->content }}</p>
                                 </div>
                             @endif
@@ -210,12 +210,10 @@
                             {{-- ================================================= --}}
 
                             @if ($manual->attachments->count())
-                                <div class="mt-4 space-y-2">
+                                <div class="mt-2 space-y-1.5">
                                     @foreach ($manual->attachments as $attachment)
                                         @php
                                             $extension = strtolower(pathinfo($attachment->file_name, PATHINFO_EXTENSION));
-                                            $fileUrl = asset('storage/' . ltrim($attachment->file_path, '/'));
-
                                             $icon = match ($extension) {
                                                 'pdf' => 'file-text',
                                                 'doc', 'docx' => 'file-text',
@@ -237,7 +235,7 @@
                                             };
                                         @endphp
 
-                                        <div class="flex min-w-0 items-center gap-2.5 rounded-lg border border-app-border bg-white p-2.5 sm:gap-3 sm:p-3">
+                                        <div class="flex min-w-0 items-center gap-2 rounded-lg border border-app-border bg-white p-2.5 sm:gap-2.5">
                                             <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $iconBg }}">
                                                 <x-icon name="{{ $icon }}" class="h-4 w-4" />
                                             </div>
@@ -257,25 +255,6 @@
                                                 </p>
                                             </div>
 
-                                            <button
-                                                type="button"
-                                                class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white transition hover:bg-primary/90"
-                                                onclick="window.openSalesManualReader('{{ $attachment->id }}')"
-                                                title="View {{ $attachment->file_name }}"
-                                                aria-label="View {{ $attachment->file_name }}"
-                                            >
-                                                <x-icon name="eye" class="h-4 w-4" />
-                                            </button>
-
-                                            <a
-                                                href="{{ $fileUrl }}"
-                                                download="{{ $attachment->file_name }}"
-                                                class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-app-border bg-white text-secondary-dark transition hover:bg-surface-alt"
-                                                title="Save {{ $attachment->file_name }}"
-                                                aria-label="Save {{ $attachment->file_name }}"
-                                            >
-                                                <x-icon name="download" class="h-4 w-4" />
-                                            </a>
                                         </div>
                                     @endforeach
                                 </div>
@@ -287,7 +266,7 @@
                                  If no file exists, View opens the resource content. --}}
                             {{-- ================================================= --}}
 
-                            <div class="mt-auto pt-5 grid grid-cols-2 gap-2">
+                            <div class="mt-auto pt-3 grid grid-cols-2 gap-2">
                                 @if ($firstAttachment)
                                     <button
                                         type="button"
