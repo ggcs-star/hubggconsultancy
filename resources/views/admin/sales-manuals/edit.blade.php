@@ -53,11 +53,12 @@
 
 
     <div class="mt-6 rounded-xl border border-app-border bg-white">
-
-        <form
-            method="POST"
-            action="{{ route('admin.manuals.update', $manual) }}"
-            enctype="multipart/form-data">
+<form
+    id="salesManualEditForm"
+    method="POST"
+    action="{{ route('admin.manuals.update', $manual) }}"
+    enctype="multipart/form-data"
+    novalidate>
 
             @csrf
             @method('PUT')
@@ -331,26 +332,17 @@
                                     </a>
 
 
-                                    <form
-                                        method="POST"
-                                        action="{{ route('admin.manuals.attachments.delete', $attachment) }}"
-                                        onsubmit="return confirm('Delete this attachment?');">
+                                    <button
+                                        type="submit"
+                                        form="delete-attachment-{{ $attachment->id }}"
+                                        title="Delete"
+                                        class="rounded-lg p-2 text-secondary transition hover:bg-red-50 hover:text-red-600">
 
-                                        @csrf
-                                        @method('DELETE')
+                                        <x-icon
+                                            name="trash"
+                                            class="h-4 w-4" />
 
-                                        <button
-                                            type="submit"
-                                            title="Delete"
-                                            class="rounded-lg p-2 text-secondary transition hover:bg-red-50 hover:text-red-600">
-
-                                            <x-icon
-                                                name="trash"
-                                                class="h-4 w-4" />
-
-                                        </button>
-
-                                    </form>
+                                    </button>
 
                                 </div>
 
@@ -550,21 +542,75 @@
                     Cancel
 
                 </a>
+<button
+    id="updateSalesManualBtn"
+    type="submit"
+    class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90">
 
-                <button
-                    type="submit"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90">
+    <x-icon
+        id="updateSalesManualIcon"
+        name="check"
+        class="h-4 w-4"
+    />
 
-                    <x-icon name="check" class="h-4 w-4" />
+    <span id="updateSalesManualText">
+        Update Sales Manual
+    </span>
 
-                    Update Sales Manual
-
-                </button>
+</button>
 
             </div>
 
         </form>
 
     </div>
+
+
+    {{-- ========================================================= --}}
+    {{-- ATTACHMENT DELETE FORMS --}}
+    {{-- Keep these OUTSIDE the main update form. --}}
+    {{-- ========================================================= --}}
+    @foreach ($manual->attachments as $attachment)
+        <form
+            id="delete-attachment-{{ $attachment->id }}"
+            method="POST"
+            action="{{ route('admin.manuals.attachments.delete', $attachment) }}"
+            onsubmit="return confirm('Delete this attachment?');"
+        >
+            @csrf
+            @method('DELETE')
+        </form>
+    @endforeach
+
+
+    {{-- ========================================================= --}}
+    {{-- UPDATE BUTTON FEEDBACK --}}
+    {{-- ========================================================= --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('salesManualEditForm');
+            const button = document.getElementById('updateSalesManualBtn');
+            const text = document.getElementById('updateSalesManualText');
+
+            if (!form || !button) {
+                return;
+            }
+
+            form.addEventListener('submit', function () {
+                if (button.dataset.submitting === '1') {
+                    return;
+                }
+
+                button.dataset.submitting = '1';
+                button.disabled = true;
+                button.classList.add('opacity-70', 'cursor-not-allowed');
+
+                if (text) {
+                    text.textContent = 'Updating...';
+                }
+            });
+        });
+    </script>
+
 
 </x-layout>
