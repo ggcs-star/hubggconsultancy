@@ -87,18 +87,13 @@
                     <x-icon name="gift" class="h-5 w-5" />
                 </span>
                 <div class="min-w-0">
-                    <p class="text-xs text-slate-400">Earnings (This Month)</p>
-                    <p class="text-xl font-extrabold text-slate-800">₹{{ number_format($leadStats->earnings_this_month, 0) }}</p>
+                    <p class="text-xs text-slate-400">Total Income</p>
+                    <p class="text-xl font-extrabold text-slate-800">{{ ! is_null($totalIncome) ? '₹' . number_format($totalIncome, 0) : '—' }}</p>
                 </div>
             </div>
-            @if (! is_null($leadStats->earnings_change_percent))
-                <p class="mt-2 text-xs font-medium {{ $leadStats->earnings_change_percent >= 0 ? 'text-emerald-600' : 'text-red-600' }}">
-                    {{ $leadStats->earnings_change_percent >= 0 ? '↑' : '↓' }} {{ abs($leadStats->earnings_change_percent) }}% this month
-                </p>
-            @endif
-            <a href="{{ route('user.incentives.index') }}" class="mt-3 flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800">
-                View Earnings <x-icon name="chevron-right" class="h-3 w-3" />
-            </a>
+            <p class="mt-2 text-xs text-slate-400" @if (is_null($totalIncome)) title="We're having trouble connecting to the GG Prime service right now. Please try again in a few minutes, or contact your administrator if the issue continues." @endif>
+                {{ ! is_null($totalIncome) ? 'From your GG Prime account' : 'Temporarily unavailable' }}
+            </p>
         </div>
     </div>
 

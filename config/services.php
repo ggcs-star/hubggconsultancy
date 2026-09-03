@@ -35,6 +35,13 @@ return [
         'base_url' => env('TEAM_API_BASE_URL'),
         'id' => env('TEAM_API_ID'),
         'secret' => env('TEAM_API_SECRET'),
+
+        // Comma-separated emails that skip GG Prime verification entirely at
+        // register/login — for test/QA accounts only, e.g. "a@test.com,b@test.com".
+        'bypass_emails' => array_filter(array_map(
+            'trim',
+            explode(',', (string) env('TEAM_API_BYPASS_EMAILS', ''))
+        )),
     ],
 
 ];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\SaasProduct;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -19,16 +20,18 @@ class ProfileController extends Controller
             'user' => $user,
             'saasProducts' => SaasProduct::active()->ordered()->get(),
             'interestIds' => $user->interests()->pluck('saas_products.id')->all(),
+            'isBypassAccount' => User::isGgBypassEmail($user->email),
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
-        $data = $request->validate([
+        $user = $request->user();
+        $isBypassAccount = User::isGgBypassEmail($user->email);
+
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'designation' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'gg_user_id' => ['required', 'string', 'max:100', Rule::unique('users', 'gg_user_id')->ignore($request->user()->id)],
             'address' => ['nullable', 'string', 'max:1000'],
             'highest_qualification' => ['nullable', 'string', 'max:255'],
             'institution_name' => ['nullable', 'string', 'max:255'],
@@ -40,12 +43,21 @@ class ProfileController extends Controller
             'country' => ['nullable', 'string', 'max:255'],
             'interests' => ['nullable', 'array'],
             'interests.*' => ['integer', 'exists:saas_products,id'],
-        ]);
+        ];
+
+        // gg_user_id/phone are auto-synced from GG Prime for real accounts —
+        // only test/QA bypass accounts (which never get that sync) may set
+        // them by hand.
+        if ($isBypassAccount) {
+            $rules['phone'] = ['nullable', 'string', 'max:30'];
+            $rules['gg_user_id'] = ['nullable', 'string', 'max:100', Rule::unique('users', 'gg_user_id')->ignore($user->id)];
+        }
+
+        $data = $request->validate($rules);
 
         $interestIds = $data['interests'] ?? [];
         unset($data['interests']);
 
-        $user = $request->user();
         $wasIncomplete = ! $user->profile_completed;
 
         $data['profile_completed'] = true;

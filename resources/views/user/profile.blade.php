@@ -37,7 +37,7 @@
                     </div>
                     <div>
                         <p class="font-bold text-slate-800">{{ $user->name }}</p>
-                        <p class="text-sm text-slate-400">{{ $user->email }}</p>
+                        <p class="text-sm text-slate-400">{{ $user->email ?? $user->phone ?? '—' }}</p>
                     </div>
                 </div>
 
@@ -51,20 +51,29 @@
                     </div>
                     <div>
                         <label class="form-label">Email Address</label>
-                        <input type="email" value="{{ $user->email }}" disabled class="form-input bg-slate-50 text-slate-400">
+                        <input type="text" value="{{ $user->email ?? '—' }}" disabled class="form-input bg-slate-50 text-slate-400">
                     </div>
                     <div>
                         <label for="designation" class="form-label">Designation / Role</label>
                         <input id="designation" type="text" name="designation" value="{{ old('designation', $user->designation) }}" class="form-input" placeholder="e.g. Sales Executive">
                     </div>
                     <div>
-                        <label for="phone" class="form-label">Phone Number (please add GG Number)</label>
-                        <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="form-input" placeholder="+91 90000 00000">
+                        <label for="phone" class="form-label">Phone Number (GG Number)</label>
+                        @if ($isBypassAccount)
+                            <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="form-input" placeholder="+91 90000 00000">
+                        @else
+                            <input id="phone" type="text" value="{{ $user->phone ?? '—' }}" disabled class="form-input bg-slate-50 text-slate-400">
+                            <p class="mt-1 text-xs text-slate-400">Verified automatically from your GG Prime account.</p>
+                        @endif
                     </div>
                     <div>
-                        <label for="gg_user_id" class="form-label">GG UserId <span class="text-red-500">*</span></label>
-                        <input id="gg_user_id" type="text" name="gg_user_id" value="{{ old('gg_user_id', $user->gg_user_id) }}" required class="form-input" placeholder="GG UserId">
-                        <p class="mt-1 text-xs text-slate-400">Your Prime GG user ID — required to view your team.</p>
+                        <label for="gg_user_id" class="form-label">GG UserId</label>
+                        @if ($isBypassAccount)
+                            <input id="gg_user_id" type="text" name="gg_user_id" value="{{ old('gg_user_id', $user->gg_user_id) }}" class="form-input" placeholder="GG UserId">
+                        @else
+                            <input id="gg_user_id" type="text" value="{{ $user->gg_user_id ?? '—' }}" disabled class="form-input bg-slate-50 text-slate-400">
+                            <p class="mt-1 text-xs text-slate-400">Verified automatically from your GG Prime account.</p>
+                        @endif
                     </div>
                     <div>
                         <label for="highest_qualification" class="form-label">Highest Qualification</label>

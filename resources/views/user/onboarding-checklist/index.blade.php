@@ -55,7 +55,7 @@
                 </form>
 
                 <div class="min-w-0 flex-1">
-                    <p class="font-semibold {{ $isDone ? 'text-slate-500 line-through' : 'text-slate-800' }}">{{ $item->title }}</p>
+                    <p class="font-semibold {{ $isDone ? 'text-slate-500' : 'text-slate-800' }}">{{ $item->title }}</p>
                     @if ($item->description)
                         <p class="mt-1 text-sm {{ $isDone ? 'text-slate-400' : 'text-slate-500' }}">{{ $item->description }}</p>
                     @endif

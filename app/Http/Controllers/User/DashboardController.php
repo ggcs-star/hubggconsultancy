@@ -7,14 +7,19 @@ use App\Models\Announcement;
 use App\Models\Contest;
 use App\Models\Course;
 use App\Models\Event;
-use App\Models\IncentiveEntry;
 use App\Models\Lead;
 use App\Models\User;
+use App\Services\TeamApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    public function __construct(private TeamApiService $teamApi)
+    {
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -24,6 +29,7 @@ class DashboardController extends Controller
             'rank' => $this->rankFor($user),
             'trainingProgress' => $this->trainingProgress($user),
             'leadStats' => $this->leadStats($user),
+            'totalIncome' => $this->totalIncomeFor($user),
             'contestProgress' => $this->contestProgress($user),
             'myTasks' => $user->tasks()
                 ->whereBetween('date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
@@ -82,25 +88,27 @@ class DashboardController extends Controller
             'new_this_week' => $newThisWeek,
             'sales_this_month' => $salesThisMonth,
             'sales_change_percent' => $salesLastMonth > 0 ? (int) round(($salesThisMonth - $salesLastMonth) / $salesLastMonth * 100) : null,
-            'earnings_this_month' => $this->earningsFor($user, now()),
-            'earnings_change_percent' => $this->earningsChangePercent($user),
         ];
     }
 
-    private function earningsFor(User $user, \Illuminate\Support\Carbon $month): float
+    /**
+     * Lifetime income as reported by GG Prime itself (the `total_income`
+     * field on /member/profile) — cached briefly since the dashboard is
+     * high-traffic and this figure doesn't need to be second-by-second
+     * fresh. Returns null (rendered as "—") if the user isn't linked to a
+     * GG Prime account yet or the API can't be reached.
+     */
+    private function totalIncomeFor(User $user): ?float
     {
-        return (float) IncentiveEntry::where('user_id', $user->id)
-            ->whereYear('awarded_at', $month->year)
-            ->whereMonth('awarded_at', $month->month)
-            ->sum('amount');
-    }
+        if (! $user->gg_user_id) {
+            return null;
+        }
 
-    private function earningsChangePercent(User $user): ?int
-    {
-        $thisMonth = $this->earningsFor($user, now());
-        $lastMonth = $this->earningsFor($user, now()->subMonthNoOverflow());
+        return Cache::remember("gg_total_income_{$user->id}", now()->addMinutes(10), function () use ($user) {
+            $result = $this->teamApi->profile(['user_id' => $user->gg_user_id]);
 
-        return $lastMonth > 0 ? (int) round(($thisMonth - $lastMonth) / $lastMonth * 100) : null;
+            return $result->status === 'found' ? (float) ($result->data['total_income'] ?? 0) : null;
+        });
     }
 
     private function contestProgress(User $user): ?object

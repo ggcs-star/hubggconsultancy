@@ -62,7 +62,7 @@
                             <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
                                 <x-icon name="mail" class="h-5 w-5" />
                             </span>
-                            <input id="email" type="email" name="email" value="{{ old('email') }}" required
+                            <input id="email" type="email" name="email" value="{{ old('email') }}"
                                    class="form-input pl-11" placeholder="you@example.com">
                         </div>
                     </div>
@@ -76,6 +76,7 @@
                             <input id="phone" type="text" name="phone" value="{{ old('phone') }}"
                                    class="form-input pl-11" placeholder="+91 90000 00000">
                         </div>
+                        <p class="mt-1 text-xs text-slate-400">Enter at least one of email or phone number.</p>
                     </div>
 
                     <div>

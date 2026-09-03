@@ -100,6 +100,23 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    /**
+     * Test/QA accounts listed in TEAM_API_BYPASS_EMAILS skip GG Prime
+     * verification at register/login, and are the only accounts allowed to
+     * manually edit gg_user_id/phone on their profile (since they never get
+     * that data auto-synced from a real GG Prime membership).
+     */
+    public static function isGgBypassEmail(?string $email): bool
+    {
+        if (! $email) {
+            return false;
+        }
+
+        $bypassList = array_map('strtolower', config('services.team_api.bypass_emails', []));
+
+        return in_array(strtolower($email), $bypassList, true);
+    }
+
     public function isBlocked(): bool
     {
         return $this->status === 'blocked';

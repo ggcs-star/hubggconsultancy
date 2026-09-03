@@ -416,7 +416,7 @@
                 </p>
 
                 <p class="truncate text-xs text-slate-400">
-                    {{ auth()->user()->email }}
+                    {{ auth()->user()->email ?? auth()->user()->phone ?? '—' }}
                 </p>
             </div>
 

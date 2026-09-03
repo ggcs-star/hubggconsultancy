@@ -7,6 +7,7 @@
     'isLast' => true,
     'totalMembers' => null,
     'rootPurchase' => null,
+    'ownChecklist' => [],
 ])
 
 @php
@@ -88,29 +89,30 @@
                     <x-icon name="users" class="h-3.5 w-3.5" /> {{ $totalMembers }} Team Members
                 </p>
             @endif
+
+            @if (count($ownChecklist))
+                <div class="mt-3">
+                    <p class="text-[11px] text-slate-500">Onboarding</p>
+                    <div class="mt-1.5">
+                        <x-checklist-dots :checklist="$ownChecklist" :on-platform="true" />
+                    </div>
+                </div>
+            @endif
         @else
             <p class="mt-2.5 flex items-center gap-1.5 text-xs text-slate-400">
                 <x-icon name="users" class="h-3.5 w-3.5" /> {{ count($children) }} {{ Str::plural('Member', count($children)) }}
             </p>
 
-            <div class="mt-3 space-y-2">
-                <div>
-                    <div class="flex items-center justify-between text-[11px] text-slate-400">
-                        <span>Videos</span>
-                        <span class="font-semibold text-slate-600">{{ $onPlatform && ! is_null($progress->video_percent ?? null) ? $progress->video_percent . '%' : '—' }}</span>
-                    </div>
-                    <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                        <div class="h-full rounded-full {{ $c['bar'] }}" style="width: {{ $onPlatform ? ($progress->video_percent ?? 0) : 0 }}%"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex items-center justify-between text-[11px] text-slate-400">
-                        <span>Documents</span>
-                        <span class="font-semibold text-slate-600">{{ $onPlatform && ! is_null($progress->document_percent ?? null) ? $progress->document_percent . '%' : '—' }}</span>
-                    </div>
-                    <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                        <div class="h-full rounded-full {{ $c['bar'] }}" style="width: {{ $onPlatform ? ($progress->document_percent ?? 0) : 0 }}%"></div>
-                    </div>
+            <div class="mt-3">
+                <p class="text-[11px] text-slate-400">Onboarding</p>
+                <div class="mt-1.5">
+                    @if (! $onPlatform)
+                        <span class="badge badge-slate">Unregistered</span>
+                    @elseif (! empty($progress->checklist) && count($progress->checklist))
+                        <x-checklist-dots :checklist="$progress->checklist" :on-platform="true" />
+                    @else
+                        <span class="text-xs text-slate-400">—</span>
+                    @endif
                 </div>
             </div>
 
@@ -168,26 +170,25 @@
 
                 <div class="mt-5 space-y-3 border-t border-slate-100 pt-4">
                     @if ($onPlatform)
-                        <div>
-                            <div class="flex items-center justify-between text-xs text-slate-400">
-                                <span>Videos</span>
-                                <span class="font-semibold text-slate-600">{{ ! is_null($progress->video_percent ?? null) ? $progress->video_percent . '%' : '—' }}</span>
-                            </div>
-                            <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-full rounded-full {{ $c['bar'] }}" style="width: {{ $progress->video_percent ?? 0 }}%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-between text-xs text-slate-400">
-                                <span>Documents</span>
-                                <span class="font-semibold text-slate-600">{{ ! is_null($progress->document_percent ?? null) ? $progress->document_percent . '%' : '—' }}</span>
-                            </div>
-                            <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-full rounded-full {{ $c['bar'] }}" style="width: {{ $progress->document_percent ?? 0 }}%"></div>
-                            </div>
+                        <p class="text-xs text-slate-400">Onboarding Checklist</p>
+                        <div class="space-y-2">
+                            @forelse ($progress->checklist ?? [] as $item)
+                                <div class="flex items-center gap-2.5">
+                                    <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full {{ $item->completed ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400' }}">
+                                        @if ($item->completed)
+                                            <x-icon name="check" class="h-3 w-3" />
+                                        @else
+                                            <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+                                        @endif
+                                    </span>
+                                    <span class="text-sm {{ $item->completed ? 'text-slate-700' : 'text-slate-400' }}">{{ $item->title }}</span>
+                                </div>
+                            @empty
+                                <p class="text-sm text-slate-400">No onboarding checklist items configured yet.</p>
+                            @endforelse
                         </div>
                     @else
-                        <p class="text-sm text-slate-400">This member hasn't joined this platform yet, so learning progress isn't available.</p>
+                        <p class="text-sm text-slate-400">This member hasn't joined this platform yet, so onboarding progress isn't available.</p>
                     @endif
                 </div>
             </div>

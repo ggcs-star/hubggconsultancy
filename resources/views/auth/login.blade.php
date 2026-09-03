@@ -41,13 +41,13 @@
                     @csrf
 
                     <div>
-                        <label for="email" class="form-label">Email Address</label>
+                        <label for="login" class="form-label">Email or Phone Number</label>
                         <div class="relative">
                             <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
                                 <x-icon name="mail" class="h-5 w-5" />
                             </span>
-                            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                                   class="form-input pl-11" placeholder="you@example.com">
+                            <input id="login" type="text" name="login" value="{{ old('login') }}" required autofocus
+                                   class="form-input pl-11" placeholder="you@example.com or phone number">
                         </div>
                     </div>
 

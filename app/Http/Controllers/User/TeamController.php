@@ -3,11 +3,8 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\ContentView;
-use App\Models\Document;
-use App\Models\SalesManual;
-use App\Models\SalesToolkitItem;
-use App\Models\ScriptItem;
+use App\Models\OnboardingChecklistCompletion;
+use App\Models\OnboardingChecklistItem;
 use App\Models\User;
 use App\Services\TeamApiService;
 use Illuminate\Http\RedirectResponse;
@@ -47,16 +44,16 @@ class TeamController extends Controller
         $ggIds = collect($members)->pluck('user_id')->filter()->map(fn ($id) => (string) $id)->unique()->values();
         $localUsers = User::whereIn('gg_user_id', $ggIds)->get()->keyBy(fn (User $u) => (string) $u->gg_user_id);
 
-        [$publishedContentIds, $totalContentCount] = $this->publishedContentIds();
-        $viewsByUser = ContentView::whereIn('user_id', $localUsers->pluck('id'))->get()->groupBy('user_id');
+        $checklistItems = OnboardingChecklistItem::published()->ordered()->get(['id', 'title']);
+        $relevantUserIds = $localUsers->pluck('id')->push($user->id);
+        $completionsByUser = OnboardingChecklistCompletion::whereIn('user_id', $relevantUserIds)
+            ->get()
+            ->groupBy('user_id');
 
-        $rows = collect($members)->map(function (array $member) use ($localUsers, $publishedContentIds, $totalContentCount, $viewsByUser) {
+        $rows = collect($members)->map(function (array $member) use ($localUsers, $checklistItems, $completionsByUser) {
             $localUser = $localUsers->get((string) $member['user_id']);
 
-            $video = $localUser ? $this->videoProgress($localUser) : null;
-            $documents = $localUser
-                ? $this->documentProgress($publishedContentIds, $totalContentCount, $viewsByUser->get($localUser->id, collect()))
-                : null;
+            $checklist = $this->checklistStatus($localUser, $checklistItems, $completionsByUser);
 
             return (object) [
                 'user_id' => $member['user_id'],
@@ -66,10 +63,8 @@ class TeamController extends Controller
                 'username' => $member['username'],
                 'joined_at' => $member['joined_at'],
                 'on_platform' => $localUser !== null,
-                'video_percent' => $video?->percent,
-                'video_complete' => $video?->complete ?? false,
-                'document_percent' => $documents?->percent,
-                'document_complete' => $documents?->complete ?? false,
+                'checklist' => $checklist,
+                'checklist_complete' => $checklistItems->isNotEmpty() && $checklist->every(fn ($item) => $item->completed),
             ];
         })->values();
 
@@ -77,21 +72,14 @@ class TeamController extends Controller
             ->keyBy(fn ($row) => (string) $row->user_id)
             ->map(fn ($row) => (object) [
                 'on_platform' => $row->on_platform,
-                'video_percent' => $row->video_percent,
-                'document_percent' => $row->document_percent,
+                'checklist' => $row->checklist,
             ]);
 
-        $ownVideo = $this->videoProgress($user);
-        $ownDocuments = $this->documentProgress(
-            $publishedContentIds,
-            $totalContentCount,
-            ContentView::where('user_id', $user->id)->get()
-        );
+        $ownChecklist = $this->checklistStatus($user, $checklistItems, $completionsByUser);
 
         $totalMembers = $tree['total_team'] ?? $rows->count();
         $purchasedCount = $rows->filter(fn ($row) => filled($row->purchase_code))->count();
-        $videosCompleteCount = $rows->filter(fn ($row) => $row->video_complete)->count();
-        $documentsCompleteCount = $rows->filter(fn ($row) => $row->document_complete)->count();
+        $onboardingCompleteCount = $rows->filter(fn ($row) => $row->checklist_complete)->count();
 
         return view('user.team.index', [
             'apiError' => false,
@@ -99,18 +87,16 @@ class TeamController extends Controller
             'truncated' => $tree['truncated'] ?? false,
             'rootNode' => $rootNode,
             'rootPurchase' => $rootPurchase,
-            'ownVideoPercent' => $ownVideo->percent,
-            'ownDocumentPercent' => $ownDocuments->percent,
+            'checklistItems' => $checklistItems,
+            'ownChecklist' => $ownChecklist,
             'progressByUserId' => $progressByUserId,
             'rows' => $rows,
             'stats' => [
                 'total_members' => $totalMembers,
                 'purchased_count' => $purchasedCount,
                 'purchased_percent' => $totalMembers > 0 ? (int) round($purchasedCount / $totalMembers * 100) : 0,
-                'videos_complete_count' => $videosCompleteCount,
-                'videos_complete_percent' => $totalMembers > 0 ? (int) round($videosCompleteCount / $totalMembers * 100) : 0,
-                'documents_complete_count' => $documentsCompleteCount,
-                'documents_complete_percent' => $totalMembers > 0 ? (int) round($documentsCompleteCount / $totalMembers * 100) : 0,
+                'onboarding_complete_count' => $onboardingCompleteCount,
+                'onboarding_complete_percent' => $totalMembers > 0 ? (int) round($onboardingCompleteCount / $totalMembers * 100) : 0,
             ],
         ]);
     }
@@ -134,66 +120,22 @@ class TeamController extends Controller
     }
 
     /**
-     * Aggregate lesson-completion % across every published course assigned
-     * to the user, reusing Course::progressFor() (the same logic behind
-     * "Learning Progress" elsewhere) rather than a new scoring method.
+     * Per-item completion status for one user against the admin-configured
+     * onboarding checklist (whatever items exist there) — this is what
+     * drives the tick/light indicators on the My Team tree and members list.
+     *
+     * @return Collection<int, object{id: int, title: string, completed: bool}>
      */
-    private function videoProgress(User $user): object
+    private function checklistStatus(?User $user, Collection $checklistItems, Collection $completionsByUser): Collection
     {
-        $courses = $user->assignedCourses()->where('is_published', true)->get();
+        $completedItemIds = $user
+            ? $completionsByUser->get($user->id, collect())->pluck('onboarding_checklist_item_id')->all()
+            : [];
 
-        if ($courses->isEmpty()) {
-            return (object) ['percent' => null, 'complete' => false];
-        }
-
-        $completed = 0;
-        $total = 0;
-
-        foreach ($courses as $course) {
-            $progress = $course->progressFor($user);
-            $completed += $progress->completed_lessons;
-            $total += $progress->total_lessons;
-        }
-
-        $percent = $total > 0 ? (int) round($completed / $total * 100) : 0;
-
-        return (object) ['percent' => $percent, 'complete' => $total > 0 && $completed === $total];
-    }
-
-    /**
-     * @return array{0: array<string, Collection>, 1: int}
-     */
-    private function publishedContentIds(): array
-    {
-        $ids = [
-            Document::class => Document::published()->pluck('id'),
-            SalesToolkitItem::class => SalesToolkitItem::published()->pluck('id'),
-            ScriptItem::class => ScriptItem::published()->pluck('id'),
-            SalesManual::class => SalesManual::published()->pluck('id'),
-        ];
-
-        $total = collect($ids)->sum(fn (Collection $idCollection) => $idCollection->count());
-
-        return [$ids, $total];
-    }
-
-    /**
-     * Only counts views against content that is still published — mirrors
-     * the convention in Admin\OnboardingChecklistController::progress().
-     */
-    private function documentProgress(array $publishedIds, int $totalContentCount, Collection $userViews): object
-    {
-        if ($totalContentCount === 0) {
-            return (object) ['percent' => null, 'complete' => false];
-        }
-
-        $viewedCount = $userViews->filter(function ($view) use ($publishedIds) {
-            return isset($publishedIds[$view->viewable_type])
-                && $publishedIds[$view->viewable_type]->contains($view->viewable_id);
-        })->count();
-
-        $percent = (int) round($viewedCount / $totalContentCount * 100);
-
-        return (object) ['percent' => $percent, 'complete' => $viewedCount >= $totalContentCount];
+        return $checklistItems->map(fn (OnboardingChecklistItem $item) => (object) [
+            'id' => $item->id,
+            'title' => $item->title,
+            'completed' => in_array($item->id, $completedItemIds, true),
+        ])->values();
     }
 }

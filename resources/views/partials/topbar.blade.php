@@ -216,7 +216,7 @@
         >
             <div class="border-b border-slate-100 px-4 py-3">
                 <p class="truncate text-sm font-semibold text-slate-700">{{ auth()->user()->name }}</p>
-                <p class="truncate text-xs text-slate-400">{{ auth()->user()->email }}</p>
+                <p class="truncate text-xs text-slate-400">{{ auth()->user()->email ?? auth()->user()->phone ?? '—' }}</p>
             </div>
 
             <div class="py-1">

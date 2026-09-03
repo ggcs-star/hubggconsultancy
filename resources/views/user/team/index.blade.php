@@ -6,7 +6,7 @@
                 <x-icon name="x" class="h-7 w-7 text-red-500" />
             </div>
             <h3 class="mt-4 font-bold text-slate-800">Unable to load your team right now</h3>
-            <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">We couldn't reach the team service. Please try again in a moment.</p>
+            <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">We're having trouble connecting to the GG Prime service right now. Please try again in a few minutes, or contact your administrator if the issue continues.</p>
         </div>
     @else
         @if ($truncated)
@@ -15,11 +15,10 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <x-stat-card icon="users" color="brand" :value="$stats['total_members']" label="Total Members" />
             <x-stat-card icon="check-circle" color="success" :value="$stats['purchased_count']" label="Purchased" :description="$stats['purchased_percent'] . '%'" />
-            <x-stat-card icon="video" color="chart-4" :value="$stats['videos_complete_count']" label="Videos Complete" :description="$stats['videos_complete_percent'] . '%'" />
-            <x-stat-card icon="document" color="warning" :value="$stats['documents_complete_count']" label="Documents Complete" :description="$stats['documents_complete_percent'] . '%'" />
+            <x-stat-card icon="check-circle" color="chart-4" :value="$stats['onboarding_complete_count']" label="Onboarding Complete" :description="$stats['onboarding_complete_percent'] . '%'" />
         </div>
 
         <div class="mt-6 card" x-data="{ tab: 'tree', search: '', level: '' }">
@@ -40,6 +39,7 @@
                         :progress-by-user-id="$progressByUserId"
                         :total-members="$stats['total_members']"
                         :root-purchase="$rootPurchase"
+                        :own-checklist="$ownChecklist"
                     />
                 @else
                     <p class="text-center text-sm text-slate-400">No team data available.</p>
@@ -67,22 +67,22 @@
                                 <th class="px-5 py-3 font-semibold">Member</th>
                                 <th class="px-5 py-3 font-semibold">Level</th>
                                 <th class="px-5 py-3 font-semibold">Joined</th>
-                                <th class="px-5 py-3 font-semibold">Videos</th>
-                                <th class="px-5 py-3 font-semibold">Documents</th>
+                                <th class="px-5 py-3 font-semibold">Onboarding</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             <tr>
                                 <td class="px-5 py-3.5">
-                                    <p class="font-semibold text-slate-800">{{ $user->name }} <span class="badge badge-slate ml-1 align-middle">YOU</span></p>
+                                    <p class="font-semibold text-slate-800">{{ $rootNode['user']['name'] ?? $user->name }} <span class="badge badge-slate ml-1 align-middle">YOU</span></p>
                                     @if ($rootPurchase)
                                         <p class="text-xs text-slate-400">{{ $rootPurchase['plan'] }} · #{{ $rootPurchase['purchase_code'] }}</p>
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5 text-slate-500">—</td>
                                 <td class="px-5 py-3.5 text-slate-500">—</td>
-                                <td class="px-5 py-3.5 text-slate-500">{{ ! is_null($ownVideoPercent) ? $ownVideoPercent . '%' : '—' }}</td>
-                                <td class="px-5 py-3.5 text-slate-500">{{ ! is_null($ownDocumentPercent) ? $ownDocumentPercent . '%' : '—' }}</td>
+                                <td class="px-5 py-3.5">
+                                    <x-checklist-dots :checklist="$ownChecklist" :on-platform="true" />
+                                </td>
                             </tr>
 
                             @forelse ($rows as $row)
@@ -95,24 +95,17 @@
                                     </td>
                                     <td class="px-5 py-3.5 text-slate-500">Level {{ $row->level }}</td>
                                     <td class="px-5 py-3.5 text-slate-500">{{ $row->joined_at ? \Illuminate\Support\Carbon::parse($row->joined_at)->format('d M Y') : '—' }}</td>
-                                    <td class="px-5 py-3.5 text-slate-500">
+                                    <td class="px-5 py-3.5">
                                         @if ($row->on_platform)
-                                            {{ $row->video_percent }}%
+                                            <x-checklist-dots :checklist="$row->checklist" :on-platform="true" />
                                         @else
-                                            <span title="Not on this platform yet">—</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-5 py-3.5 text-slate-500">
-                                        @if ($row->on_platform)
-                                            {{ $row->document_percent }}%
-                                        @else
-                                            <span title="Not on this platform yet">—</span>
+                                            <span title="This member hasn't registered on this platform yet" class="badge badge-slate">Unregistered</span>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">You haven't built your team yet.</td>
+                                    <td colspan="4" class="px-5 py-10 text-center text-sm text-slate-400">You haven't built your team yet.</td>
                                 </tr>
                             @endforelse
                         </tbody>
