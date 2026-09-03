@@ -935,9 +935,16 @@
 
                 show(pdfViewer);
 
+                // Fit each page to the modal's width instead of a fixed scale, so wide
+                // landscape/slide-style PDFs render fully without horizontal scrolling.
+                const firstPage = await pdf.getPage(1);
+                const referenceViewport = firstPage.getViewport({ scale: 1 });
+                const availableWidth = pdfPages.clientWidth || pdfViewer.clientWidth || 800;
+                const fitScale = Math.min(2.5, Math.max(0.4, (availableWidth - 32) / referenceViewport.width));
+
                 for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-                    const page = await pdf.getPage(pageNumber);
-                    const viewport = page.getViewport({ scale: 1.15 });
+                    const page = pageNumber === 1 ? firstPage : await pdf.getPage(pageNumber);
+                    const viewport = page.getViewport({ scale: fitScale });
 
                     const wrapper = document.createElement('div');
                     wrapper.dataset.page = pageNumber;
@@ -958,7 +965,7 @@
 
                     await page.render({
                         canvasContext: canvas.getContext('2d', { alpha: false }),
-                        viewport: page.getViewport({ scale: 1.15 * ratio }),
+                        viewport: page.getViewport({ scale: fitScale * ratio }),
                     }).promise;
                 }
 
