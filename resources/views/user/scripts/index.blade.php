@@ -21,11 +21,11 @@
             <a href="{{ route('user.scripts.index', ['language' => $language, 'search' => $search]) }}" class="rounded-lg px-4 py-2 text-sm font-semibold transition {{ ! $type ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
                 All
             </a>
-            <a href="{{ route('user.scripts.index', ['language' => $language, 'search' => $search, 'type' => 'video']) }}" class="rounded-lg px-4 py-2 text-sm font-semibold transition {{ $type === 'video' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
-                Videos
-            </a>
             <a href="{{ route('user.scripts.index', ['language' => $language, 'search' => $search, 'type' => 'document']) }}" class="rounded-lg px-4 py-2 text-sm font-semibold transition {{ $type === 'document' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
                 Documents
+            </a>
+            <a href="{{ route('user.scripts.index', ['language' => $language, 'search' => $search, 'type' => 'video']) }}" class="rounded-lg px-4 py-2 text-sm font-semibold transition {{ $type === 'video' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
+                Videos
             </a>
         </div>
     </div>
@@ -46,25 +46,15 @@
             @php
                 $videos = $topic->items->where('type', 'video')->values();
                 $documents = $topic->items->where('type', 'document')->values();
-                $startLink = $videos->first() ?? $documents->first();
+                $startLink = $documents->first() ?? $videos->first();
             @endphp
 
-            <div class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600" x-data="{ tab: '{{ $type === 'document' ? 'documents' : 'videos' }}' }">
+            <div class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600" x-data="{ tab: '{{ $type === 'video' ? 'videos' : 'documents' }}' }">
                 <div class="p-5 pb-0">
                     <p class="font-bold text-slate-800">{{ $topic->title }}</p>
                 </div>
 
                 <div class="mt-4 flex items-center gap-1 px-5">
-                    @if (! $type || $type === 'video')
-                        <button
-                            type="button"
-                            x-on:click="tab = 'videos'"
-                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                            :class="tab === 'videos' ? 'bg-brand-50 text-brand-700' : 'text-slate-400 hover:text-slate-600'"
-                        >
-                            🎬 Videos <span class="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px]">{{ $videos->count() }}</span>
-                        </button>
-                    @endif
                     @if (! $type || $type === 'document')
                         <button
                             type="button"
@@ -75,23 +65,22 @@
                             📄 Documents <span class="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px]">{{ $documents->count() }}</span>
                         </button>
                     @endif
+                    @if (! $type || $type === 'video')
+                        <button
+                            type="button"
+                            x-on:click="tab = 'videos'"
+                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                            :class="tab === 'videos' ? 'bg-brand-50 text-brand-700' : 'text-slate-400 hover:text-slate-600'"
+                        >
+                            🎬 Videos <span class="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px]">{{ $videos->count() }}</span>
+                        </button>
+                    @endif
                 </div>
 
                 <div class="flex-1 px-5 py-4">
-                    <div x-show="tab === 'videos'" x-cloak class="space-y-1">
-                        @forelse ($videos as $video)
-                            <a href="{{ route('user.scripts.items.open', $video) }}" target="_blank" rel="noopener" class="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
-                                <span class="min-w-0 truncate">{{ $video->title }}</span>
-                                <x-icon name="play-circle" class="h-4 w-4 shrink-0 text-slate-300" />
-                            </a>
-                        @empty
-                            <p class="px-2 py-2 text-sm text-slate-400">No videos for this topic yet.</p>
-                        @endforelse
-                    </div>
-
                     <div x-show="tab === 'documents'" x-cloak class="space-y-1">
                         @forelse ($documents as $document)
-                            <a href="{{ route('user.scripts.items.open', $document) }}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
+                            <a href="{{ $document->previewUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
                                 @if ($document->thumbnailUrl())
                                     <img src="{{ $document->thumbnailUrl() }}" alt="" class="h-7 w-7 shrink-0 rounded-md object-cover">
                                 @else
@@ -103,10 +92,21 @@
                             <p class="px-2 py-2 text-sm text-slate-400">No documents for this topic yet.</p>
                         @endforelse
                     </div>
+
+                    <div x-show="tab === 'videos'" x-cloak class="space-y-1">
+                        @forelse ($videos as $video)
+                            <a href="{{ $video->previewUrl() }}" target="_blank" rel="noopener" class="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
+                                <span class="min-w-0 truncate">{{ $video->title }}</span>
+                                <x-icon name="play-circle" class="h-4 w-4 shrink-0 text-slate-300" />
+                            </a>
+                        @empty
+                            <p class="px-2 py-2 text-sm text-slate-400">No videos for this topic yet.</p>
+                        @endforelse
+                    </div>
                 </div>
 
                 @if ($startLink)
-                    <a href="{{ route('user.scripts.items.open', $startLink) }}" target="_blank" rel="noopener" class="flex items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-sm font-semibold text-brand-700 hover:text-brand-800">
+                    <a href="{{ $startLink->previewUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-sm font-semibold text-brand-700 hover:text-brand-800">
                         Start Learning
                         <x-icon name="chevron-right" class="h-4 w-4" />
                     </a>

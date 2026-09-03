@@ -70,7 +70,7 @@
                                             <span class="badge badge-slate shrink-0">Link</span>
                                         @endif
                                     </div>
-                                    <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener" class="mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate text-xs text-brand-700 hover:underline">
+                                    <a href="{{ $item->previewUrl() }}" target="_blank" rel="noopener" class="mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate text-xs text-brand-700 hover:underline">
                                         {{ $item->original_filename ?? ($item->is_external ? $item->url : 'View file') }}
                                     </a>
                                     </div>

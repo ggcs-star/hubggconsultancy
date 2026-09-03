@@ -81,7 +81,7 @@
             @if ($isEdit && $item->original_filename)
                 <div class="mb-2 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
                     <x-icon name="document" class="h-4 w-4 shrink-0 text-slate-400" />
-                    <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener" class="truncate text-brand-700 hover:underline">{{ $item->original_filename }}</a>
+                    <a href="{{ $item->previewUrl() }}" target="_blank" rel="noopener" class="truncate text-brand-700 hover:underline">{{ $item->original_filename }}</a>
                 </div>
             @endif
 

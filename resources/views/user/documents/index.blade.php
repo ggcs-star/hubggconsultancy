@@ -28,7 +28,7 @@
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($documents as $document)
-            <a href="{{ route('user.documents.open', $document) }}" target="_blank" rel="noopener"
+            <a href="{{ $document->url }}" target="_blank" rel="noopener"
                 class="card flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md">
                 @if ($document->thumbnailUrl())
                     <img src="{{ $document->thumbnailUrl() }}" alt="" class="h-40 w-full object-cover">
