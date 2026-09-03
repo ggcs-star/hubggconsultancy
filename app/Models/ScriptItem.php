@@ -13,6 +13,8 @@ class ScriptItem extends Model
 {
     use HasFactory, HasSortOrder;
 
+    private const OFFICE_EXTENSIONS = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
     protected $fillable = [
         'script_topic_id',
         'type',
@@ -67,6 +69,23 @@ class ScriptItem extends Model
     public function fileUrl(): string
     {
         return $this->is_external ? $this->url : Storage::disk('public')->url($this->url);
+    }
+
+    /**
+     * Browsers can't preview Word/Excel/PowerPoint files inline — route
+     * those through Microsoft's free web viewer instead of the raw file so
+     * they open in a new tab like everything else, instead of downloading.
+     */
+    public function previewUrl(): string
+    {
+        $url = $this->fileUrl();
+        $extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?? $url, PATHINFO_EXTENSION));
+
+        if (in_array($extension, self::OFFICE_EXTENSIONS, true)) {
+            return 'https://view.officeapps.live.com/op/view.aspx?src=' . urlencode($url);
+        }
+
+        return $url;
     }
 
     public function thumbnailUrl(): ?string
