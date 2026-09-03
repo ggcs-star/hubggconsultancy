@@ -95,12 +95,7 @@
                             class="overflow-hidden rounded-xl border border-app-border bg-white transition hover:-translate-y-0.5 hover:shadow-md"
                         >
 
-                            <a
-                                href="{{ $coverUrl }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="block"
-                            >
+                            <div class="block">
 
                                 <div class="flex h-56 w-full items-center justify-center overflow-hidden bg-slate-50">
 
@@ -113,7 +108,7 @@
 
                                 </div>
 
-                            </a>
+                            </div>
 
 
                             <div class="p-5">
@@ -148,25 +143,7 @@
                                 </div>
 
 
-                                <div class="mt-5">
 
-                                    <a
-                                        href="{{ $coverUrl }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90"
-                                    >
-
-                                        <x-icon
-                                            name="eye"
-                                            class="h-4 w-4"
-                                        />
-
-                                        View Image
-
-                                    </a>
-
-                                </div>
 
                             </div>
 
@@ -326,12 +303,7 @@
 
                             @if ($isImage)
 
-                                <a
-                                    href="{{ $fileUrl }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="block"
-                                >
+                                <div class="block">
 
                                     <div class="flex h-56 w-full items-center justify-center overflow-hidden bg-slate-50">
 
@@ -344,7 +316,7 @@
 
                                     </div>
 
-                                </a>
+                                </div>
 
 
                             {{-- ================================================= --}}
@@ -446,44 +418,23 @@
 
 
                                 {{-- ================================================= --}}
-                                {{-- ACTIONS --}}
+                                {{-- DOCUMENT READER --}}
                                 {{-- ================================================= --}}
 
-                                <div class="mt-5 flex gap-2">
-
-                                    {{-- View --}}
-                                    <a
-                                        href="{{ $fileUrl }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90"
+                                <div class="mt-5">
+                                    <button
+                                        type="button"
+                                        data-manual-id="{{ $attachment->id }}"
+                                        data-manual-name="{{ $attachment->file_name }}"
+                                        class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90"
+                                        onclick="window.openSalesManualReader('{{ $attachment->id }}')"
                                     >
-
                                         <x-icon
                                             name="eye"
                                             class="h-4 w-4"
                                         />
-
-                                        View
-
-                                    </a>
-
-
-                                    {{-- Download --}}
-                                    <a
-                                        href="{{ $fileUrl }}"
-                                        download="{{ $attachment->file_name }}"
-                                        class="inline-flex items-center justify-center rounded-lg border border-app-border bg-white px-4 py-2.5 text-sm font-medium text-secondary-dark transition hover:bg-surface-alt"
-                                        title="Download"
-                                    >
-
-                                        <x-icon
-                                            name="download"
-                                            class="h-4 w-4"
-                                        />
-
-                                    </a>
-
+                                        Read Document
+                                    </button>
                                 </div>
 
                             </div>
@@ -496,6 +447,122 @@
 
             </div>
 
+
+
+
+    <script>
+        window.salesManualFiles = {
+@foreach ($manuals as $manual)
+@foreach ($manual->attachments as $attachment)
+            '{{ $attachment->id }}': @json(asset('storage/' . ltrim($attachment->file_path, '/'))),
+@endforeach
+@endforeach
+        };
+    </script>
+
+    {{-- ========================================================= --}}
+    {{-- SALES MANUAL READER MODAL --}}
+    {{-- ========================================================= --}}
+
+    <div
+        id="salesManualReader"
+        class="fixed inset-0 z-[100] hidden bg-black/60 p-3 sm:p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="salesManualReaderTitle"
+    >
+        <div class="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div class="flex shrink-0 items-center justify-between border-b border-app-border px-4 py-3 sm:px-6">
+                <div class="min-w-0 pr-4">
+                    <h2
+                        id="salesManualReaderTitle"
+                        class="truncate text-base font-semibold text-secondary-dark"
+                    >
+                        Sales Manual
+                    </h2>
+                    <p class="text-xs text-secondary">
+                        Read the document here without leaving this page.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="closeSalesManualReader()"
+                    class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-app-border bg-white text-secondary-dark transition hover:bg-surface-alt"
+                    aria-label="Close document reader"
+                >
+                    <x-icon name="x" class="h-5 w-5" />
+                </button>
+            </div>
+
+            <div class="min-h-0 flex-1 bg-slate-100">
+                <iframe
+                    id="salesManualReaderFrame"
+                    src="about:blank"
+                    class="h-full w-full border-0"
+                    title="Sales manual reader"
+                    loading="lazy"
+                ></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.openSalesManualReader = function (attachmentId) {
+            const modal = document.getElementById('salesManualReader');
+            const frame = document.getElementById('salesManualReaderFrame');
+            const title = document.getElementById('salesManualReaderTitle');
+
+            if (!modal || !frame) return;
+
+            const source = window.salesManualFiles?.[attachmentId];
+
+            if (!source) {
+                console.error('Sales manual file URL not found:', attachmentId);
+                return;
+            }
+
+            const button = document.querySelector(
+                '[data-manual-id="' + attachmentId + '"]'
+            );
+
+            const fileName = button?.getAttribute('data-manual-name');
+
+            if (fileName && title) {
+                title.textContent = fileName;
+            }
+
+            frame.src = source;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        };
+
+        window.closeSalesManualReader = function () {
+            const modal = document.getElementById('salesManualReader');
+            const frame = document.getElementById('salesManualReaderFrame');
+
+            if (!modal) return;
+
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+
+            if (frame) {
+                frame.src = 'about:blank';
+            }
+        };
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeSalesManualReader();
+            }
+        });
+
+        document.getElementById('salesManualReader')?.addEventListener('click', function (event) {
+            if (event.target === this) {
+                closeSalesManualReader();
+            }
+        });
+    </script>
 
             {{-- ================================================= --}}
             {{-- PAGINATION --}}
