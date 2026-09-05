@@ -30,19 +30,144 @@
             @csrf
             @method('PUT')
 
-            <div class="card p-6">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-brand-700 text-xl font-bold text-white">
-                        {{ strtoupper(substr($user->name, 0, 1)) }}
+            <div class="card overflow-hidden p-6">
+                <div class="flex flex-col gap-4 rounded-xl bg-gradient-to-br from-brand-50 to-white p-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-700 text-2xl font-bold text-white">
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold text-slate-800">{{ $user->name }}</p>
+                            <p class="text-sm text-slate-400">{{ $user->email ?? $user->phone ?? '—' }}</p>
+                            @if ($ggProfile)
+                                <div class="mt-1.5">
+                                    @if ($ggProfile['kyc_verified'] ?? false)
+                                        <span class="badge badge-green">Profile Verified</span>
+                                    @else
+                                        <span class="badge badge-slate">Profile Incomplete</span>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    <div>
-                        <p class="font-bold text-slate-800">{{ $user->name }}</p>
-                        <p class="text-sm text-slate-400">{{ $user->email ?? $user->phone ?? '—' }}</p>
-                    </div>
+
+                    @if ($ggProfile)
+                        <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700">
+                            <x-icon name="crown" class="h-3.5 w-3.5" />
+                            GG Prime Account
+                        </span>
+                    @endif
                 </div>
 
-                <h2 class="mt-8 text-base font-bold text-slate-800">Basic Information</h2>
-                <p class="text-sm text-slate-400">Your name, contact details and education background</p>
+                @if ($ggProfile)
+                    <div class="mt-6">
+                        @if (! ($ggProfile['kyc_verified'] ?? false))
+                            <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                                <p class="text-sm font-semibold text-amber-700">Your profile isn't KYC verified yet</p>
+                                <p class="mt-0.5 text-xs text-amber-600">Please complete your KYC verification on GG Prime to get your profile verified.</p>
+                            </div>
+                        @endif
+
+                        <div class="divide-y divide-slate-100 rounded-xl border border-slate-100">
+                            <div class="grid grid-cols-2 divide-x divide-slate-100 sm:grid-cols-4">
+                                <div class="flex items-center gap-3 p-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                                        <x-icon name="coin" class="h-5 w-5" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs text-slate-400">Balance</p>
+                                        <p class="truncate font-semibold text-slate-800">₹{{ number_format($ggProfile['balance'] ?? 0, 0) }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                                        <x-icon name="trending-up" class="h-5 w-5" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs text-slate-400">Total Income</p>
+                                        <p class="truncate font-semibold text-slate-800">₹{{ number_format($ggProfile['total_income'] ?? 0, 0) }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                                        <x-icon name="gift" class="h-5 w-5" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs text-slate-400">Purchases</p>
+                                        <p class="truncate font-semibold text-slate-800">{{ $ggProfile['purchases'] ?? 0 }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+                                        <x-icon name="users" class="h-5 w-5" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs text-slate-400">Total Team</p>
+                                        <p class="truncate font-semibold text-slate-800">{{ $ggProfile['total_team'] ?? 0 }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 divide-x divide-slate-100 sm:grid-cols-4">
+                                <div class="flex items-center gap-3 p-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                        <x-icon name="share" class="h-5 w-5" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs text-slate-400">Direct Referrals</p>
+                                        <p class="truncate font-semibold text-slate-800">{{ $ggProfile['direct_referrals'] ?? 0 }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-4">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                                        <x-icon name="grid" class="h-5 w-5" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs text-slate-400">Matrix Directs</p>
+                                        <p class="truncate font-semibold text-slate-800">{{ $ggProfile['matrix_directs'] ?? 0 }}</p>
+                                    </div>
+                                </div>
+                                @if (! empty($ggProfile['joined_at']))
+                                    <div class="flex items-center gap-3 p-4">
+                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
+                                            <x-icon name="calendar" class="h-5 w-5" />
+                                        </span>
+                                        <div class="min-w-0">
+                                            <p class="text-xs text-slate-400">Joined GG Prime</p>
+                                            <p class="truncate font-semibold text-slate-800">{{ \Illuminate\Support\Carbon::parse($ggProfile['joined_at'])->format('d M Y') }}</p>
+                                        </div>
+                                    </div>
+                                @endif
+                                @if (! empty($ggProfile['sponsor']['name']))
+                                    <div class="flex items-center gap-3 p-4">
+                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+                                            <x-icon name="crown" class="h-5 w-5" />
+                                        </span>
+                                        <div class="min-w-0">
+                                            <p class="text-xs text-slate-400">Sponsor</p>
+                                            <p class="truncate font-semibold text-slate-800">{{ $ggProfile['sponsor']['name'] }}</p>
+                                            @if (! empty($ggProfile['sponsor']['username']))
+                                                <p class="truncate text-xs text-slate-400">{{ $ggProfile['sponsor']['username'] }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <div class="card p-6">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                        <x-icon name="user" class="h-5 w-5" />
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800">Basic Information</h2>
+                        <p class="text-sm text-slate-400">Your name, contact details and education background</p>
+                    </div>
+                </div>
 
                 <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <div>
@@ -95,8 +220,15 @@
             </div>
 
             <div class="card p-6">
-                <h2 class="text-base font-bold text-slate-800">Address Details</h2>
-                <p class="text-sm text-slate-400">Where you're based</p>
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                        <x-icon name="map-pin" class="h-5 w-5" />
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800">Address Details</h2>
+                        <p class="text-sm text-slate-400">Where you're based</p>
+                    </div>
+                </div>
 
                 <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <div class="sm:col-span-2">
@@ -123,8 +255,15 @@
             </div>
 
             <div class="card p-6">
-                <h2 class="text-base font-bold text-slate-800">Payout Accelerator</h2>
-                <p class="text-sm text-slate-400">Pick the SaaS products you're interested in learning to sell</p>
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                        <x-icon name="sparkles" class="h-5 w-5" />
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800">Payout Accelerator</h2>
+                        <p class="text-sm text-slate-400">Pick the SaaS products you're interested in learning to sell</p>
+                    </div>
+                </div>
 
                 <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @forelse ($saasProducts as $index => $product)

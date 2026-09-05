@@ -5,13 +5,19 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\SaasProduct;
 use App\Models\User;
+use App\Services\TeamApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct(private TeamApiService $teamApi)
+    {
+    }
+
     public function edit(Request $request): View
     {
         $user = $request->user();
@@ -21,7 +27,28 @@ class ProfileController extends Controller
             'saasProducts' => SaasProduct::active()->ordered()->get(),
             'interestIds' => $user->interests()->pluck('saas_products.id')->all(),
             'isBypassAccount' => User::isGgBypassEmail($user->email),
+            'ggProfile' => $this->ggProfile($user),
         ]);
+    }
+
+    /**
+     * GG Prime's own account snapshot (balance, income, team size, KYC
+     * status, sponsor, ...) shown on the profile page — cached briefly since
+     * this is a live external call and the figures don't need to be
+     * second-by-second fresh. Returns null when the user isn't linked to a
+     * GG Prime account or the API can't be reached.
+     */
+    private function ggProfile(User $user): ?array
+    {
+        if (! $user->gg_user_id) {
+            return null;
+        }
+
+        return Cache::remember("gg_profile_{$user->id}", now()->addMinutes(10), function () use ($user) {
+            $result = $this->teamApi->profile(['user_id' => $user->gg_user_id]);
+
+            return $result->status === 'found' ? $result->data : null;
+        });
     }
 
     public function update(Request $request): RedirectResponse
