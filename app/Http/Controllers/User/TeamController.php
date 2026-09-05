@@ -10,6 +10,7 @@ use App\Services\TeamApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class TeamController extends Controller
@@ -65,6 +66,7 @@ class TeamController extends Controller
                 'on_platform' => $localUser !== null,
                 'checklist' => $checklist,
                 'checklist_complete' => $checklistItems->isNotEmpty() && $checklist->every(fn ($item) => $item->completed),
+                'kyc_verified' => $this->kycVerified($member['user_id'] ? (string) $member['user_id'] : null),
             ];
         })->values();
 
@@ -73,9 +75,20 @@ class TeamController extends Controller
             ->map(fn ($row) => (object) [
                 'on_platform' => $row->on_platform,
                 'checklist' => $row->checklist,
+                'kyc_verified' => $row->kyc_verified,
             ]);
 
         $ownChecklist = $this->checklistStatus($user, $checklistItems, $completionsByUser);
+        $ownKycVerified = $this->kycVerified($user->gg_user_id);
+
+        // Cached so the lazy "expand a branch" AJAX endpoint (children()) can
+        // serve already-fetched nodes/progress instantly instead of hitting
+        // the external Team API again for every click — only branches beyond
+        // this fetch's depth (or a cold cache) fall back to a fresh call.
+        $nodesByUserId = [];
+        $this->collectNodesByUserId($rootNode ? [$rootNode] : [], $nodesByUserId);
+        Cache::put("gg_team_nodes_{$user->id}", $nodesByUserId, now()->addMinutes(20));
+        Cache::put("gg_team_progress_{$user->id}", $progressByUserId, now()->addMinutes(20));
 
         $totalMembers = $tree['total_team'] ?? $rows->count();
         $purchasedCount = $rows->filter(fn ($row) => filled($row->purchase_code))->count();
@@ -89,6 +102,7 @@ class TeamController extends Controller
             'rootPurchase' => $rootPurchase,
             'checklistItems' => $checklistItems,
             'ownChecklist' => $ownChecklist,
+            'ownKycVerified' => $ownKycVerified,
             'progressByUserId' => $progressByUserId,
             'rows' => $rows,
             'stats' => [
@@ -99,6 +113,51 @@ class TeamController extends Controller
                 'onboarding_complete_percent' => $totalMembers > 0 ? (int) round($onboardingCompleteCount / $totalMembers * 100) : 0,
             ],
         ]);
+    }
+
+    /**
+     * Lazily serves one branch of the tree (called via AJAX when a node is
+     * expanded on the My Team page). Only ever returns children of a node
+     * that was already part of THIS user's own cached tree() fetch from
+     * index() — never an arbitrary id the client sends, since that would let
+     * one user pull another user's downline just by guessing/passing their
+     * gg_user_id. A cache miss (id not in it, or the cache expired) is
+     * refused rather than "helpfully" falling back to a fresh unscoped API
+     * call; the client asks the user to reload the page, which repopulates
+     * the cache from their own tree.
+     */
+    public function children(Request $request, string $ggUserId): View
+    {
+        $user = $request->user();
+
+        $nodesByUserId = Cache::get("gg_team_nodes_{$user->id}", []);
+        $node = $nodesByUserId[$ggUserId] ?? null;
+
+        abort_if(! $node, 404);
+
+        $progressByUserId = Cache::get("gg_team_progress_{$user->id}", collect());
+        $colorIndex = (int) $request->query('color', 0);
+
+        return view('partials.team-tree-branch', [
+            'children' => $node['children'] ?? [],
+            'colorIndex' => $colorIndex,
+            'progressByUserId' => $progressByUserId,
+        ]);
+    }
+
+    private function collectNodesByUserId(array $nodes, array &$out): void
+    {
+        foreach ($nodes as $node) {
+            $userId = isset($node['user']['user_id']) ? (string) $node['user']['user_id'] : null;
+
+            if ($userId) {
+                $out[$userId] = $node;
+            }
+
+            if (! empty($node['children'])) {
+                $this->collectNodesByUserId($node['children'], $out);
+            }
+        }
     }
 
     private function flatten(array $nodes, array &$out): void
@@ -117,6 +176,26 @@ class TeamController extends Controller
                 $this->flatten($node['children'], $out);
             }
         }
+    }
+
+    /**
+     * KYC verification status as reported by GG Prime's /member/profile
+     * endpoint, cached briefly per GG user id since the tree/members list
+     * would otherwise fire one API call per team member on every load.
+     * Returns null (rendered as "—") when the member isn't linked to a GG
+     * Prime account or the API can't be reached.
+     */
+    private function kycVerified(?string $ggUserId): ?bool
+    {
+        if (! $ggUserId) {
+            return null;
+        }
+
+        return Cache::remember("gg_kyc_verified_{$ggUserId}", now()->addMinutes(30), function () use ($ggUserId) {
+            $result = $this->teamApi->profile(['user_id' => $ggUserId]);
+
+            return $result->status === 'found' ? (bool) ($result->data['kyc_verified'] ?? false) : null;
+        });
     }
 
     /**

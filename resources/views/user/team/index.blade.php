@@ -21,7 +21,7 @@
             <x-stat-card icon="check-circle" color="chart-4" :value="$stats['onboarding_complete_count']" label="Onboarding Complete" :description="$stats['onboarding_complete_percent'] . '%'" />
         </div>
 
-        <div class="mt-6 card" x-data="{ tab: 'tree', search: '', level: '' }">
+        <div class="mt-6 card" x-data="{ tab: 'tree', search: '', level: '' }" x-on:team-view-all-members.window="tab = 'members'">
             <div class="flex items-center gap-1 border-b border-slate-100 px-5 pt-4">
                 <button type="button" x-on:click="tab = 'tree'" class="rounded-t-lg px-3 py-2 text-sm font-semibold transition" :class="tab === 'tree' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-slate-400 hover:text-slate-600'">
                     Team Tree
@@ -40,6 +40,7 @@
                         :total-members="$stats['total_members']"
                         :root-purchase="$rootPurchase"
                         :own-checklist="$ownChecklist"
+                        :own-kyc-verified="$ownKycVerified"
                     />
                 @else
                     <p class="text-center text-sm text-slate-400">No team data available.</p>
@@ -67,6 +68,7 @@
                                 <th class="px-5 py-3 font-semibold">Member</th>
                                 <th class="px-5 py-3 font-semibold">Level</th>
                                 <th class="px-5 py-3 font-semibold">Joined</th>
+                                <th class="px-5 py-3 font-semibold">Profile</th>
                                 <th class="px-5 py-3 font-semibold">Onboarding</th>
                             </tr>
                         </thead>
@@ -80,6 +82,15 @@
                                 </td>
                                 <td class="px-5 py-3.5 text-slate-500">—</td>
                                 <td class="px-5 py-3.5 text-slate-500">—</td>
+                                <td class="px-5 py-3.5">
+                                    @if (is_null($ownKycVerified))
+                                        <span class="text-slate-400">—</span>
+                                    @elseif ($ownKycVerified)
+                                        <span class="badge badge-green">Verified</span>
+                                    @else
+                                        <span class="badge badge-slate">Incomplete</span>
+                                    @endif
+                                </td>
                                 <td class="px-5 py-3.5">
                                     <x-checklist-dots :checklist="$ownChecklist" :on-platform="true" />
                                 </td>
@@ -96,6 +107,15 @@
                                     <td class="px-5 py-3.5 text-slate-500">Level {{ $row->level }}</td>
                                     <td class="px-5 py-3.5 text-slate-500">{{ $row->joined_at ? \Illuminate\Support\Carbon::parse($row->joined_at)->format('d M Y') : '—' }}</td>
                                     <td class="px-5 py-3.5">
+                                        @if (is_null($row->kyc_verified))
+                                            <span class="text-slate-400">—</span>
+                                        @elseif ($row->kyc_verified)
+                                            <span class="badge badge-green">Verified</span>
+                                        @else
+                                            <span class="badge badge-slate">Incomplete</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-5 py-3.5">
                                         @if ($row->on_platform)
                                             <x-checklist-dots :checklist="$row->checklist" :on-platform="true" />
                                         @else
@@ -105,7 +125,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-5 py-10 text-center text-sm text-slate-400">You haven't built your team yet.</td>
+                                    <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">You haven't built your team yet.</td>
                                 </tr>
                             @endforelse
                         </tbody>

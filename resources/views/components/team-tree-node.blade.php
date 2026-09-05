@@ -1,13 +1,14 @@
 @props([
     'node',
     'isRoot' => false,
-    'color' => null,
+    'colorIndex' => 0,
     'progressByUserId' => [],
     'isFirst' => true,
     'isLast' => true,
     'totalMembers' => null,
     'rootPurchase' => null,
     'ownChecklist' => [],
+    'ownKycVerified' => null,
 ])
 
 @php
@@ -20,7 +21,7 @@
         ['avatar' => 'bg-indigo-100 text-indigo-700', 'line' => 'bg-indigo-300', 'badge' => 'bg-indigo-50 text-indigo-700', 'bar' => 'bg-indigo-500'],
     ];
 
-    $c = $isRoot ? null : ($color ?? $palette[0]);
+    $c = $isRoot ? null : $palette[$colorIndex % count($palette)];
     $children = $node['children'] ?? [];
     $hasChildren = count($children) > 0;
 
@@ -29,6 +30,7 @@
     $userId = isset($node['user']['user_id']) ? (string) $node['user']['user_id'] : null;
     $progress = $userId ? ($progressByUserId[$userId] ?? null) : null;
     $onPlatform = $progress->on_platform ?? false;
+    $kycVerified = $isRoot ? $ownKycVerified : ($progress->kyc_verified ?? null);
 
     $initials = collect(preg_split('/\s+/', trim($name)))
         ->filter()
@@ -37,7 +39,10 @@
         ->implode('');
 @endphp
 
-<div class="relative flex w-max flex-col items-center px-4 pt-6">
+<div
+    class="relative flex w-max flex-col items-center px-4 pt-6"
+    @unless ($isRoot) x-data="{ expanded: false, loading: false, loaded: false }" @endunless
+>
     @unless ($isRoot)
         @if (! $isFirst)
             <div class="absolute left-0 right-1/2 top-0 h-px {{ $c['line'] }}"></div>
@@ -78,6 +83,14 @@
                     </span>
                 @endif
             @endif
+
+            @if (! is_null($kycVerified))
+                @if ($kycVerified)
+                    <span class="badge badge-green">Profile Verified</span>
+                @else
+                    <span class="badge badge-slate">Profile Incomplete</span>
+                @endif
+            @endif
         </div>
 
         @if ($isRoot)
@@ -116,98 +129,68 @@
                 </div>
             </div>
 
-            <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'team-member-{{ $userId }}')" class="mt-3.5 flex w-full items-center justify-center gap-1 rounded-lg border border-slate-200 py-2 text-xs font-semibold text-brand-700 transition hover:bg-slate-50">
-                View Profile
-                <x-icon name="chevron-right" class="h-3.5 w-3.5" />
-            </button>
+            @if ($hasChildren)
+                <button
+                    type="button"
+                    x-on:click="
+                        expanded = !expanded;
+                        if (expanded && ! loaded) {
+                            loading = true;
+                            fetch('{{ route('user.team.node', $userId) }}?color={{ $colorIndex }}')
+                                .then(r => { if (! r.ok) throw new Error('stale'); return r.text(); })
+                                .then(html => {
+                                    $refs.panel.innerHTML = html;
+                                    window.Alpine.initTree($refs.panel);
+                                    loaded = true;
+                                    loading = false;
+                                })
+                                .catch(() => {
+                                    $refs.panel.innerHTML = '<p class=\'text-xs text-slate-400\'>Couldn&rsquo;t load. Please refresh the page and try again.</p>';
+                                    loaded = true;
+                                    loading = false;
+                                });
+                        }
+                    "
+                    class="mt-3.5 flex w-full items-center justify-center gap-1 rounded-lg border border-slate-200 py-2 text-xs font-semibold text-brand-700 transition hover:bg-slate-50 disabled:opacity-60"
+                    :disabled="loading"
+                >
+                    <span x-show="!loading" x-text="expanded ? 'Hide Members' : 'View {{ count($children) }} {{ Str::plural('Member', count($children)) }}'"></span>
+                    <span x-show="loading" x-cloak>Loading…</span>
+                    <x-icon x-show="!loading" name="chevron-right" class="h-3.5 w-3.5 transition-transform" x-bind:class="expanded ? 'rotate-90' : ''" />
+                </button>
+            @endif
+
+            @if (! empty($node['user']['joined_at']))
+                <p class="mt-3 text-[11px] text-slate-400">
+                    Joined {{ \Illuminate\Support\Carbon::parse($node['user']['joined_at'])->format('d M Y') }}
+                </p>
+            @endif
         @endif
     </div>
 
-    @unless ($isRoot)
-        <x-modal :name="'team-member-' . $userId" :show="false" max-width="md">
-            <div class="p-6">
-                <div class="flex items-start justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-bold {{ $c['avatar'] }}">
-                            {{ $initials !== '' ? $initials : '?' }}
-                        </span>
-                        <div>
-                            <p class="font-bold text-slate-800">{{ $name }}</p>
-                            @if ($username)
-                                <p class="text-sm text-slate-400">{{ $username }}</p>
-                            @endif
-                        </div>
-                    </div>
-                    <button type="button" x-on:click="$dispatch('close')" class="text-slate-400 hover:text-slate-600">
-                        <x-icon name="x" class="h-5 w-5" />
-                    </button>
-                </div>
-
-                <div class="mt-5 grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <p class="text-xs text-slate-400">Level</p>
-                        <p class="mt-0.5 font-semibold text-slate-800">Level {{ $node['level'] }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400">Status</p>
-                        <p class="mt-0.5 font-semibold {{ ! empty($node['purchase_code']) ? 'text-emerald-600' : 'text-slate-400' }}">
-                            {{ ! empty($node['purchase_code']) ? 'Purchased' : '—' }}
-                        </p>
-                    </div>
-                    @if (! empty($node['purchase_code']))
-                        <div>
-                            <p class="text-xs text-slate-400">Purchase Code</p>
-                            <p class="mt-0.5 font-semibold text-slate-800">#{{ $node['purchase_code'] }}</p>
-                        </div>
-                    @endif
-                    @if (! empty($node['user']['joined_at']))
-                        <div>
-                            <p class="text-xs text-slate-400">Joined</p>
-                            <p class="mt-0.5 font-semibold text-slate-800">{{ \Illuminate\Support\Carbon::parse($node['user']['joined_at'])->format('d M Y') }}</p>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="mt-5 space-y-3 border-t border-slate-100 pt-4">
-                    @if ($onPlatform)
-                        <p class="text-xs text-slate-400">Onboarding Checklist</p>
-                        <div class="space-y-2">
-                            @forelse ($progress->checklist ?? [] as $item)
-                                <div class="flex items-center gap-2.5">
-                                    <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full {{ $item->completed ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400' }}">
-                                        @if ($item->completed)
-                                            <x-icon name="check" class="h-3 w-3" />
-                                        @else
-                                            <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
-                                        @endif
-                                    </span>
-                                    <span class="text-sm {{ $item->completed ? 'text-slate-700' : 'text-slate-400' }}">{{ $item->title }}</span>
-                                </div>
-                            @empty
-                                <p class="text-sm text-slate-400">No onboarding checklist items configured yet.</p>
-                            @endforelse
-                        </div>
-                    @else
-                        <p class="text-sm text-slate-400">This member hasn't joined this platform yet, so onboarding progress isn't available.</p>
-                    @endif
-                </div>
-            </div>
-        </x-modal>
-    @endunless
-
-    @if ($hasChildren)
-        <div class="h-6 w-px {{ $isRoot ? 'bg-brand-300' : $c['line'] }}"></div>
+    @if ($isRoot && $hasChildren)
+        {{-- Root always shows level 1 immediately. --}}
+        <div class="h-6 w-px bg-brand-300"></div>
 
         <div class="flex items-start">
             @foreach ($children as $child)
                 <x-team-tree-node
                     :node="$child"
-                    :color="$isRoot ? $palette[$loop->index % count($palette)] : $c"
+                    :color-index="$loop->index"
                     :progress-by-user-id="$progressByUserId"
                     :is-first="$loop->first"
                     :is-last="$loop->last"
                 />
             @endforeach
         </div>
+    @endif
+
+    @if (! $isRoot && $hasChildren)
+        {{-- Everything past level 1 (including level 1's own downline) is
+             collapsed by default and only fetched/rendered — as more full
+             cards, side by side, same as this row — once the button above
+             is clicked. --}}
+        <div x-show="expanded" x-cloak class="h-6 w-px {{ $c['line'] }}"></div>
+        <div x-show="expanded" x-cloak x-ref="panel" class="flex items-start"></div>
     @endif
 </div>

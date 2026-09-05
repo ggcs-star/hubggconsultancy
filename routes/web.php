@@ -496,6 +496,7 @@ Route::middleware(['auth', 'role:user'])
         Route::get('/incentives', [UserIncentiveController::class, 'index'])->name('incentives.index');
 
         Route::get('/my-team', [UserTeamController::class, 'index'])->name('team.index');
+        Route::get('/my-team/node/{ggUserId}', [UserTeamController::class, 'children'])->name('team.node');
 
         Route::prefix('leads')->name('leads.')->group(function () {
             Route::get('/', [UserLeadController::class, 'index'])->name('index');
