@@ -72,10 +72,6 @@
                     @if ($item->description)
                         <p class="mt-2 flex-1 text-sm text-slate-500">{{ $item->description }}</p>
                     @endif
-                    <span class="mt-4 flex items-center gap-1.5 truncate text-xs font-semibold text-brand-700">
-                        <x-icon name="document" class="h-3.5 w-3.5 shrink-0" />
-                        {{ $item->original_filename ?? 'Open file' }}
-                    </span>
                 </div>
             </button>
         @empty
