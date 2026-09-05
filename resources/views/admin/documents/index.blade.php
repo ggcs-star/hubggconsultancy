@@ -39,7 +39,7 @@
                     </div>
                 @endif
 
-                <div class="flex flex-1 flex-col p-5" x-data="{ expanded: false }">
+                <div class="flex flex-1 flex-col p-5" x-data="{ expanded: false, clamped: false }" x-init="$nextTick(() => clamped = $refs.description && $refs.description.scrollHeight > $refs.description.clientHeight)">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
                             <p class="font-bold text-slate-800">{{ $document->title }}</p>
@@ -59,9 +59,9 @@
                         </div>
                     </div>
 
-                    <p class="mt-2 flex-1 text-sm text-slate-500" :class="expanded ? '' : 'line-clamp-3'">{{ $document->description }}</p>
+                    <p x-ref="description" class="mt-2 flex-1 text-sm text-slate-500" :class="expanded ? '' : 'line-clamp-3'">{{ $document->description }}</p>
                     @if ($document->description)
-                        <button type="button" x-on:click="expanded = !expanded" class="mt-1 self-start text-xs font-semibold text-brand-700 hover:underline" x-text="expanded ? 'Read less' : 'Read more'"></button>
+                        <button type="button" x-show="clamped" x-on:click="expanded = !expanded" class="mt-1 self-start text-xs font-semibold text-brand-700 hover:underline" x-text="expanded ? 'Read less' : 'Read more'"></button>
                     @endif
 
                     <a href="{{ $document->url }}" target="_blank" rel="noopener" class="mt-3 truncate text-xs text-brand-700 hover:underline">{{ $document->url }}</a>
