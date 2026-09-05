@@ -39,11 +39,11 @@
                     @endif
                 </div>
 
-                <div class="flex flex-1 flex-col p-5" x-data="{ expanded: false }">
+                <div class="flex flex-1 flex-col p-5" x-data="{ expanded: false, clamped: false }" x-init="$nextTick(() => clamped = $refs.description && $refs.description.scrollHeight > $refs.description.clientHeight)">
                     <p class="font-bold text-slate-800">{{ $document->title }}</p>
                     @if ($document->description)
-                        <p class="mt-2 flex-1 text-sm text-slate-500" :class="expanded ? '' : 'line-clamp-3'">{{ $document->description }}</p>
-                        <button type="button" x-on:click.prevent.stop="expanded = !expanded" class="mt-1 self-start text-xs font-semibold text-brand-700 hover:underline" x-text="expanded ? 'Read less' : 'Read more'"></button>
+                        <p x-ref="description" class="mt-2 flex-1 text-sm text-slate-500" :class="expanded ? '' : 'line-clamp-3'">{{ $document->description }}</p>
+                        <button type="button" x-show="clamped" x-on:click.prevent.stop="expanded = !expanded" class="mt-1 self-start text-xs font-semibold text-brand-700 hover:underline" x-text="expanded ? 'Read less' : 'Read more'"></button>
                     @endif
                     <span class="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700">
                         <x-icon name="external-link" class="h-3.5 w-3.5" />
