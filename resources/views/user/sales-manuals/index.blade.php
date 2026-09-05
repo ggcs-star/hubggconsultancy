@@ -4,7 +4,6 @@
     {{-- LANGUAGE SWITCH --}}
     {{-- ========================================================= --}}
 
-    {{-- Only languages with at least one published manual get a tab. --}}
     @if (count($availableLanguages) >= 1)
         <div class="flex flex-wrap items-center justify-end gap-2">
             @foreach ($availableLanguages as $value)
@@ -15,7 +14,6 @@
         </div>
     @endif
 
-
     {{-- ========================================================= --}}
     {{-- SEARCH --}}
     {{-- ========================================================= --}}
@@ -25,46 +23,32 @@
         action="{{ route('user.manuals') }}"
         class="mt-4 rounded-xl border border-app-border bg-white p-4"
     >
-
         <input type="hidden" name="language" value="{{ $language }}">
 
         <div class="flex flex-col gap-3 sm:flex-row">
-
- <div class="relative flex-1">
-    <x-icon
-        name="search"
-        class="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-secondary"
-    />
-
-    <input
-        type="text"
-        name="search"
-        value="{{ request('search') }}"
-        placeholder="Search uploaded files..."
-        style="padding-left: 42px;"
-        class="w-full rounded-lg border-app-border py-2.5 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary"
-    >
-</div>
-
-
+            <div class="relative flex-1">
+                <x-icon
+                    name="search"
+                    class="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-secondary"
+                />
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Search uploaded files..."
+                    style="padding-left: 42px;"
+                    class="w-full rounded-lg border border-app-border bg-white py-2.5 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary focus:outline-none"
+                >
+            </div>
             <button
                 type="submit"
                 class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90 sm:w-auto"
             >
-
-                <x-icon
-                    name="search"
-                    class="h-4 w-4 shrink-0"
-                />
-
+                <x-icon name="search" class="h-4 w-4 shrink-0" />
                 Search
-
             </button>
-
         </div>
-
     </form>
-
 
     {{-- ========================================================= --}}
     {{-- RESOURCES --}}
@@ -78,13 +62,6 @@
 
                 @foreach ($manuals as $manual)
 
-
-
-                    {{-- ================================================= --}}
-                    {{-- ONE CARD PER SALES RESOURCE --}}
-                    {{-- Cover + content + ALL attachments belong to this card. --}}
-                    {{-- ================================================= --}}
-
                     @php
                         $manualTypeLabel = match ($manual->type) {
                             'manual' => 'Manual',
@@ -96,39 +73,23 @@
                             default => ucfirst(str_replace('_', ' ', $manual->type ?? 'Resource')),
                         };
 
-                        $manualIcon = match ($manual->type) {
-                            'faq' => 'help-circle',
-                            'cheat_sheet' => 'list',
-                            'sop' => 'check-circle',
-                            'script' => 'edit',
-                            'guide', 'manual' => 'file-text',
-                            default => 'document',
-                        };
-
-                        $manualIconBg = match ($manual->type) {
-                            'faq' => 'bg-purple-50 text-purple-600',
-                            'cheat_sheet' => 'bg-blue-50 text-blue-600',
-                            'sop' => 'bg-green-50 text-green-600',
-                            'script' => 'bg-orange-50 text-orange-600',
-                            default => 'bg-slate-50 text-slate-600',
-                        };
-
                         $firstAttachment = $manual->attachments->first();
+                        $openTarget = $firstAttachment
+                            ? $firstAttachment->id
+                            : 'content-' . $manual->id;
                     @endphp
 
                     <div
-                        class="flex h-full flex-col overflow-hidden rounded-xl border border-app-border bg-white transition hover:-translate-y-0.5 hover:shadow-md"
+                        role="button"
+                        tabindex="0"
+                        onclick="window.openSalesManualReader('{{ $openTarget }}')"
+                        onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.openSalesManualReader('{{ $openTarget }}'); }"
+                        class="flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-app-border bg-white text-left transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        aria-label="Open {{ $manual->title }}"
                     >
-                        {{-- ================================================= --}}
                         {{-- COVER / RESOURCE PREVIEW --}}
-                        {{-- ================================================= --}}
-                        {{-- IMPORTANT: Never render the full document/PDF inside
-                             the card. If there is no cover image, show only the
-                             fixed preview area/icon. The complete file opens
-                             only after clicking View. --}}
-
                         @if (!empty($manual->cover_image))
-                            <div class="flex h-44 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-56">
+                            <div class="flex h-36 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-44">
                                 <img
                                     src="{{ asset('storage/' . ltrim($manual->cover_image, '/')) }}"
                                     alt="{{ $manual->title }}"
@@ -146,7 +107,7 @@
                             @endphp
 
                             @if ($firstIsImage)
-                                <div class="flex h-56 w-full items-center justify-center overflow-hidden bg-slate-50">
+                                <div class="flex h-36 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-44">
                                     <img
                                         src="{{ $firstFileUrl }}"
                                         alt="{{ $firstAttachment->file_name }}"
@@ -155,177 +116,69 @@
                                     >
                                 </div>
                             @else
-                                <div class="flex h-44 items-center justify-center bg-surface-alt sm:h-56">
-                                    <div class="flex h-20 w-20 items-center justify-center rounded-2xl {{ $manualIconBg }}">
-                                        <x-icon name="{{ $manualIcon }}" class="h-10 w-10" />
-                                    </div>
-                                </div>
+                                <div class="h-36 w-full bg-surface-alt sm:h-44"></div>
                             @endif
                         @else
-                            <div class="flex h-44 w-full items-center justify-center bg-surface-alt sm:h-56">
-                                <div class="flex h-20 w-20 items-center justify-center rounded-2xl {{ $manualIconBg }}">
-                                    <x-icon name="{{ $manualIcon }}" class="h-10 w-10" />
-                                </div>
-                            </div>
+                            <div class="h-36 w-full bg-surface-alt sm:h-44"></div>
                         @endif
 
-                        <div class="flex flex-1 flex-col p-4 sm:p-5">
-                            {{-- RESOURCE INFORMATION --}}
-                            <div class="flex items-start gap-3">
-                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $manualIconBg }}">
-                                    <x-icon name="{{ $manualIcon }}" class="h-5 w-5" />
-                                </div>
+                        {{-- CARD CONTENT --}}
+                        <div class="flex flex-1 flex-col p-4 pt-3">
+                            {{-- Title --}}
+                            <p
+                                class="truncate text-sm font-semibold text-secondary-dark"
+                                title="{{ $manual->title }}"
+                            >
+                                {{ $manual->title }}
+                            </p>
 
-                                <div class="min-w-0 flex-1">
-                                    <p
-                                        class="truncate text-sm font-semibold text-secondary-dark"
-                                        title="{{ $manual->title }}"
-                                    >
-                                        {{ $manual->title }}
-                                    </p>
+                            {{-- Type & Category --}}
+                            <p class="mt-0.5 text-xs uppercase text-secondary">
+                                {{ $manualTypeLabel }}
+                                @if ($manual->category)
+                                    · {{ $manual->category }}
+                                @endif
+                            </p>
 
-                                    <p class="mt-1 text-xs uppercase text-secondary">
-                                        {{ $manualTypeLabel }}
-                                        @if ($manual->category)
-                                            · {{ $manual->category }}
-                                        @endif
-                                    </p>
-                                </div>
-                            </div>
-
+                            {{-- Description (limited to 2 lines) --}}
                             @if ($manual->description)
-                                <p class="mt-4 text-sm leading-6 text-secondary">
+                                <p class="mt-1.5 text-sm leading-5 text-secondary line-clamp-2">
                                     {{ $manual->description }}
                                 </p>
                             @endif
 
+                            {{-- Content preview (limited to 2 lines) --}}
                             @if ($manual->content)
-                                <div class="mt-4 max-h-32 overflow-hidden rounded-lg border border-app-border bg-surface-alt p-3">
-                                    <p class="whitespace-pre-wrap text-sm leading-6 text-secondary-dark">{{ $manual->content }}</p>
+                                <div class="mt-1.5 overflow-hidden rounded-lg border border-app-border bg-surface-alt p-2">
+                                    <p class="whitespace-pre-wrap text-xs leading-5 text-secondary-dark line-clamp-2">{{ $manual->content }}</p>
                                 </div>
                             @endif
 
-                            {{-- ================================================= --}}
-                            {{-- ALL FILES OF THIS RESOURCE --}}
-                            {{-- ================================================= --}}
-
+                            {{-- Attachments --}}
                             @if ($manual->attachments->count())
-                                <div class="mt-4 space-y-2">
+                                <div class="mt-2 space-y-1.5">
                                     @foreach ($manual->attachments as $attachment)
                                         @php
                                             $extension = strtolower(pathinfo($attachment->file_name, PATHINFO_EXTENSION));
-                                            $fileUrl = asset('storage/' . ltrim($attachment->file_path, '/'));
-
-                                            $icon = match ($extension) {
-                                                'pdf' => 'file-text',
-                                                'doc', 'docx' => 'file-text',
-                                                'xls', 'xlsx', 'csv' => 'table',
-                                                'ppt', 'pptx' => 'presentation',
-                                                'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'avif' => 'image',
-                                                'zip', 'rar', '7z' => 'archive',
-                                                default => 'file',
-                                            };
-
-                                            $iconBg = match ($extension) {
-                                                'pdf' => 'bg-red-50 text-red-600',
-                                                'doc', 'docx' => 'bg-blue-50 text-blue-600',
-                                                'xls', 'xlsx', 'csv' => 'bg-green-50 text-green-600',
-                                                'ppt', 'pptx' => 'bg-orange-50 text-orange-600',
-                                                'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'avif' => 'bg-purple-50 text-purple-600',
-                                                'zip', 'rar', '7z' => 'bg-amber-50 text-amber-600',
-                                                default => 'bg-slate-50 text-slate-600',
-                                            };
                                         @endphp
 
-                                        <div class="flex min-w-0 items-center gap-2.5 rounded-lg border border-app-border bg-white p-2.5 sm:gap-3 sm:p-3">
-                                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $iconBg }}">
-                                                <x-icon name="{{ $icon }}" class="h-4 w-4" />
-                                            </div>
-
-                                            <div class="min-w-0 flex-1">
-                                                <p
-                                                    class="min-w-0 truncate text-sm font-medium text-secondary-dark"
-                                                    title="{{ $attachment->file_name }}"
-                                                >
-                                                    {{ $attachment->file_name }}
-                                                </p>
-                                                <p class="mt-0.5 text-xs uppercase text-secondary">
-                                                    {{ strtoupper($extension ?: 'FILE') }}
-                                                    @if ($attachment->file_size)
-                                                        · {{ number_format($attachment->file_size / 1024 / 1024, 2) }} MB
-                                                    @endif
-                                                </p>
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white transition hover:bg-primary/90"
-                                                onclick="window.openSalesManualReader('{{ $attachment->id }}')"
-                                                title="View {{ $attachment->file_name }}"
-                                                aria-label="View {{ $attachment->file_name }}"
+                                        <div class="min-w-0 rounded-lg border border-app-border bg-white p-2">
+                                            <p
+                                                class="min-w-0 truncate text-xs font-medium text-secondary-dark"
+                                                title="{{ $attachment->file_name }}"
                                             >
-                                                <x-icon name="eye" class="h-4 w-4" />
-                                            </button>
-
-                                            <a
-                                                href="{{ $fileUrl }}"
-                                                download="{{ $attachment->file_name }}"
-                                                class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-app-border bg-white text-secondary-dark transition hover:bg-surface-alt"
-                                                title="Save {{ $attachment->file_name }}"
-                                                aria-label="Save {{ $attachment->file_name }}"
-                                            >
-                                                <x-icon name="download" class="h-4 w-4" />
-                                            </a>
+                                                {{ $attachment->file_name }}
+                                            </p>
+                                            <p class="mt-0.5 text-[10px] uppercase text-secondary">
+                                                {{ strtoupper($extension ?: 'FILE') }}
+                                                @if ($attachment->file_size)
+                                                    · {{ number_format($attachment->file_size / 1024 / 1024, 2) }} MB
+                                                @endif
+                                            </p>
                                         </div>
                                     @endforeach
                                 </div>
                             @endif
-
-                            {{-- ================================================= --}}
-                            {{-- MAIN RESOURCE ACTIONS --}}
-                            {{-- If files exist, View opens the first file.
-                                 If no file exists, View opens the resource content. --}}
-                            {{-- ================================================= --}}
-
-                            <div class="mt-auto pt-5 grid grid-cols-2 gap-2">
-                                @if ($firstAttachment)
-                                    <button
-                                        type="button"
-                                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90"
-                                        onclick="window.openSalesManualReader('{{ $firstAttachment->id }}')"
-                                    >
-                                        <x-icon name="eye" class="h-4 w-4" />
-                                        View
-                                    </button>
-
-                                    <a
-                                        href="{{ asset('storage/' . ltrim($firstAttachment->file_path, '/')) }}"
-                                        download="{{ $firstAttachment->file_name }}"
-                                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-app-border bg-white px-3 py-2.5 text-sm font-medium text-secondary-dark transition hover:bg-surface-alt"
-                                    >
-                                        <x-icon name="download" class="h-4 w-4" />
-                                        Save
-                                    </a>
-                                @else
-                                    <button
-                                        type="button"
-                                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90"
-                                        onclick="window.openSalesManualReader('content-{{ $manual->id }}')"
-                                    >
-                                        <x-icon name="eye" class="h-4 w-4" />
-                                        View
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-app-border bg-white px-3 py-2.5 text-sm font-medium text-secondary-dark transition hover:bg-surface-alt"
-                                        onclick="window.downloadSalesManual('content-{{ $manual->id }}')"
-                                    >
-                                        <x-icon name="download" class="h-4 w-4" />
-                                        Save
-                                    </button>
-                                @endif
-                            </div>
                         </div>
                     </div>
 
@@ -333,12 +186,32 @@
 
             </div>
 
+            {{-- PAGINATION --}}
+            <div class="mt-6">
+                {{ $manuals->links() }}
+            </div>
 
+        @else
 
+            {{-- EMPTY STATE --}}
+            <div class="rounded-xl border border-app-border bg-white px-6 py-16 text-center">
+                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary-light">
+                    <x-icon name="document" class="h-7 w-7 text-primary" />
+                </div>
+                <h3 class="mt-4 text-base font-semibold text-secondary-dark">
+                    No Resources Available
+                </h3>
+                <p class="mx-auto mt-1 max-w-md text-sm text-secondary">
+                    Uploaded sales resources will appear here.
+                </p>
+            </div>
+
+        @endif
+
+    </div>
 
     {{-- ========================================================= --}}
     {{-- UNIVERSAL SALES MANUAL READER --}}
-    {{-- Same existing UI; viewer changes by file type only. --}}
     {{-- ========================================================= --}}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
@@ -387,7 +260,6 @@
                     >
                         Sales Manual
                     </h2>
-
                     <p
                         id="salesManualReaderMeta"
                         class="truncate text-[11px] text-secondary sm:text-xs"
@@ -395,7 +267,6 @@
                         Read the document here without leaving this page.
                     </p>
                 </div>
-
                 <button
                     type="button"
                     onclick="window.closeSalesManualReader()"
@@ -417,9 +288,7 @@
                 >
                     <div class="text-center">
                         <div class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary"></div>
-                        <p class="mt-3 text-sm text-secondary">
-                            Opening file...
-                        </p>
+                        <p class="mt-3 text-sm text-secondary">Opening file...</p>
                     </div>
                 </div>
 
@@ -524,11 +393,9 @@
                         <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
                             <x-icon name="file" class="h-7 w-7" />
                         </div>
-
                         <h3 class="mt-4 text-base font-semibold text-secondary-dark">
                             Preview not available
                         </h3>
-
                         <p
                             id="salesManualUnsupportedText"
                             class="mt-1 text-sm leading-6 text-secondary"
@@ -546,11 +413,9 @@
                         <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
                             <x-icon name="alert-circle" class="h-7 w-7" />
                         </div>
-
                         <h3 class="mt-4 text-base font-semibold text-secondary-dark">
                             Unable to preview this file
                         </h3>
-
                         <p
                             id="salesManualReaderErrorText"
                             class="mt-1 text-sm leading-6 text-secondary"
@@ -569,7 +434,6 @@
                 >
                     Document preview
                 </div>
-
                 <div class="flex w-full flex-wrap items-center justify-end gap-1.5 sm:w-auto sm:shrink-0 sm:gap-2">
                     <button
                         type="button"
@@ -579,7 +443,6 @@
                         <x-icon name="download" class="h-4 w-4" />
                         Download
                     </button>
-
                     <button
                         type="button"
                         id="salesManualPrint"
@@ -588,7 +451,6 @@
                         <x-icon name="printer" class="h-4 w-4" />
                         Print
                     </button>
-
                     <button
                         type="button"
                         id="salesManualPrev"
@@ -597,14 +459,12 @@
                         <x-icon name="chevron-left" class="h-4 w-4" />
                         Previous
                     </button>
-
                     <span
                         id="salesManualPageIndicator"
                         class="hidden min-h-9 items-center justify-center rounded-lg bg-surface-alt px-2.5 py-2 text-[11px] font-semibold text-secondary-dark sm:px-3 sm:text-xs"
                     >
                         1 / 1
                     </span>
-
                     <button
                         type="button"
                         id="salesManualNext"
@@ -619,7 +479,6 @@
     </div>
 
     <style>
-        /* Sales Manuals: responsive safety rules */
         #salesManualReader,
         #salesManualReader * {
             box-sizing: border-box;
@@ -652,23 +511,33 @@
             height: auto;
         }
 
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
         @media (max-width: 639px) {
             #salesManualReaderBody {
                 min-width: 0;
             }
-
             #salesManualReaderTitle {
                 max-width: calc(100vw - 72px);
             }
-
             #salesManualSheetContent {
                 -webkit-overflow-scrolling: touch;
             }
-
             #salesManualPptxContent {
                 min-width: 0;
             }
-
             #salesManualTextContent {
                 font-size: 0.75rem;
                 line-height: 1.5;
@@ -775,7 +644,6 @@
 
             const show = (element, flex = false) => {
                 element.classList.remove('hidden');
-
                 if (flex) {
                     element.classList.add('flex');
                 }
@@ -935,21 +803,13 @@
 
                 show(pdfViewer);
 
-                // Fit each page to the modal's width instead of a fixed scale, so wide
-                // landscape/slide-style PDFs render fully without horizontal scrolling.
-                const firstPage = await pdf.getPage(1);
-                const referenceViewport = firstPage.getViewport({ scale: 1 });
-                const availableWidth = pdfPages.clientWidth || pdfViewer.clientWidth || 800;
-                const fitScale = Math.min(2.5, Math.max(0.4, (availableWidth - 32) / referenceViewport.width));
-
                 for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-                    const page = pageNumber === 1 ? firstPage : await pdf.getPage(pageNumber);
-                    const viewport = page.getViewport({ scale: fitScale });
+                    const page = await pdf.getPage(pageNumber);
+                    const viewport = page.getViewport({ scale: 1.15 });
 
                     const wrapper = document.createElement('div');
                     wrapper.dataset.page = pageNumber;
-                    wrapper.className =
-                        'overflow-hidden rounded-lg bg-white shadow-lg';
+                    wrapper.className = 'overflow-hidden rounded-lg bg-white shadow-lg';
 
                     const canvas = document.createElement('canvas');
                     const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -965,7 +825,7 @@
 
                     await page.render({
                         canvasContext: canvas.getContext('2d', { alpha: false }),
-                        viewport: page.getViewport({ scale: fitScale * ratio }),
+                        viewport: page.getViewport({ scale: 1.15 * ratio }),
                     }).promise;
                 }
 
@@ -1075,17 +935,12 @@
                     canvas: document.createElement('canvas'),
                 });
 
-                /*
-                 * Use the library's browser renderer when available.
-                 * The viewer accepts an ArrayBuffer and renders client-side.
-                 */
                 await pptx.loadFile(buffer);
 
                 pptxContent.innerHTML = '';
 
                 const canvas = document.createElement('canvas');
-                canvas.className =
-                    'mx-auto block max-w-full rounded-lg bg-white shadow-lg';
+                canvas.className = 'mx-auto block max-w-full rounded-lg bg-white shadow-lg';
 
                 pptxContent.appendChild(canvas);
 
@@ -1166,11 +1021,7 @@
                     } else if (extension === 'docx') {
                         await renderDocx(file.url);
                     } else if (['xlsx', 'xls', 'csv'].includes(extension)) {
-                        if (extension === 'csv') {
-                            await renderSheet(file.url, extension);
-                        } else {
-                            await renderSheet(file.url, extension);
-                        }
+                        await renderSheet(file.url, extension);
                     } else if (extension === 'pptx') {
                         await renderPptx(file.url);
                     } else if (imageExtensions.includes(extension)) {
@@ -1275,53 +1126,5 @@
             });
         })();
     </script>
-
-            {{-- ================================================= --}}
-            {{-- PAGINATION --}}
-            {{-- ================================================= --}}
-
-            <div class="mt-6">
-
-                {{ $manuals->links() }}
-
-            </div>
-
-
-        @else
-
-            {{-- ================================================= --}}
-            {{-- EMPTY STATE --}}
-            {{-- ================================================= --}}
-
-            <div
-                class="rounded-xl border border-app-border bg-white px-6 py-16 text-center"
-            >
-
-                <div
-                    class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary-light"
-                >
-
-                    <x-icon
-                        name="document"
-                        class="h-7 w-7 text-primary"
-                    />
-
-                </div>
-
-
-                <h3 class="mt-4 text-base font-semibold text-secondary-dark">
-                    No Resources Available
-                </h3>
-
-
-                <p class="mx-auto mt-1 max-w-md text-sm text-secondary">
-                    Uploaded sales resources will appear here.
-                </p>
-
-            </div>
-
-        @endif
-
-    </div>
 
 </x-layout>
