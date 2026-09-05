@@ -5,7 +5,12 @@
             <input type="hidden" name="language" value="{{ $language }}">
             <div class="relative w-full sm:max-w-sm">
                 <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search toolkit items..." class="form-input pl-10">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search toolkit items..." class="form-input pl-10 {{ request('search') ? 'pr-9' : '' }}">
+                @if (request('search'))
+                    <a href="{{ route('user.sales-toolkit.index', ['language' => $language, 'category' => request('category')]) }}" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        <x-icon name="x" class="h-4 w-4" />
+                    </a>
+                @endif
             </div>
 
             <select name="category" class="form-input w-full sm:w-56" onchange="this.form.submit()">
@@ -15,14 +20,6 @@
                 @endforeach
             </select>
 
-            <button type="submit" class="btn-primary shrink-0 sm:w-auto">
-                <x-icon name="search" class="h-4 w-4" />
-                Search
-            </button>
-
-            @if (request('search') || request('category'))
-                <a href="{{ route('user.sales-toolkit.index', ['language' => $language]) }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset</a>
-            @endif
         </form>
 
         {{-- Language switch — only languages with at least one toolkit item get a tab. --}}

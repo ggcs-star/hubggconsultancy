@@ -34,7 +34,7 @@
                     <div class="absolute inset-0 flex items-center justify-center bg-brand-50 text-brand-600">
                         <x-icon name="document" class="h-10 w-10" />
                     </div>
-                    @if ($document->thumbnailUrl())
+                    @if ($document->thumbnail)
                         <img src="{{ $document->thumbnailUrl() }}" alt="" class="absolute inset-0 h-40 w-full object-cover" onerror="this.remove()">
                     @endif
                 </div>

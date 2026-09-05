@@ -89,11 +89,11 @@
                         tabindex="0"
                         onclick="window.openSalesManualReader('{{ $openTarget }}')"
                         onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.openSalesManualReader('{{ $openTarget }}'); }"
-                        class="flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-app-border bg-white text-left transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        class="flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-app-border border-l-4 border-l-primary bg-white text-left transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30"
                         aria-label="Open {{ $manual->title }}"
                     >
                         {{-- COVER / RESOURCE PREVIEW --}}
-                        <div class="flex h-32 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-36">
+                        <div class="flex h-40 w-full items-center justify-center overflow-hidden bg-primary-light">
                             @if (!empty($manual->cover_image))
                                 <img
                                     src="{{ asset('storage/' . ltrim($manual->cover_image, '/')) }}"
@@ -119,23 +119,23 @@
                                     >
                                 @else
                                     <div class="flex flex-col items-center">
-                                        <x-icon name="file-text" class="h-10 w-10 text-secondary/30" />
-                                        <span class="mt-0.5 text-[10px] text-secondary/40 uppercase">{{ strtoupper($firstExtension) }}</span>
+                                        <x-icon name="folder" class="h-10 w-10 text-primary" />
+                                        <span class="mt-0.5 text-[10px] text-primary/70 uppercase">{{ strtoupper($firstExtension) }}</span>
                                     </div>
                                 @endif
                             @else
                                 <div class="flex flex-col items-center">
-                                    <x-icon name="file-text" class="h-10 w-10 text-secondary/30" />
-                                    <span class="mt-0.5 text-[10px] text-secondary/40">No preview</span>
+                                    <x-icon name="folder" class="h-10 w-10 text-primary" />
+                                    <span class="mt-0.5 text-[10px] text-primary/70">No preview</span>
                                 </div>
                             @endif
                         </div>
 
                         {{-- CARD CONTENT --}}
-                        <div class="flex flex-1 flex-col p-3 pt-2.5">
+                        <div class="flex flex-1 flex-col p-5">
                             {{-- Title --}}
                             <p
-                                class="text-sm font-semibold text-secondary-dark line-clamp-1"
+                                class="min-w-0 truncate font-bold text-secondary-dark"
                                 title="{{ $manual->title }}"
                             >
                                 {{ $manual->title }}

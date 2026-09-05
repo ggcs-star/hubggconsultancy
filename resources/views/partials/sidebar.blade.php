@@ -44,7 +44,7 @@
             ],
             [
                 'label' => 'Sales Manuals',
-                'icon' => 'document',
+                'icon' => 'folder',
                 'route' => $isAdmin ? 'admin.manuals.index' : 'user.manuals',
                 'activePattern' => $isAdmin ? 'admin.manuals.*' : 'user.manuals*',
             ],
