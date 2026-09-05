@@ -29,9 +29,9 @@
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($documents as $document)
             <a href="{{ $document->url }}" target="_blank" rel="noopener"
-                class="card flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md">
+                class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600 transition hover:-translate-y-0.5 hover:shadow-md">
                 <div class="relative h-40 w-full">
-                    <div class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-300">
+                    <div class="absolute inset-0 flex items-center justify-center bg-brand-50 text-brand-600">
                         <x-icon name="document" class="h-10 w-10" />
                     </div>
                     @if ($document->thumbnailUrl())
