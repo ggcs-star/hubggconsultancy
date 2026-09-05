@@ -21,7 +21,7 @@
             <x-stat-card icon="check-circle" color="chart-4" :value="$stats['onboarding_complete_count']" label="Onboarding Complete" :description="$stats['onboarding_complete_percent'] . '%'" />
         </div>
 
-        <div class="mt-6 card" x-data="{ tab: 'tree', search: '', level: '' }" x-on:team-view-all-members.window="tab = 'members'">
+        <div class="mt-6 card" x-data="{ tab: '{{ request()->hasAny(['search', 'level']) ? 'members' : 'tree' }}' }" x-on:team-view-all-members.window="tab = 'members'">
             <div class="flex items-center gap-1 border-b border-slate-100 px-5 pt-4">
                 <button type="button" x-on:click="tab = 'tree'" class="rounded-t-lg px-3 py-2 text-sm font-semibold transition" :class="tab === 'tree' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-slate-400 hover:text-slate-600'">
                     Team Tree
@@ -48,18 +48,25 @@
             </div>
 
             <div x-show="tab === 'members'" x-cloak>
-                <div class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <form method="GET" class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="relative w-full sm:max-w-xs">
                         <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <input type="text" x-model="search" placeholder="Search team member..." class="form-input pl-10">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search team member..." class="form-input pl-10">
                     </div>
-                    <select x-model="level" class="form-input w-full sm:w-40">
+                    <select name="level" class="form-input w-full sm:w-40" onchange="this.form.submit()">
                         <option value="">All Levels</option>
                         @foreach ($rows->pluck('level')->unique()->sort()->values() as $lvl)
-                            <option value="{{ $lvl }}">Level {{ $lvl }}</option>
+                            <option value="{{ $lvl }}" @selected(request('level') == $lvl)>Level {{ $lvl }}</option>
                         @endforeach
                     </select>
-                </div>
+                    <button type="submit" class="btn-primary shrink-0 sm:w-auto">
+                        <x-icon name="search" class="h-4 w-4" />
+                        Search
+                    </button>
+                    @if (request()->hasAny(['search', 'level']))
+                        <a href="{{ route('user.team.index') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset</a>
+                    @endif
+                </form>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
@@ -96,8 +103,8 @@
                                 </td>
                             </tr>
 
-                            @forelse ($rows as $row)
-                                <tr x-show="(search === '' || '{{ Str::lower($row->name) }}'.includes(search.toLowerCase())) && (level === '' || level == {{ $row->level }})">
+                            @forelse ($memberRows as $row)
+                                <tr>
                                     <td class="px-5 py-3.5">
                                         <p class="font-semibold text-slate-800">{{ $row->name }}</p>
                                         @if ($row->purchase_code)
@@ -125,11 +132,21 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">You haven't built your team yet.</td>
+                                    <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">
+                                        @if (request()->hasAny(['search', 'level']))
+                                            No members match your search or filter.
+                                        @else
+                                            You haven't built your team yet.
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <div class="px-5 py-4">
+                    {{ $memberRows->links() }}
                 </div>
             </div>
         </div>

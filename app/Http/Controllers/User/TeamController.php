@@ -9,8 +9,11 @@ use App\Models\User;
 use App\Services\TeamApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class TeamController extends Controller
@@ -94,6 +97,8 @@ class TeamController extends Controller
         $purchasedCount = $rows->filter(fn ($row) => filled($row->purchase_code))->count();
         $onboardingCompleteCount = $rows->filter(fn ($row) => $row->checklist_complete)->count();
 
+        $memberRows = $this->paginateMembers($request, $rows);
+
         return view('user.team.index', [
             'apiError' => false,
             'user' => $user,
@@ -105,6 +110,7 @@ class TeamController extends Controller
             'ownKycVerified' => $ownKycVerified,
             'progressByUserId' => $progressByUserId,
             'rows' => $rows,
+            'memberRows' => $memberRows,
             'stats' => [
                 'total_members' => $totalMembers,
                 'purchased_count' => $purchasedCount,
@@ -113,6 +119,37 @@ class TeamController extends Controller
                 'onboarding_complete_percent' => $totalMembers > 0 ? (int) round($onboardingCompleteCount / $totalMembers * 100) : 0,
             ],
         ]);
+    }
+
+    /**
+     * Applies the Members tab's search/level filter server-side and slices
+     * the result into real pages of 10, so the "Showing X of Y" + page
+     * number controls (shown for every other list in this app, even with
+     * only a handful of results) also appear here instead of the table
+     * silently rendering everyone at once.
+     */
+    private function paginateMembers(Request $request, Collection $rows): LengthAwarePaginator
+    {
+        $search = trim((string) $request->query('search', ''));
+        $level = trim((string) $request->query('level', ''));
+
+        $filtered = $rows->filter(function ($row) use ($search, $level) {
+            $matchesSearch = $search === '' || str_contains(Str::lower($row->name ?? ''), Str::lower($search));
+            $matchesLevel = $level === '' || (string) $row->level === $level;
+
+            return $matchesSearch && $matchesLevel;
+        })->values();
+
+        $perPage = 10;
+        $page = Paginator::resolveCurrentPage('page');
+
+        return new LengthAwarePaginator(
+            $filtered->forPage($page, $perPage)->values(),
+            $filtered->count(),
+            $perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
     }
 
     /**
