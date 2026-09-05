@@ -51,7 +51,12 @@
                 <form method="GET" class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="relative w-full sm:max-w-xs">
                         <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search team member..." class="form-input pl-10">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search team member..." class="form-input pl-10 {{ request('search') ? 'pr-9' : '' }}">
+                        @if (request('search'))
+                            <a href="{{ route('user.team.index', ['level' => request('level')]) }}" title="Clear search" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <x-icon name="x" class="h-4 w-4" />
+                            </a>
+                        @endif
                     </div>
                     <select name="level" class="form-input w-full sm:w-40" onchange="this.form.submit()">
                         <option value="">All Levels</option>
@@ -59,13 +64,6 @@
                             <option value="{{ $lvl }}" @selected(request('level') == $lvl)>Level {{ $lvl }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="btn-primary shrink-0 sm:w-auto">
-                        <x-icon name="search" class="h-4 w-4" />
-                        Search
-                    </button>
-                    @if (request()->hasAny(['search', 'level']))
-                        <a href="{{ route('user.team.index') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Reset</a>
-                    @endif
                 </form>
 
                 <div class="overflow-x-auto">
