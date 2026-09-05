@@ -1,54 +1,59 @@
 <x-layout title="Sales Manuals" subtitle="Access the sales resources uploaded by your admin team.">
 
     {{-- ========================================================= --}}
-    {{-- LANGUAGE SWITCH --}}
+    {{-- HEADER: SEARCH + LANGUAGE SWITCH --}}
     {{-- ========================================================= --}}
 
-    @if (count($availableLanguages) >= 1)
-        <div class="flex flex-wrap items-center justify-end gap-2">
-            @foreach ($availableLanguages as $value)
-                <a href="{{ route('user.manuals', ['language' => $value, 'search' => request('search')]) }}" class="rounded-lg px-4 py-2 text-sm font-semibold transition sm:px-5 {{ $language === $value ? 'bg-primary text-white shadow-sm' : 'bg-surface-alt text-secondary hover:bg-app-border/40' }}">
-                    {{ ucfirst($value) }}
-                </a>
-            @endforeach
-        </div>
-    @endif
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-    {{-- ========================================================= --}}
-    {{-- SEARCH --}}
-    {{-- ========================================================= --}}
+        {{-- SEARCH --}}
+        <form method="GET" action="{{ route('user.manuals') }}" class="w-full sm:max-w-sm">
+            <input type="hidden" name="language" value="{{ $language }}">
 
-    <form
-        method="GET"
-        action="{{ route('user.manuals') }}"
-        class="mt-4 rounded-xl border border-app-border bg-white p-4"
-    >
-        <input type="hidden" name="language" value="{{ $language }}">
+            <div class="relative">
+     <div class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2">
+    <x-icon
+        name="search"
+        class="block h-4 w-4 text-slate-400"
+    />
+</div>
 
-        <div class="flex flex-col gap-3 sm:flex-row">
-            <div class="relative flex-1">
-                <x-icon
-                    name="search"
-                    class="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-secondary"
-                />
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ request('search') }}"
-                    placeholder="Search uploaded files..."
-                    style="padding-left: 42px;"
-                    class="w-full rounded-lg border border-app-border bg-white py-2.5 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary focus:outline-none"
-                >
+<input
+    type="text"
+    name="search"
+    value="{{ request('search') }}"
+    placeholder="Search sales resources..."
+    style="padding-left: 44px !important;"
+    class="w-full rounded-lg border border-app-border bg-white py-2 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary focus:outline-none"
+>
+
+                @if (request('search'))
+                    <a
+                        href="{{ route('user.manuals', ['language' => $language]) }}"
+                        title="Clear search"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                        <x-icon name="x" class="h-4 w-4" />
+                    </a>
+                @endif
             </div>
-            <button
-                type="submit"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90 sm:w-auto"
-            >
-                <x-icon name="search" class="h-4 w-4 shrink-0" />
-                Search
-            </button>
-        </div>
-    </form>
+        </form>
+
+        {{-- LANGUAGE SWITCH --}}
+        @if (count($availableLanguages) >= 1)
+            <div class="flex items-center gap-2">
+                @foreach ($availableLanguages as $value)
+                    <a
+                        href="{{ route('user.manuals', ['language' => $value, 'search' => request('search')]) }}"
+                        class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-primary text-white shadow-sm' : 'bg-surface-alt text-secondary hover:bg-app-border/40' }}"
+                    >
+                        {{ ucfirst($value) }}
+                    </a>
+                @endforeach
+            </div>
+        @endif
+
+    </div>
 
     {{-- ========================================================= --}}
     {{-- RESOURCES --}}
@@ -88,52 +93,56 @@
                         aria-label="Open {{ $manual->title }}"
                     >
                         {{-- COVER / RESOURCE PREVIEW --}}
-                        @if (!empty($manual->cover_image))
-                            <div class="flex h-36 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-44">
+                        <div class="flex h-32 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-36">
+                            @if (!empty($manual->cover_image))
                                 <img
                                     src="{{ asset('storage/' . ltrim($manual->cover_image, '/')) }}"
                                     alt="{{ $manual->title }}"
                                     class="h-full w-full object-contain p-2"
                                     loading="lazy"
                                 >
-                            </div>
-                        @elseif ($firstAttachment)
-                            @php
-                                $firstExtension = strtolower(pathinfo($firstAttachment->file_name, PATHINFO_EXTENSION));
-                                $firstIsImage = in_array($firstExtension, [
-                                    'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'avif'
-                                ]);
-                                $firstFileUrl = asset('storage/' . ltrim($firstAttachment->file_path, '/'));
-                            @endphp
+                            @elseif ($firstAttachment)
+                                @php
+                                    $firstExtension = strtolower(pathinfo($firstAttachment->file_name, PATHINFO_EXTENSION));
+                                    $firstIsImage = in_array($firstExtension, [
+                                        'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'avif'
+                                    ]);
+                                    $firstFileUrl = asset('storage/' . ltrim($firstAttachment->file_path, '/'));
+                                @endphp
 
-                            @if ($firstIsImage)
-                                <div class="flex h-36 w-full items-center justify-center overflow-hidden bg-slate-50 sm:h-44">
+                                @if ($firstIsImage)
                                     <img
                                         src="{{ $firstFileUrl }}"
                                         alt="{{ $firstAttachment->file_name }}"
                                         class="h-full w-full object-contain p-2"
                                         loading="lazy"
                                     >
-                                </div>
+                                @else
+                                    <div class="flex flex-col items-center">
+                                        <x-icon name="file-text" class="h-10 w-10 text-secondary/30" />
+                                        <span class="mt-0.5 text-[10px] text-secondary/40 uppercase">{{ strtoupper($firstExtension) }}</span>
+                                    </div>
+                                @endif
                             @else
-                                <div class="h-36 w-full bg-surface-alt sm:h-44"></div>
+                                <div class="flex flex-col items-center">
+                                    <x-icon name="file-text" class="h-10 w-10 text-secondary/30" />
+                                    <span class="mt-0.5 text-[10px] text-secondary/40">No preview</span>
+                                </div>
                             @endif
-                        @else
-                            <div class="h-36 w-full bg-surface-alt sm:h-44"></div>
-                        @endif
+                        </div>
 
                         {{-- CARD CONTENT --}}
-                        <div class="flex flex-1 flex-col p-4 pt-3">
+                        <div class="flex flex-1 flex-col p-3 pt-2.5">
                             {{-- Title --}}
                             <p
-                                class="truncate text-sm font-semibold text-secondary-dark"
+                                class="text-sm font-semibold text-secondary-dark line-clamp-1"
                                 title="{{ $manual->title }}"
                             >
                                 {{ $manual->title }}
                             </p>
 
                             {{-- Type & Category --}}
-                            <p class="mt-0.5 text-xs uppercase text-secondary">
+                            <p class="mt-0.5 text-[10px] uppercase text-secondary">
                                 {{ $manualTypeLabel }}
                                 @if ($manual->category)
                                     · {{ $manual->category }}
@@ -142,42 +151,14 @@
 
                             {{-- Description (limited to 2 lines) --}}
                             @if ($manual->description)
-                                <p class="mt-1.5 text-sm leading-5 text-secondary line-clamp-2">
+                                <p class="mt-1.5 text-xs leading-4 text-secondary line-clamp-2">
                                     {{ $manual->description }}
                                 </p>
                             @endif
 
-                            {{-- Content preview (limited to 2 lines) --}}
-                            @if ($manual->content)
-                                <div class="mt-1.5 overflow-hidden rounded-lg border border-app-border bg-surface-alt p-2">
-                                    <p class="whitespace-pre-wrap text-xs leading-5 text-secondary-dark line-clamp-2">{{ $manual->content }}</p>
-                                </div>
-                            @endif
-
-                            {{-- Attachments --}}
-                            @if ($manual->attachments->count())
-                                <div class="mt-2 space-y-1.5">
-                                    @foreach ($manual->attachments as $attachment)
-                                        @php
-                                            $extension = strtolower(pathinfo($attachment->file_name, PATHINFO_EXTENSION));
-                                        @endphp
-
-                                        <div class="min-w-0 rounded-lg border border-app-border bg-white p-2">
-                                            <p
-                                                class="min-w-0 truncate text-xs font-medium text-secondary-dark"
-                                                title="{{ $attachment->file_name }}"
-                                            >
-                                                {{ $attachment->file_name }}
-                                            </p>
-                                            <p class="mt-0.5 text-[10px] uppercase text-secondary">
-                                                {{ strtoupper($extension ?: 'FILE') }}
-                                                @if ($attachment->file_size)
-                                                    · {{ number_format($attachment->file_size / 1024 / 1024, 2) }} MB
-                                                @endif
-                                            </p>
-                                        </div>
-                                    @endforeach
-                                </div>
+                            {{-- "Read more" link if description is long --}}
+                            @if ($manual->description && strlen($manual->description) > 70)
+                                <p class="mt-0.5 text-[10px] text-primary">Read more</p>
                             @endif
                         </div>
                     </div>
@@ -511,16 +492,16 @@
             height: auto;
         }
 
-        .line-clamp-2 {
+        .line-clamp-1 {
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        .line-clamp-3 {
+        .line-clamp-2 {
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
