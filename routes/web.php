@@ -368,6 +368,7 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
 
         Route::get('/contest-tracker', [AdminContestTrackerController::class, 'index'])->name('contest-tracker.index');
         Route::get('/leaderboard', [AdminLeaderboardController::class, 'index'])->name('leaderboard.index');
+        Route::put('/leaderboard/medals', [AdminLeaderboardController::class, 'updateMedals'])->name('leaderboard.medals.update');
 
         Route::prefix('incentives')->name('incentives.')->group(function () {
             Route::get('/', [AdminIncentiveController::class, 'index'])->name('index');

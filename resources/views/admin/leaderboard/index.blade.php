@@ -13,22 +13,58 @@
         $topPerformer = $ranked->first();
     @endphp
 
-    @if ($contests->isEmpty())
-        <div class="card p-10 text-center text-sm text-slate-400">No contests to rank yet.</div>
-    @else
-        <div class="relative w-full overflow-hidden rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-5 sm:max-w-sm">
-            <span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-brand-600">
-                <x-icon name="trophy" class="h-5 w-5" />
-            </span>
-            <form method="GET" class="relative pr-12">
-                <label class="form-label">Contest</label>
-                <select name="contest" class="form-input" onchange="this.form.submit()">
-                    @foreach ($contests as $contest)
-                        <option value="{{ $contest->id }}" @selected($selectedContest?->id === $contest->id)>{{ $contest->name }}</option>
-                    @endforeach
-                </select>
-            </form>
-        </div>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        @if ($contests->isEmpty())
+            <div class="card p-10 text-center text-sm text-slate-400">No contests to rank yet.</div>
+        @else
+            <div class="relative w-full overflow-hidden rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-5 sm:max-w-sm">
+                <span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-brand-600">
+                    <x-icon name="trophy" class="h-5 w-5" />
+                </span>
+                <form method="GET" class="relative pr-12">
+                    <label class="form-label">Contest</label>
+                    <select name="contest" class="form-input" onchange="this.form.submit()">
+                        @foreach ($contests as $contest)
+                            <option value="{{ $contest->id }}" @selected($selectedContest?->id === $contest->id)>{{ $contest->name }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
+        @endif
+
+        <button type="button" x-data="" x-on:click="$dispatch('open-modal', 'edit-rank-medals')" class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
+            <x-icon name="pencil" class="h-4 w-4" />
+            Edit Rank Medals
+        </button>
+    </div>
+
+    <x-modal name="edit-rank-medals" max-width="sm">
+        <form method="POST" action="{{ route('admin.leaderboard.medals.update') }}">
+            @csrf
+            @method('PUT')
+
+            <div class="border-b border-slate-100 px-6 py-5">
+                <h2 class="text-lg font-bold text-slate-800">Edit Rank Medals</h2>
+                <p class="mt-0.5 text-sm text-slate-400">Shown next to the top ranks on every leaderboard</p>
+            </div>
+
+            <div class="space-y-3 px-6 py-5">
+                @foreach ($rankMedals as $medal)
+                    <div class="flex items-center gap-3">
+                        <span class="w-16 shrink-0 text-sm font-semibold text-slate-600">Rank {{ $medal->rank }}</span>
+                        <input type="text" name="medals[{{ $medal->rank }}]" value="{{ old('medals.' . $medal->rank, $medal->emoji) }}" maxlength="10" required class="form-input w-24 text-center text-xl">
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="flex justify-end gap-3 border-t border-slate-100 px-6 py-4">
+                <button type="button" x-on:click="$dispatch('close')" class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="btn-primary">Save</button>
+            </div>
+        </form>
+    </x-modal>
+
+    @if ($contests->isNotEmpty())
 
         @if ($selectedContest)
             <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
