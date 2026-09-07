@@ -332,6 +332,7 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::delete('/{onboardingChecklistItem}', [AdminOnboardingChecklistController::class, 'destroy'])->name('destroy');
             Route::patch('/{onboardingChecklistItem}/publish-toggle', [AdminOnboardingChecklistController::class, 'togglePublish'])->name('publish.toggle');
             Route::get('/progress', [AdminOnboardingChecklistController::class, 'progress'])->name('progress');
+            Route::patch('/progress/{user}/{onboardingChecklistItem}/toggle', [AdminOnboardingChecklistController::class, 'toggleCompletion'])->name('progress.toggle');
         });
 
         Route::prefix('sales-toolkit')->name('sales-toolkit.')->group(function () {

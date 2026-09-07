@@ -61,20 +61,20 @@ class OnboardingChecklistController extends Controller
         $search = trim((string) $request->query('search'));
 
         $items = OnboardingChecklistItem::published()->ordered()->get();
+        $itemIds = $items->pluck('id')->all();
 
         $users = User::where('role', 'user')
             ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
             ->orderBy('name')
-            ->get();
-
-        $itemIds = $items->pluck('id')->all();
+            ->paginate(10)
+            ->withQueryString();
 
         $completedItemIdsByUser = OnboardingChecklistCompletion::whereIn('user_id', $users->pluck('id'))
             ->get()
             ->groupBy('user_id')
             ->map(fn ($rows) => $rows->pluck('onboarding_checklist_item_id')->all());
 
-        $rows = $users->map(function (User $user) use ($items, $itemIds, $completedItemIdsByUser) {
+        $rows = $users->through(function (User $user) use ($items, $itemIds, $completedItemIdsByUser) {
             // Only count completions against items that are still published —
             // a completion left over from a since-unpublished/deleted item
             // must not inflate the count beyond what the matrix actually shows.
@@ -92,6 +92,34 @@ class OnboardingChecklistController extends Controller
             'items' => $items,
             'rows' => $rows,
         ]);
+    }
+
+    /**
+     * Lets an admin correct a salesperson's self-reported checklist step —
+     * e.g. unticking a step they marked done but actually skipped. Mirrors
+     * the same toggle the salesperson uses on their own checklist, just
+     * targeting a specific $user instead of the authenticated one, so the
+     * change is immediately reflected on their own onboarding-checklist page
+     * too (same underlying OnboardingChecklistCompletion row).
+     */
+    public function toggleCompletion(User $user, OnboardingChecklistItem $onboardingChecklistItem): RedirectResponse
+    {
+        $completion = $user->onboardingChecklistCompletions()
+            ->where('onboarding_checklist_item_id', $onboardingChecklistItem->id)
+            ->first();
+
+        if ($completion) {
+            $completion->delete();
+            $status = "Marked \"{$onboardingChecklistItem->title}\" as not completed for {$user->name}.";
+        } else {
+            $user->onboardingChecklistCompletions()->create([
+                'onboarding_checklist_item_id' => $onboardingChecklistItem->id,
+                'completed_at' => now(),
+            ]);
+            $status = "Marked \"{$onboardingChecklistItem->title}\" as completed for {$user->name}.";
+        }
+
+        return back()->with('status', $status);
     }
 
     private function validateItem(Request $request): array

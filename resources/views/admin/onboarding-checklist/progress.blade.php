@@ -17,7 +17,7 @@
     <div class="mt-6 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">Salesperson Progress</h2>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $rows->count() }} salesperson{{ $rows->count() === 1 ? '' : 's' }} &middot; {{ $items->count() }} published step{{ $items->count() === 1 ? '' : 's' }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">{{ $rows->total() }} salesperson{{ $rows->total() === 1 ? '' : 's' }} &middot; {{ $items->count() }} published step{{ $items->count() === 1 ? '' : 's' }}</p>
         </div>
 
         @if ($items->isEmpty())
@@ -53,15 +53,25 @@
 
                                 @foreach ($items as $item)
                                     <td class="px-3 py-3 text-center">
-                                        @if (in_array($item->id, $row->completed_ids))
-                                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                                                <x-icon name="check" class="h-3.5 w-3.5" />
-                                            </span>
-                                        @else
-                                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-300">
-                                                <x-icon name="x" class="h-3.5 w-3.5" />
-                                            </span>
-                                        @endif
+                                        @php $completed = in_array($item->id, $row->completed_ids); @endphp
+                                        <form
+                                            method="POST"
+                                            action="{{ route('admin.onboarding-checklist.progress.toggle', [$row->user, $item]) }}"
+                                            x-data=""
+                                            @if ($completed)
+                                                x-on:submit.prevent="$dispatch('confirm-action', { message: 'Mark &quot;{{ $item->title }}&quot; as not completed for {{ $row->user->name }}?', target: $el })"
+                                            @endif
+                                        >
+                                            @csrf
+                                            @method('PATCH')
+                                            <button
+                                                type="submit"
+                                                title="{{ $completed ? 'Click to mark as not completed' : 'Click to mark as completed' }}"
+                                                class="inline-flex h-6 w-6 items-center justify-center rounded-full transition {{ $completed ? 'bg-emerald-50 text-emerald-600 hover:bg-red-50 hover:text-red-500' : 'bg-slate-100 text-slate-300 hover:bg-emerald-50 hover:text-emerald-600' }}"
+                                            >
+                                                <x-icon name="{{ $completed ? 'check' : 'x' }}" class="h-3.5 w-3.5" />
+                                            </button>
+                                        </form>
                                     </td>
                                 @endforeach
 
@@ -77,6 +87,10 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            <div class="border-t border-slate-100 px-5 py-4">
+                {{ $rows->links() }}
             </div>
         @endif
     </div>
