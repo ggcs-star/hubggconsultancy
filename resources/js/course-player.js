@@ -11,9 +11,17 @@ let teardownCurrent = null;
 let resumeCurrent = null;
 
 function completeLesson(item) {
-    window.axios.post(item.progressUrl, { completed: true }).finally(() => {
-        window.dispatchEvent(new CustomEvent('course:lesson-completed'));
-    });
+    // Only mark the lesson complete in the UI once the save actually
+    // succeeds — this used to fire on .finally(), so a failed request
+    // (expired session, dropped connection, etc.) still showed a green
+    // checkmark while the database never recorded the completion.
+    window.axios.post(item.progressUrl, { completed: true })
+        .then(() => {
+            window.dispatchEvent(new CustomEvent('course:lesson-completed'));
+        })
+        .catch(() => {
+            window.alert("This lesson didn't save as completed — check your connection and try playing it through again.");
+        });
 }
 
 function nextUnfiredCheckpoint(checkpoints, fired, currentTime) {

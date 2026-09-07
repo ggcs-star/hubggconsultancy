@@ -194,11 +194,6 @@
         <x-icon name="calendar" class="h-5 w-5" />
     </a>
 
-    <button type="button" class="relative rounded-full p-2.5 text-slate-500 hover:bg-slate-100">
-        <x-icon name="bell" class="h-5 w-5" />
-        <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-600"></span>
-    </button>
-
     <div class="relative" x-data="{ open: false }" @click.outside="open = false">
         <button
             type="button"

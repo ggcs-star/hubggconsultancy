@@ -191,30 +191,10 @@
                             <p class="mt-1 text-xs text-slate-400">Verified automatically from your GG Prime account.</p>
                         @endif
                     </div>
-                    <div>
-                        <label for="gg_user_id" class="form-label">GG UserId</label>
-                        @if ($isBypassAccount)
-                            <input id="gg_user_id" type="text" name="gg_user_id" value="{{ old('gg_user_id', $user->gg_user_id) }}" class="form-input" placeholder="GG UserId">
-                        @else
-                            <input id="gg_user_id" type="text" value="{{ $user->gg_user_id ?? '—' }}" disabled class="form-input bg-slate-50 text-slate-400">
-                            <p class="mt-1 text-xs text-slate-400">Verified automatically from your GG Prime account.</p>
-                        @endif
-                    </div>
+                    <input type="hidden" name="gg_user_id" value="{{ old('gg_user_id', $user->gg_user_id) }}">
                     <div>
                         <label for="highest_qualification" class="form-label">Highest Qualification</label>
                         <input id="highest_qualification" type="text" name="highest_qualification" value="{{ old('highest_qualification', $user->highest_qualification) }}" class="form-input" placeholder="e.g. MBA">
-                    </div>
-                    <div>
-                        <label for="institution_name" class="form-label">Institution Name</label>
-                        <input id="institution_name" type="text" name="institution_name" value="{{ old('institution_name', $user->institution_name) }}" class="form-input" placeholder="e.g. Delhi University">
-                    </div>
-                    <div>
-                        <label for="field_of_study" class="form-label">Field of Study</label>
-                        <input id="field_of_study" type="text" name="field_of_study" value="{{ old('field_of_study', $user->field_of_study) }}" class="form-input" placeholder="e.g. Marketing">
-                    </div>
-                    <div>
-                        <label for="education_year" class="form-label">Year of Completion</label>
-                        <input id="education_year" type="text" name="education_year" value="{{ old('education_year', $user->education_year) }}" class="form-input" placeholder="e.g. 2022">
                     </div>
                 </div>
             </div>

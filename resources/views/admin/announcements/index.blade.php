@@ -52,10 +52,23 @@
                             <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
                                 <x-icon name="bell" class="h-4 w-4" />
                             </span>
-                            <div>
+                            <div class="min-w-0">
                                 <p class="font-semibold text-slate-800">{{ $announcement->title }}</p>
                                 @if ($announcement->body)
-                                    <p class="mt-0.5 text-sm text-slate-500">{{ $announcement->body }}</p>
+                                    <div
+                                        x-data="{ expanded: false, overflowing: false }"
+                                        x-init="$nextTick(() => overflowing = $refs.body.scrollHeight > $refs.body.clientHeight + 1)"
+                                    >
+                                        <p x-ref="body" class="mt-0.5 text-sm text-slate-500 whitespace-pre-line" :class="expanded ? '' : 'line-clamp-3'">{{ $announcement->body }}</p>
+                                        <button
+                                            type="button"
+                                            x-show="overflowing"
+                                            x-cloak
+                                            x-on:click="expanded = !expanded"
+                                            class="mt-1 text-xs font-semibold text-brand-700 hover:text-brand-800"
+                                            x-text="expanded ? 'Read less' : 'Read more'"
+                                        ></button>
+                                    </div>
                                 @endif
                                 <p class="mt-1 text-xs text-slate-400">{{ $announcement->published_at->format('d M Y') }}</p>
                             </div>

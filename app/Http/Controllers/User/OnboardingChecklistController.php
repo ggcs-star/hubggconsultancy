@@ -29,18 +29,32 @@ class OnboardingChecklistController extends Controller
 
     public function toggle(Request $request, OnboardingChecklistItem $onboardingChecklistItem): RedirectResponse
     {
-        $completion = $request->user()->onboardingChecklistCompletions()
+        $user = $request->user();
+
+        $completion = $user->onboardingChecklistCompletions()
             ->where('onboarding_checklist_item_id', $onboardingChecklistItem->id)
             ->first();
 
         if ($completion) {
+            // Unticking is never blocked — a user correcting their own
+            // over-eager tick isn't something that needs verifying.
             $completion->delete();
-        } else {
-            $request->user()->onboardingChecklistCompletions()->create([
-                'onboarding_checklist_item_id' => $onboardingChecklistItem->id,
-                'completed_at' => now(),
-            ]);
+
+            return back();
         }
+
+        // Ticking is only blocked when this item is confidently matched to a
+        // real course/resource/assessment AND that isn't actually finished
+        // yet. A null result (no match found) means there's nothing to
+        // verify, so it's still a plain self-reported tick, same as always.
+        if ($onboardingChecklistItem->verifyCompletionFor($user) === false) {
+            return back()->with('error', "You haven't completed \"{$onboardingChecklistItem->title}\" yet — finish it first, then check it off here.");
+        }
+
+        $user->onboardingChecklistCompletions()->create([
+            'onboarding_checklist_item_id' => $onboardingChecklistItem->id,
+            'completed_at' => now(),
+        ]);
 
         return back();
     }
