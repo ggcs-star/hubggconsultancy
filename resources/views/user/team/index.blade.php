@@ -9,16 +9,26 @@
             <p class="mx-auto mt-1 max-w-md text-sm text-slate-400">We're having trouble connecting to the GG Prime service right now. Please try again in a few minutes, or contact your administrator if the issue continues.</p>
         </div>
     @else
-        @if ($truncated)
+        @if ($stale)
             <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                Your team is deeper than what's shown here — only the first few levels are displayed.
+                We couldn't reach the GG Prime service just now, so you're seeing the last data we synced
+                @if ($lastSyncedAt)
+                    ({{ \Illuminate\Support\Carbon::parse($lastSyncedAt)->diffForHumans() }})
+                @endif
+                — some figures may be out of date.
             </div>
         @endif
 
+        <!-- @if ($partial)
+            <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                Showing your direct team plus whatever you've explored so far ({{ $stats['discovered_count'] }} of {{ $stats['total_members'] }} members synced) — click "View Members" on the Tree tab to load a branch and add it to the Members list and stats below.
+            </div>
+        @endif -->
+
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <x-stat-card icon="users" color="brand" :value="$stats['total_members']" label="Total Members" />
-            <x-stat-card icon="check-circle" color="success" :value="$stats['purchased_count']" label="Purchased" :description="$stats['purchased_percent'] . '%'" />
-            <x-stat-card icon="check-circle" color="chart-4" :value="$stats['onboarding_complete_count']" label="Onboarding Complete" :description="$stats['onboarding_complete_percent'] . '%'" />
+            <x-stat-card icon="check-circle" color="success" :value="$stats['purchased_count']" label="Purchased" :description="($partial ? 'of ' . $stats['discovered_count'] . ' synced' : $stats['purchased_percent'] . '%')" />
+            <x-stat-card icon="check-circle" color="chart-4" :value="$stats['onboarding_complete_count']" label="Onboarding Complete" :description="($partial ? 'of ' . $stats['discovered_count'] . ' synced' : $stats['onboarding_complete_percent'] . '%')" />
         </div>
 
         <div class="mt-6 card" x-data="{ tab: '{{ request()->hasAny(['search', 'level']) ? 'members' : 'tree' }}' }" x-on:team-view-all-members.window="tab = 'members'">
