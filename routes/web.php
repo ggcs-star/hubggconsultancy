@@ -144,7 +144,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/salesperson-applications', [AdminSalespersonApplicationController::class, 'index'])->name('salesperson-applications');
         Route::post('/salesperson-applications/{user}/approve', [AdminSalespersonApplicationController::class, 'approve'])->name('salesperson-applications.approve');
         Route::post('/salesperson-applications/{user}/reject', [AdminSalespersonApplicationController::class, 'reject'])->name('salesperson-applications.reject');
-        Route::put('/salesperson-applications/{user}/courses', [AdminSalespersonApplicationController::class, 'updateCourses'])->name('salesperson-applications.courses.update');
 
         Route::prefix('courses')->name('courses.')->group(function () {
             Route::get('/', [AdminCourseController::class, 'index'])->name('index');

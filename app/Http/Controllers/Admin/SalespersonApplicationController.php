@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Course;
 use App\Models\User;
 use App\Services\OnboardingAssessmentScorer;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +18,7 @@ class SalespersonApplicationController extends Controller
 
         $applications = User::where('role', 'user')
             ->where('salesperson_status', '!=', 'none')
-            ->with(['interests', 'assignedCourses'])
+            ->with(['interests'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -39,7 +38,6 @@ class SalespersonApplicationController extends Controller
 
         return view('admin.salesperson-applications', [
             'applications' => $applications,
-            'allCourses' => Course::where('is_published', true)->orderBy('title')->get(),
         ]);
     }
 
@@ -55,17 +53,5 @@ class SalespersonApplicationController extends Controller
         $user->update(['salesperson_status' => 'rejected']);
 
         return back()->with('status', "{$user->name}'s application was rejected.");
-    }
-
-    public function updateCourses(Request $request, User $user): RedirectResponse
-    {
-        $data = $request->validate([
-            'course_ids' => ['nullable', 'array'],
-            'course_ids.*' => ['integer', 'exists:courses,id'],
-        ]);
-
-        $user->assignedCourses()->sync($data['course_ids'] ?? []);
-
-        return back()->with('status', "Assigned courses updated for {$user->name}.");
     }
 }

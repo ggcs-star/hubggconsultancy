@@ -17,15 +17,14 @@ class LearningProgressController extends Controller
 
         $courses = Course::where('is_published', true)->orderBy('title')->get();
 
+        $filteredCourses = $courseId !== ''
+            ? $courses->where('id', (int) $courseId)
+            : $courses;
+
         $users = User::where('role', 'user')
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
             }))
-            ->with(['assignedCourses' => function ($query) use ($courseId) {
-                $query->where('is_published', true)
-                    ->when($courseId !== '', fn ($query) => $query->where('courses.id', $courseId))
-                    ->orderBy('title');
-            }])
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();
@@ -33,7 +32,7 @@ class LearningProgressController extends Controller
         $rows = collect();
 
         foreach ($users as $user) {
-            foreach ($user->assignedCourses as $course) {
+            foreach ($filteredCourses as $course) {
                 $rows->push((object) [
                     'user' => $user,
                     'course' => $course,

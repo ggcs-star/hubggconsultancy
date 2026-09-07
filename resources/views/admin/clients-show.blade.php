@@ -130,15 +130,15 @@
             </div>
 
             <div class="card p-6">
-                <h2 class="font-bold text-slate-800">Assigned Courses</h2>
+                <h2 class="font-bold text-slate-800">Available Courses</h2>
+                <p class="text-xs text-slate-400">Every user can see all published courses in Training / LMS</p>
                 <div class="mt-3 space-y-1.5">
-                    @forelse ($client->assignedCourses as $course)
+                    @forelse ($courses as $course)
                         <p class="text-sm text-slate-700">{{ $course->title }}</p>
                     @empty
-                        <p class="text-sm text-slate-400">No courses assigned yet.</p>
+                        <p class="text-sm text-slate-400">No published courses yet.</p>
                     @endforelse
                 </div>
-                <a href="{{ route('admin.salesperson-applications') }}" class="mt-3 block text-sm font-semibold text-brand-700 hover:text-brand-800">Manage assignments</a>
             </div>
 
             <div class="card p-6">

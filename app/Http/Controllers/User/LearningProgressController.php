@@ -13,8 +13,7 @@ class LearningProgressController extends Controller
     {
         $user = $request->user();
 
-        $courses = $user->assignedCourses()
-            ->where('is_published', true)
+        $courses = Course::where('is_published', true)
             ->orderBy('title')
             ->get()
             ->map(function (Course $course) use ($user) {

@@ -47,7 +47,20 @@ class ProfileController extends Controller
         return Cache::remember("gg_profile_{$user->id}", now()->addMinutes(10), function () use ($user) {
             $result = $this->teamApi->profile(['user_id' => $user->gg_user_id]);
 
-            return $result->status === 'found' ? $result->data : null;
+            if ($result->status !== 'found') {
+                return null;
+            }
+
+            // Persisted on the user record itself (not just cached here) so
+            // pages outside Profile — the header avatar, for instance — can
+            // show verified/unverified status without a live API call.
+            $kycVerified = (bool) ($result->data['kyc_verified'] ?? false);
+
+            if ($user->kyc_verified !== $kycVerified) {
+                $user->update(['kyc_verified' => $kycVerified]);
+            }
+
+            return $result->data;
         });
     }
 

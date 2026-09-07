@@ -60,7 +60,7 @@ class DashboardController extends Controller
 
     private function trainingProgress(User $user): object
     {
-        $courses = $user->assignedCourses()->where('is_published', true)->get();
+        $courses = Course::where('is_published', true)->get();
 
         if ($courses->isEmpty()) {
             return (object) ['percent' => 0, 'has_courses' => false];
@@ -133,7 +133,7 @@ class DashboardController extends Controller
 
     private function learningProgress(User $user): \Illuminate\Support\Collection
     {
-        return $user->assignedCourses()->where('is_published', true)->orderBy('title')->get()
+        return Course::where('is_published', true)->orderBy('title')->get()
             ->map(function (Course $course) use ($user) {
                 $course->progress = $course->progressFor($user);
 

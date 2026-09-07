@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\User;
 use App\Services\OnboardingAssessmentScorer;
 use Illuminate\Http\RedirectResponse;
@@ -106,12 +107,13 @@ class ClientController extends Controller
 
     public function show(User $client, OnboardingAssessmentScorer $scorer): View
     {
-        $client->load('interests', 'assignedCourses');
+        $client->load('interests');
 
         return view('admin.clients-show', [
             'client' => $client,
             'points' => $client->lmsPoints(),
             'assessmentScore' => $scorer->score($client),
+            'courses' => Course::where('is_published', true)->orderBy('title')->get(),
         ]);
     }
 

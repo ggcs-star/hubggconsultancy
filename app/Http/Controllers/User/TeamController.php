@@ -121,7 +121,21 @@ class TeamController extends Controller
             ]);
 
         $ownChecklist = $this->checklistStatus($user, $checklistItems, $completionsByUser);
-        $ownKycVerified = $stale ? null : $this->profileStats($user->gg_user_id)['kyc_verified'];
+
+        // Persisted on the user record itself (not just used here) so pages
+        // outside My Team — the header avatar, for instance — can show
+        // verified/unverified status without a live API call on every
+        // request. Falls back to whatever was last stored when the API
+        // can't be reached right now, rather than showing nothing.
+        if ($stale) {
+            $ownKycVerified = $user->kyc_verified;
+        } else {
+            $ownKycVerified = $this->profileStats($user->gg_user_id)['kyc_verified'];
+
+            if (! is_null($ownKycVerified) && $user->kyc_verified !== $ownKycVerified) {
+                $user->update(['kyc_verified' => $ownKycVerified]);
+            }
+        }
 
         // Level 1 is always shown immediately (not behind a click), so it
         // needs fresh stats up front — but that's at most however many

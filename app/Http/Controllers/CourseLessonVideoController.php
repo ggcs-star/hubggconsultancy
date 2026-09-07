@@ -23,10 +23,7 @@ class CourseLessonVideoController extends Controller
         $user = $request->user();
         $course = $lesson->module->course;
 
-        abort_unless(
-            $user->role === 'admin' || $user->assignedCourses()->where('courses.id', $course->id)->exists(),
-            403
-        );
+        abort_unless($user->role === 'admin' || $course->is_published, 403);
 
         abort_unless(Storage::disk('public')->exists($lesson->video_path), 404);
 

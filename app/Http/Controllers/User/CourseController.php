@@ -22,8 +22,7 @@ class CourseController extends Controller
             return redirect()->route('user.dashboard')->with('status', 'Your account is inactive. Contact your administrator for course access.');
         }
 
-        $courses = $user->assignedCourses()
-            ->where('is_published', true)
+        $courses = Course::where('is_published', true)
             ->withCount('lessons')
             ->orderBy('title')
             ->paginate(10)
@@ -48,7 +47,6 @@ class CourseController extends Controller
         }
 
         abort_unless($course->is_published, 404);
-        abort_unless($user->assignedCourses()->where('courses.id', $course->id)->exists(), 404);
 
         $course->load('modules.lessons.checkpoints.questions', 'modules.moduleQuizzes.questions');
 

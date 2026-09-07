@@ -32,6 +32,7 @@ class User extends Authenticatable
         'status',
         'phone',
         'gg_user_id',
+        'kyc_verified',
         'address',
         'city',
         'highest_qualification',
@@ -63,6 +64,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'profile_completed' => 'boolean',
+        'kyc_verified' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -221,7 +223,7 @@ class User extends Authenticatable
      */
     public function lmsPoints(): object
     {
-        $courseIds = $this->assignedCourses()->pluck('courses.id');
+        $courseIds = Course::where('is_published', true)->pluck('id');
 
         $checkpointIds = CourseQuizCheckpoint::whereIn('course_id', $courseIds)->pluck('id');
 

@@ -203,9 +203,15 @@
         <button
             type="button"
             @click="open = !open"
-            class="hidden h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white transition hover:opacity-90 sm:flex"
+            title="{{ is_null(auth()->user()->kyc_verified) ? '' : (auth()->user()->kyc_verified ? 'Profile Verified' : 'Profile Incomplete') }}"
+            class="relative hidden h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white transition hover:opacity-90 sm:flex {{ is_null(auth()->user()->kyc_verified) ? '' : (auth()->user()->kyc_verified ? 'ring-2 ring-emerald-400 ring-offset-2' : 'ring-2 ring-amber-400 ring-offset-2') }}"
         >
             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+            @if (! is_null(auth()->user()->kyc_verified))
+                <span class="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-white {{ auth()->user()->kyc_verified ? 'bg-emerald-500' : 'bg-amber-500' }}">
+                    <x-icon name="{{ auth()->user()->kyc_verified ? 'check' : 'x' }}" class="h-2 w-2 text-white" stroke-width="3" />
+                </span>
+            @endif
         </button>
 
         <div
