@@ -7,6 +7,7 @@ use App\Traits\HasSortOrder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Document extends Model
 {
@@ -18,12 +19,18 @@ class Document extends Model
         'language',
         'thumbnail',
         'url',
+        'is_external',
+        'original_filename',
+        'mime_type',
+        'file_size',
         'is_published',
         'sort_order',
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
+        'is_external' => 'boolean',
+        'file_size' => 'integer',
     ];
 
     public function scopePublished(Builder $query): Builder
@@ -37,9 +44,25 @@ class Document extends Model
             return asset('storage/' . $this->thumbnail);
         }
 
+        if (! $this->is_external) {
+            return null;
+        }
+
         $fileId = $this->extractDriveFileId($this->url);
 
         return $fileId ? "https://drive.google.com/thumbnail?id={$fileId}&sz=w1000" : null;
+    }
+
+    /**
+     * The real, browsable URL regardless of how this document was added —
+     * the external link as-is, or the public storage URL for an uploaded
+     * file. This (not the raw `url` column) is what "Open in new tab"
+     * should always use, since an uploaded file's `url` is just a path on
+     * the "public" disk, not a full URL.
+     */
+    public function fileUrl(): string
+    {
+        return $this->is_external ? $this->url : Storage::disk('public')->url($this->url);
     }
 
     /**
@@ -50,6 +73,10 @@ class Document extends Model
      */
     public function embedUrl(): ?string
     {
+        if (! $this->is_external) {
+            return null;
+        }
+
         $fileId = $this->extractDriveFileId($this->url);
 
         return $fileId ? "https://drive.google.com/file/d/{$fileId}/preview" : null;
@@ -57,13 +84,14 @@ class Document extends Model
 
     /**
      * What actually goes in the preview modal's iframe: Drive's own preview
-     * URL when we can tell it's a Drive link, otherwise the stored URL
+     * URL when we can tell it's a Drive link, the stored external URL
      * as-is (e.g. a tracklio.in short link that redirects to the real
-     * file) — every document opens inside the app; "Open in new tab" in the
-     * modal is the fallback for the rare host that refuses to be framed.
+     * file), or the uploaded file's own URL — every document opens inside
+     * the app; "Open in new tab" in the modal is the fallback for the rare
+     * host/format that refuses to render inside an iframe.
      */
     public function previewUrl(): string
     {
-        return $this->embedUrl() ?? $this->url;
+        return $this->is_external ? ($this->embedUrl() ?? $this->url) : $this->fileUrl();
     }
 }

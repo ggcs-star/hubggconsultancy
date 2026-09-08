@@ -35,6 +35,11 @@
                     <x-icon name="document" class="h-4 w-4" />
                     Document
                 </label>
+                <label class="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-600 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 has-[:checked]:text-brand-700">
+                    <input type="radio" name="type" value="audio" x-model="type" class="text-brand-600">
+                    <x-icon name="music" class="h-4 w-4" />
+                    Audio
+                </label>
             </div>
         </div>
 
@@ -54,8 +59,8 @@
             <x-input-error :messages="$errors->get('language')" class="mt-1" />
         </div>
 
-        <div x-show="type === 'video'" x-cloak>
-            <label class="form-label">Video Source</label>
+        <div>
+            <label class="form-label" x-text="type === 'audio' ? 'Audio Source' : (type === 'document' ? 'Document Source' : 'Video Source')"></label>
             <div class="flex gap-3">
                 <label class="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-600 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 has-[:checked]:text-brand-700">
                     <input type="radio" name="source" value="upload" x-model="source" class="text-brand-600">
@@ -63,19 +68,19 @@
                 </label>
                 <label class="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-600 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 has-[:checked]:text-brand-700">
                     <input type="radio" name="source" value="link" x-model="source" class="text-brand-600">
-                    Provide Video URL
+                    <span x-text="type === 'audio' ? 'Provide Audio URL' : (type === 'document' ? 'Provide Document URL' : 'Provide Video URL')"></span>
                 </label>
             </div>
         </div>
 
-        <div x-show="type === 'video' && source === 'link'" x-cloak>
-            <label class="form-label">Video URL</label>
-            <input type="url" name="video_url" value="{{ old('video_url', $isEdit && $item->is_external ? $item->url : '') }}" placeholder="https://youtube.com/watch?v=..." class="form-input">
-            <p class="mt-1 text-xs text-slate-400">YouTube, Vimeo, Google Drive or any direct video link.</p>
-            <x-input-error :messages="$errors->get('video_url')" class="mt-1" />
+        <div x-show="source === 'link'" x-cloak>
+            <label class="form-label" x-text="type === 'audio' ? 'Audio URL' : (type === 'document' ? 'Document URL' : 'Video URL')"></label>
+            <input type="url" name="media_url" value="{{ old('media_url', $isEdit && $item->is_external ? $item->url : '') }}" placeholder="https://..." class="form-input">
+            <p class="mt-1 text-xs text-slate-400" x-text="type === 'audio' ? 'Any direct audio file link or hosted audio URL.' : (type === 'document' ? 'Google Docs/Slides/Sheets link, or any PDF/website link.' : 'YouTube, Vimeo, Google Drive or any direct video link.')"></p>
+            <x-input-error :messages="$errors->get('media_url')" class="mt-1" />
         </div>
 
-        <div x-show="!(type === 'video' && source === 'link')" x-cloak>
+        <div x-show="source === 'upload'" x-cloak>
             <label class="form-label">File</label>
 
             @if ($isEdit && $item->original_filename)
@@ -91,7 +96,7 @@
                 </span>
                 <span class="min-w-0 flex-1">
                     <span class="block truncate text-sm font-medium text-slate-700" x-text="fileName || '{{ $isEdit ? 'Choose a new file…' : 'Choose a file…' }}'"></span>
-                    <span class="block text-xs text-slate-400" x-text="type === 'video' ? 'Video file — up to 1GB' : 'Document file — up to 50MB'"></span>
+                    <span class="block text-xs text-slate-400" x-text="type === 'video' ? 'Video file — up to 1GB' : (type === 'audio' ? 'Audio file — up to 100MB' : 'Document file — up to 50MB')"></span>
                 </span>
                 <input type="file" name="file" class="hidden" x-on:change="fileName = $event.target.files[0]?.name ?? null">
             </label>

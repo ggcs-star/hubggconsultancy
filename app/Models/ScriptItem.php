@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasGoogleDriveLink;
 use App\Traits\HasSortOrder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ScriptItem extends Model
 {
-    use HasFactory, HasSortOrder;
+    use HasFactory, HasGoogleDriveLink, HasSortOrder;
 
     private const OFFICE_EXTENSIONS = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
 
@@ -61,6 +62,11 @@ class ScriptItem extends Model
         return $query->where('type', 'document');
     }
 
+    public function scopeAudios(Builder $query): Builder
+    {
+        return $query->where('type', 'audio');
+    }
+
     public function scopeLanguage(Builder $query, string $language): Builder
     {
         return $query->where('language', $language);
@@ -91,5 +97,23 @@ class ScriptItem extends Model
     public function thumbnailUrl(): ?string
     {
         return $this->thumbnail ? asset('storage/' . $this->thumbnail) : null;
+    }
+
+    /**
+     * Drive's own in-page preview URL for an external Document/Audio link,
+     * so it opens inside the app the same way the standalone Documents
+     * page does, instead of a new browser tab. Null when this isn't a
+     * recognizable Drive link (or is an uploaded file, which already has
+     * its own in-page reader) — those keep opening via previewUrl().
+     */
+    public function embedUrl(): ?string
+    {
+        if (! $this->is_external) {
+            return null;
+        }
+
+        $fileId = $this->extractDriveFileId($this->url);
+
+        return $fileId ? "https://drive.google.com/file/d/{$fileId}/preview" : null;
     }
 }

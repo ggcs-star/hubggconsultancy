@@ -38,9 +38,10 @@
             @php
                 $videos = $topic->items->where('language', $value)->where('type', 'video')->sortBy('sort_order')->values();
                 $documents = $topic->items->where('language', $value)->where('type', 'document')->sortBy('sort_order')->values();
+                $audios = $topic->items->where('language', $value)->where('type', 'audio')->sortBy('sort_order')->values();
             @endphp
             <div x-show="activeLang === '{{ $value }}'" x-cloak>
-                @foreach ([['label' => 'Videos', 'icon' => 'video', 'items' => $videos], ['label' => 'Documents', 'icon' => 'document', 'items' => $documents]] as $group)
+                @foreach ([['label' => 'Videos', 'icon' => 'video', 'items' => $videos], ['label' => 'Documents', 'icon' => 'document', 'items' => $documents], ['label' => 'Audios', 'icon' => 'music', 'items' => $audios]] as $group)
                     <div class="mt-6 card">
                         <div class="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
                             <x-icon name="{{ $group['icon'] }}" class="h-4 w-4 text-slate-400" />

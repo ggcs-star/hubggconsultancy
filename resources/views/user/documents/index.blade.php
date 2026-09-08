@@ -67,7 +67,7 @@
                             <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
                                 <p class="truncate font-bold text-slate-800">{{ $document->title }}</p>
                                 <div class="flex shrink-0 items-center gap-3">
-                                    <a href="{{ $document->url }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
+                                    <a href="{{ $document->fileUrl() }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
                                     <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
                                         <x-icon name="x" class="h-4 w-4" />
                                     </button>

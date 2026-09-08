@@ -15,6 +15,8 @@ class ScriptItemController extends Controller
 
     private const MAX_DOCUMENT_UPLOAD_KB = 51200; // 50MB
 
+    private const MAX_AUDIO_UPLOAD_KB = 102400; // 100MB
+
     public function __construct(private FileUploadService $fileUploadService)
     {
     }
@@ -38,7 +40,7 @@ class ScriptItemController extends Controller
     {
         $data = $this->validateItem($request, isCreate: false);
 
-        if ($request->hasFile('file') || ($data['type'] === 'video' && $request->input('source') === 'link')) {
+        if ($request->hasFile('file') || $request->input('source') === 'link') {
             $this->fileUploadService->delete($item->is_external ? null : $item->url);
             $data = $this->attachSource($request, $data);
         }
@@ -76,24 +78,25 @@ class ScriptItemController extends Controller
     private function validateItem(Request $request, bool $isCreate): array
     {
         $type = $request->input('type');
-        $source = $type === 'video' ? $request->input('source', 'upload') : 'upload';
+        $source = $request->input('source', 'upload');
 
         $rules = [
-            'type' => ['required', 'in:video,document'],
+            'type' => ['required', 'in:video,document,audio'],
             'title' => ['required', 'string', 'max:255'],
             'language' => ['required', 'in:english,hindi,gujarati'],
+            'source' => ['required', 'in:upload,link'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
 
-        if ($type === 'video') {
-            $rules['source'] = ['required', 'in:upload,link'];
-        }
-
         if ($source === 'link') {
-            $rules['video_url'] = ['required', 'url', 'max:2048'];
+            $rules['media_url'] = ['required', 'url', 'max:2048'];
         } else {
-            $maxKb = $type === 'video' ? self::MAX_VIDEO_UPLOAD_KB : self::MAX_DOCUMENT_UPLOAD_KB;
+            $maxKb = match ($type) {
+                'video' => self::MAX_VIDEO_UPLOAD_KB,
+                'audio' => self::MAX_AUDIO_UPLOAD_KB,
+                default => self::MAX_DOCUMENT_UPLOAD_KB,
+            };
             $rules['file'] = [$isCreate ? 'required' : 'nullable', 'file', "max:{$maxKb}"];
         }
 
@@ -102,8 +105,8 @@ class ScriptItemController extends Controller
 
     private function attachSource(Request $request, array $data): array
     {
-        if (($data['type'] ?? null) === 'video' && ($data['source'] ?? null) === 'link') {
-            $data['url'] = $data['video_url'];
+        if (($data['source'] ?? null) === 'link') {
+            $data['url'] = $data['media_url'];
             $data['is_external'] = true;
             $data['original_filename'] = null;
             $data['mime_type'] = null;
@@ -118,7 +121,7 @@ class ScriptItemController extends Controller
             $data['file_size'] = $file->getSize();
         }
 
-        unset($data['file'], $data['video_url'], $data['source']);
+        unset($data['file'], $data['media_url'], $data['source']);
 
         return $data;
     }

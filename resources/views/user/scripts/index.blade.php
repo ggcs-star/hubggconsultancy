@@ -27,6 +27,9 @@
             <a href="{{ route('user.scripts.index', ['language' => $language, 'search' => $search, 'type' => 'video']) }}" class="rounded-lg px-4 py-2 text-sm font-semibold transition {{ $type === 'video' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
                 Videos
             </a>
+            <a href="{{ route('user.scripts.index', ['language' => $language, 'search' => $search, 'type' => 'audio']) }}" class="rounded-lg px-4 py-2 text-sm font-semibold transition {{ $type === 'audio' ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
+                Audios
+            </a>
         </div>
     </div>
 
@@ -51,8 +54,10 @@
             @php
                 $videos = $topic->items->where('type', 'video')->values();
                 $documents = $topic->items->where('type', 'document')->values();
+                $audios = $topic->items->where('type', 'audio')->values();
                 $firstDocument = $documents->first();
                 $firstVideo = $videos->first();
+                $firstAudio = $audios->first();
 
                 foreach ($documents as $document) {
                     if (! $document->is_external) {
@@ -65,7 +70,7 @@
                 }
             @endphp
 
-            <div class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600" x-data="{ tab: '{{ $type === 'video' ? 'videos' : 'documents' }}' }">
+            <div class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600" x-data="{ tab: '{{ $type === 'video' ? 'videos' : ($type === 'audio' ? 'audios' : 'documents') }}' }">
                 <div class="p-5 pb-0">
                     <p class="font-bold text-slate-800">{{ $topic->title }}</p>
                 </div>
@@ -91,20 +96,49 @@
                             🎬 Videos <span class="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px]">{{ $videos->count() }}</span>
                         </button>
                     @endif
+                    @if (! $type || $type === 'audio')
+                        <button
+                            type="button"
+                            x-on:click="tab = 'audios'"
+                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                            :class="tab === 'audios' ? 'bg-brand-50 text-brand-700' : 'text-slate-400 hover:text-slate-600'"
+                        >
+                            🎧 Audios <span class="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px]">{{ $audios->count() }}</span>
+                        </button>
+                    @endif
                 </div>
 
                 <div class="flex-1 px-5 py-4">
                     <div x-show="tab === 'documents'" x-cloak class="space-y-1">
                         @forelse ($documents as $document)
                             @if ($document->is_external)
-                                <a href="{{ $document->previewUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
+                                @php $embedUrl = $document->embedUrl(); @endphp
+                                <div x-data="{ open: false }" x-on:click="open = true" class="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
                                     @if ($document->thumbnailUrl())
                                         <img src="{{ $document->thumbnailUrl() }}" alt="" class="h-7 w-7 shrink-0 rounded-md object-cover">
                                     @else
                                         <x-icon name="document" class="h-4 w-4 shrink-0 text-slate-300" />
                                     @endif
                                     <span class="min-w-0 flex-1 truncate">{{ $document->title }}</span>
-                                </a>
+
+                                    <template x-teleport="body">
+                                        <div x-show="open" x-cloak x-on:click.stop="" x-on:keydown.escape.window="open = false" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+                                            <div class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+                                                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                                    <p class="truncate font-bold text-slate-800">{{ $document->title }}</p>
+                                                    <div class="flex shrink-0 items-center gap-3">
+                                                        <a href="{{ $document->previewUrl() }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
+                                                        <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                                            <x-icon name="x" class="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <iframe :src="open ? @js($embedUrl ?? $document->previewUrl()) : ''" class="h-full w-full" allow="autoplay"></iframe>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
                             @else
                                 <button type="button" onclick="window.openScriptReader({{ $document->id }})" class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
                                     @if ($document->thumbnailUrl())
@@ -130,14 +164,89 @@
                             <p class="px-2 py-2 text-sm text-slate-400">No videos for this topic yet.</p>
                         @endforelse
                     </div>
+
+                    <div x-show="tab === 'audios'" x-cloak class="space-y-1">
+                        @forelse ($audios as $audio)
+                            @if ($audio->is_external)
+                                @php $audioEmbedUrl = $audio->embedUrl(); @endphp
+                                <div x-data="{ open: false }" x-on:click="open = true" class="flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
+                                    <span class="min-w-0 truncate">{{ $audio->title }}</span>
+                                    <x-icon name="music" class="h-4 w-4 shrink-0 text-slate-300" />
+
+                                    <template x-teleport="body">
+                                        <div x-show="open" x-cloak x-on:click.stop="" x-on:keydown.escape.window="open = false" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+                                            <div class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+                                                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                                    <p class="truncate font-bold text-slate-800">{{ $audio->title }}</p>
+                                                    <div class="flex shrink-0 items-center gap-3">
+                                                        <a href="{{ $audio->previewUrl() }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
+                                                        <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                                            <x-icon name="x" class="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <iframe :src="open ? @js($audioEmbedUrl ?? $audio->previewUrl()) : ''" class="h-full w-full" allow="autoplay"></iframe>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            @else
+                                <div x-data="{ open: false }" x-on:click="open = true" class="flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-brand-700">
+                                    <span class="min-w-0 truncate">{{ $audio->title }}</span>
+                                    <x-icon name="music" class="h-4 w-4 shrink-0 text-slate-300" />
+
+                                    <template x-teleport="body">
+                                        <div x-show="open" x-cloak x-on:click.stop="" x-on:keydown.escape.window="open = false" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+                                            <div class="relative w-full max-w-md overflow-hidden rounded-xl bg-white shadow-xl">
+                                                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                                    <p class="truncate font-bold text-slate-800">{{ $audio->title }}</p>
+                                                    <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                                        <x-icon name="x" class="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                                <div class="p-5">
+                                                    <audio :src="open ? @js($audio->fileUrl()) : ''" controls autoplay class="w-full"></audio>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            @endif
+                        @empty
+                            <p class="px-2 py-2 text-sm text-slate-400">No audios for this topic yet.</p>
+                        @endforelse
+                    </div>
                 </div>
 
                 @if ($firstDocument)
                     @if ($firstDocument->is_external)
-                        <a href="{{ $firstDocument->previewUrl() }}" target="_blank" rel="noopener" x-show="tab === 'documents'" x-cloak class="flex items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-sm font-semibold text-brand-700 hover:text-brand-800">
-                            Open Document
-                            <x-icon name="chevron-right" class="h-4 w-4" />
-                        </a>
+                        @php $firstDocumentEmbedUrl = $firstDocument->embedUrl(); @endphp
+                        <div x-data="{ open: false }">
+                            <button type="button" x-on:click="open = true" x-show="tab === 'documents'" x-cloak class="flex w-full items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-left text-sm font-semibold text-brand-700 hover:text-brand-800">
+                                Open Document
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </button>
+
+                            <template x-teleport="body">
+                                <div x-show="open" x-cloak x-on:click.stop="" x-on:keydown.escape.window="open = false" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                    <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+                                    <div class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+                                        <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                            <p class="truncate font-bold text-slate-800">{{ $firstDocument->title }}</p>
+                                            <div class="flex shrink-0 items-center gap-3">
+                                                <a href="{{ $firstDocument->previewUrl() }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
+                                                <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                                    <x-icon name="x" class="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <iframe :src="open ? @js($firstDocumentEmbedUrl ?? $firstDocument->previewUrl()) : ''" class="h-full w-full" allow="autoplay"></iframe>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                     @else
                         <button type="button" onclick="window.openScriptReader({{ $firstDocument->id }})" x-show="tab === 'documents'" x-cloak class="flex w-full items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-left text-sm font-semibold text-brand-700 hover:text-brand-800">
                             Open Document
@@ -151,6 +260,60 @@
                         Start Learning
                         <x-icon name="chevron-right" class="h-4 w-4" />
                     </a>
+                @endif
+
+                @if ($firstAudio)
+                    @if ($firstAudio->is_external)
+                        @php $firstAudioEmbedUrl = $firstAudio->embedUrl(); @endphp
+                        <div x-data="{ open: false }">
+                            <button type="button" x-on:click="open = true" x-show="tab === 'audios'" x-cloak class="flex w-full items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-left text-sm font-semibold text-brand-700 hover:text-brand-800">
+                                Start Listening
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </button>
+
+                            <template x-teleport="body">
+                                <div x-show="open" x-cloak x-on:click.stop="" x-on:keydown.escape.window="open = false" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                    <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+                                    <div class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+                                        <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                            <p class="truncate font-bold text-slate-800">{{ $firstAudio->title }}</p>
+                                            <div class="flex shrink-0 items-center gap-3">
+                                                <a href="{{ $firstAudio->previewUrl() }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
+                                                <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                                    <x-icon name="x" class="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <iframe :src="open ? @js($firstAudioEmbedUrl ?? $firstAudio->previewUrl()) : ''" class="h-full w-full" allow="autoplay"></iframe>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    @else
+                        <div x-data="{ open: false }">
+                            <button type="button" x-on:click="open = true" x-show="tab === 'audios'" x-cloak class="flex w-full items-center gap-1.5 border-t border-slate-100 px-5 py-4 text-left text-sm font-semibold text-brand-700 hover:text-brand-800">
+                                Start Listening
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </button>
+
+                            <template x-teleport="body">
+                                <div x-show="open" x-cloak x-on:click.stop="" x-on:keydown.escape.window="open = false" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                    <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+                                    <div class="relative w-full max-w-md overflow-hidden rounded-xl bg-white shadow-xl">
+                                        <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                            <p class="truncate font-bold text-slate-800">{{ $firstAudio->title }}</p>
+                                            <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                                <x-icon name="x" class="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                        <div class="p-5">
+                                            <audio :src="open ? @js($firstAudio->fileUrl()) : ''" controls autoplay class="w-full"></audio>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    @endif
                 @endif
             </div>
         @empty

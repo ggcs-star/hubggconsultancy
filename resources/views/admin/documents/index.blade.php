@@ -64,7 +64,12 @@
                         <button type="button" x-show="clamped" x-on:click="expanded = !expanded" class="mt-1 self-start text-xs font-semibold text-brand-700 hover:underline" x-text="expanded ? 'Read less' : 'Read more'"></button>
                     @endif
 
-                    <a href="{{ $document->url }}" target="_blank" rel="noopener" class="mt-3 truncate text-xs text-brand-700 hover:underline">{{ $document->url }}</a>
+                    <a href="{{ $document->fileUrl() }}" target="_blank" rel="noopener" class="mt-3 flex items-center gap-1.5 truncate text-xs text-brand-700 hover:underline">
+                        @unless ($document->is_external)
+                            <x-icon name="document" class="h-3.5 w-3.5 shrink-0" />
+                        @endunless
+                        <span class="truncate">{{ $document->is_external ? $document->url : ($document->original_filename ?? 'Uploaded file') }}</span>
+                    </a>
 
                     <form method="POST" action="{{ route('admin.documents.publish.toggle', $document) }}" class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
                         @csrf

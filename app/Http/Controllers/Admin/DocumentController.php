@@ -34,7 +34,8 @@ class DocumentController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->validateDocument($request);
+        $data = $this->validateDocument($request, isCreate: true);
+        $data = $this->attachSource($request, $data);
 
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'documents');
@@ -47,7 +48,17 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document): RedirectResponse
     {
-        $data = $this->validateDocument($request);
+        $data = $this->validateDocument($request, isCreate: false);
+
+        if ($data['source'] === 'link' || $request->hasFile('file')) {
+            if (! $document->is_external) {
+                $this->fileUploadService->delete($document->url);
+            }
+
+            $data = $this->attachSource($request, $data);
+        } else {
+            unset($data['file'], $data['source']);
+        }
 
         if ($request->hasFile('thumbnail')) {
             $this->fileUploadService->delete($document->thumbnail);
@@ -61,6 +72,10 @@ class DocumentController extends Controller
 
     public function destroy(Document $document): RedirectResponse
     {
+        if (! $document->is_external) {
+            $this->fileUploadService->delete($document->url);
+        }
+
         $this->fileUploadService->delete($document->thumbnail);
         $document->delete();
 
@@ -76,14 +91,46 @@ class DocumentController extends Controller
         return back()->with('status', $document->is_published ? "\"{$document->title}\" published." : "\"{$document->title}\" set to draft.");
     }
 
-    private function validateDocument(Request $request): array
+    private function validateDocument(Request $request, bool $isCreate): array
     {
-        return $request->validate([
+        $source = $request->input('source', 'link');
+
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'language' => ['required', 'in:english,hindi,gujarati'],
-            'url' => ['required', 'string', 'max:2000', 'url'],
+            'source' => ['required', 'in:upload,link'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
-        ]);
+        ];
+
+        if ($source === 'link') {
+            $rules['url'] = ['required', 'string', 'max:2000', 'url'];
+        } else {
+            $rules['file'] = [$isCreate ? 'required' : 'nullable', 'file', 'max:51200'];
+        }
+
+        return $request->validate($rules);
+    }
+
+    private function attachSource(Request $request, array $data): array
+    {
+        if (($data['source'] ?? null) === 'upload' && $request->hasFile('file')) {
+            $file = $request->file('file');
+
+            $data['url'] = $this->fileUploadService->store($file, 'documents');
+            $data['is_external'] = false;
+            $data['original_filename'] = $file->getClientOriginalName();
+            $data['mime_type'] = $file->getClientMimeType();
+            $data['file_size'] = $file->getSize();
+        } else {
+            $data['is_external'] = true;
+            $data['original_filename'] = null;
+            $data['mime_type'] = null;
+            $data['file_size'] = null;
+        }
+
+        unset($data['file'], $data['source']);
+
+        return $data;
     }
 }

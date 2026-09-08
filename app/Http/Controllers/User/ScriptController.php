@@ -26,7 +26,7 @@ class ScriptController extends Controller
         $search = trim((string) $request->query('search'));
 
         $type = $request->query('type');
-        $type = in_array($type, ['video', 'document'], true) ? $type : null;
+        $type = in_array($type, ['video', 'document', 'audio'], true) ? $type : null;
 
         $topics = ScriptTopic::published()
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
