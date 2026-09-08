@@ -28,8 +28,14 @@
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($documents as $document)
-            <a href="{{ $document->url }}" target="_blank" rel="noopener"
-                class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600 transition hover:-translate-y-0.5 hover:shadow-md">
+            @php
+                $embedUrl = $document->embedUrl();
+                $openAction = $embedUrl ? 'open = true' : ('window.open(' . json_encode($document->url) . ", '_blank', 'noopener')");
+            @endphp
+            <div
+                x-data="{ open: false }"
+                x-on:click="{{ $openAction }}"
+                class="card flex cursor-pointer flex-col overflow-hidden border-l-4 border-l-brand-600 transition hover:-translate-y-0.5 hover:shadow-md">
                 <div class="relative h-40 w-full">
                     <div class="absolute inset-0 flex items-center justify-center bg-brand-50 text-brand-600">
                         <x-icon name="document" class="h-10 w-10" />
@@ -46,11 +52,38 @@
                         <button type="button" x-show="clamped" x-on:click.prevent.stop="expanded = !expanded" class="mt-1 self-start text-xs font-semibold text-brand-700 hover:underline" x-text="expanded ? 'Read less' : 'Read more'"></button>
                     @endif
                     <span class="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700">
-                        <x-icon name="external-link" class="h-3.5 w-3.5" />
+                        <x-icon name="{{ $embedUrl ? 'eye' : 'external-link' }}" class="h-3.5 w-3.5" />
                         Open document
                     </span>
                 </div>
-            </a>
+
+                @if ($embedUrl)
+                    <template x-teleport="body">
+                        <div
+                            x-show="open"
+                            x-cloak
+                            x-on:click.stop=""
+                            x-on:keydown.escape.window="open = false"
+                            class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        >
+                            <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+
+                            <div class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+                                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                    <p class="truncate font-bold text-slate-800">{{ $document->title }}</p>
+                                    <div class="flex shrink-0 items-center gap-3">
+                                        <a href="{{ $document->url }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
+                                        <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                            <x-icon name="x" class="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <iframe :src="open ? @js($embedUrl) : ''" class="h-full w-full" allow="autoplay"></iframe>
+                            </div>
+                        </div>
+                    </template>
+                @endif
+            </div>
         @empty
             <div class="card col-span-full p-10 text-center text-sm text-slate-400">
                 @if (request('search'))

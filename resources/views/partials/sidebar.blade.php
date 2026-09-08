@@ -133,7 +133,13 @@
                 'route' => $isAdmin ? 'admin.leads.index' : 'user.leads.index',
                 'activePattern' => $isAdmin ? 'admin.leads.*' : 'user.leads.*',
             ],
-            ['label' => 'Sales Calculators', 'icon' => 'grid', 'route' => null],
+            [
+                'label' => 'Sales Calculators',
+                'icon' => 'grid',
+                'route' => null,
+                'embedUrl' => 'https://drive.google.com/file/d/1AkVUyk6xUlr5ZVaKfSoM3QHRGjW9qLBB/preview',
+                'externalUrl' => 'https://docs.google.com/spreadsheets/d/1AkVUyk6xUlr5ZVaKfSoM3QHRGjW9qLBB/edit?gid=1100011713#gid=1100011713',
+            ],
             [
                 'label' => 'My Team',
                 'icon' => 'users',
@@ -343,6 +349,52 @@
                                     {{ $item['label'] }}
                                 </span>
                             </a>
+                        @elseif (!empty($item['embedUrl']))
+                            <div x-data="{ open: false }">
+                                <div
+                                    x-on:click="open = true"
+                                    title="{{ $item['label'] }}"
+                                    class="sidebar-link cursor-pointer"
+                                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''"
+                                >
+                                    <x-icon
+                                        :name="$item['icon']"
+                                        class="h-5 w-5 shrink-0"
+                                    />
+
+                                    <span
+                                        x-show="!sidebarCollapsed"
+                                        x-transition.opacity
+                                    >
+                                        {{ $item['label'] }}
+                                    </span>
+                                </div>
+
+                                <template x-teleport="body">
+                                    <div
+                                        x-show="open"
+                                        x-cloak
+                                        x-on:click.stop=""
+                                        x-on:keydown.escape.window="open = false"
+                                        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                                    >
+                                        <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+
+                                        <div class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+                                            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                                <p class="truncate font-bold text-slate-800">{{ $item['label'] }}</p>
+                                                <div class="flex shrink-0 items-center gap-3">
+                                                    <a href="{{ $item['externalUrl'] }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
+                                                    <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                                        <x-icon name="x" class="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <iframe :src="open ? @js($item['embedUrl']) : ''" class="h-full w-full" allow="autoplay"></iframe>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         @elseif ($item['route'])
                             @php
                                 $isActive = isset($item['activeCheck'])

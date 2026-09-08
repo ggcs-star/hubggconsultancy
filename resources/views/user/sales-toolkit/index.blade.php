@@ -38,6 +38,10 @@
         $toolkitReaderFiles = [];
 
         foreach ($items as $item) {
+            if ($item->is_drive_link) {
+                continue;
+            }
+
             $toolkitReaderFiles[$item->id] = [
                 'url' => $item->fileUrl(),
                 'name' => $item->title,
@@ -48,29 +52,81 @@
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($items as $item)
-            <button type="button" onclick="window.openToolkitReader({{ $item->id }})"
-                class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600 text-left transition hover:-translate-y-0.5 hover:shadow-md">
-                <div class="relative h-40 w-full">
-                    <div class="absolute inset-0 flex items-center justify-center bg-brand-50 text-brand-600">
-                        <x-icon name="briefcase" class="h-10 w-10" />
-                    </div>
-                    @if ($item->thumbnailUrl())
-                        <img src="{{ $item->thumbnailUrl() }}" alt="" class="absolute inset-0 h-40 w-full object-cover" onerror="this.remove()">
-                    @endif
-                </div>
-
-                <div class="flex flex-1 flex-col p-5">
-                    <div class="flex items-start justify-between gap-2">
-                        <p class="min-w-0 truncate font-bold text-slate-800">{{ $item->title }}</p>
-                        @if ($item->category)
-                            <span class="badge badge-slate shrink-0">{{ $item->category }}</span>
+            @if ($item->is_drive_link)
+                @php $embedUrl = $item->embedUrl(); @endphp
+                <div x-data="{ open: false }" x-on:click="open = true"
+                    class="card flex cursor-pointer flex-col overflow-hidden border-l-4 border-l-brand-600 text-left transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div class="relative h-40 w-full">
+                        <div class="absolute inset-0 flex items-center justify-center bg-brand-50 text-brand-600">
+                            <x-icon name="briefcase" class="h-10 w-10" />
+                        </div>
+                        @if ($item->thumbnailUrl())
+                            <img src="{{ $item->thumbnailUrl() }}" alt="" class="absolute inset-0 h-40 w-full object-cover" onerror="this.remove()">
                         @endif
                     </div>
-                    @if ($item->description)
-                        <p class="mt-2 flex-1 text-sm text-slate-500">{{ $item->description }}</p>
-                    @endif
+
+                    <div class="flex flex-1 flex-col p-5">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="min-w-0 truncate font-bold text-slate-800">{{ $item->title }}</p>
+                            @if ($item->category)
+                                <span class="badge badge-slate shrink-0">{{ $item->category }}</span>
+                            @endif
+                        </div>
+                        @if ($item->description)
+                            <p class="mt-2 flex-1 text-sm text-slate-500">{{ $item->description }}</p>
+                        @endif
+                    </div>
+
+                    <template x-teleport="body">
+                        <div
+                            x-show="open"
+                            x-cloak
+                            x-on:click.stop=""
+                            x-on:keydown.escape.window="open = false"
+                            class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        >
+                            <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+
+                            <div class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+                                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                                    <p class="truncate font-bold text-slate-800">{{ $item->title }}</p>
+                                    <div class="flex shrink-0 items-center gap-3">
+                                        <a href="{{ $item->url }}" target="_blank" rel="noopener" class="text-xs font-semibold text-brand-700 hover:underline">Open in new tab</a>
+                                        <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100">
+                                            <x-icon name="x" class="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <iframe :src="open ? @js($embedUrl) : ''" class="h-full w-full" allow="autoplay"></iframe>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-            </button>
+            @else
+                <button type="button" onclick="window.openToolkitReader({{ $item->id }})"
+                    class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600 text-left transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div class="relative h-40 w-full">
+                        <div class="absolute inset-0 flex items-center justify-center bg-brand-50 text-brand-600">
+                            <x-icon name="briefcase" class="h-10 w-10" />
+                        </div>
+                        @if ($item->thumbnailUrl())
+                            <img src="{{ $item->thumbnailUrl() }}" alt="" class="absolute inset-0 h-40 w-full object-cover" onerror="this.remove()">
+                        @endif
+                    </div>
+
+                    <div class="flex flex-1 flex-col p-5">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="min-w-0 truncate font-bold text-slate-800">{{ $item->title }}</p>
+                            @if ($item->category)
+                                <span class="badge badge-slate shrink-0">{{ $item->category }}</span>
+                            @endif
+                        </div>
+                        @if ($item->description)
+                            <p class="mt-2 flex-1 text-sm text-slate-500">{{ $item->description }}</p>
+                        @endif
+                    </div>
+                </button>
+            @endif
         @empty
             <div class="card col-span-full p-10 text-center text-sm text-slate-400">
                 @if (request('search') || request('category'))

@@ -44,7 +44,10 @@ class SalesToolkitController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateItem($request, isCreate: true);
-        $data = $this->attachFile($request, $data);
+
+        $data = $request->input('link_type') === 'drive'
+            ? $this->attachDriveLink($request, $data)
+            : $this->attachFile($request, $data);
 
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'sales-toolkit-thumbnails');
@@ -58,9 +61,21 @@ class SalesToolkitController extends Controller
     public function update(Request $request, SalesToolkitItem $salesToolkitItem): RedirectResponse
     {
         $data = $this->validateItem($request, isCreate: false);
+        $switchingToDrive = $request->input('link_type') === 'drive';
 
-        if ($request->hasFile('file')) {
-            $this->fileUploadService->delete($salesToolkitItem->url);
+        if ($switchingToDrive) {
+            // Uploaded files are stored on disk and need cleaning up whether
+            // we're switching away from an old one or just clearing it out.
+            if (! $salesToolkitItem->is_drive_link) {
+                $this->fileUploadService->delete($salesToolkitItem->url);
+            }
+
+            $data = $this->attachDriveLink($request, $data);
+        } elseif ($request->hasFile('file')) {
+            if (! $salesToolkitItem->is_drive_link) {
+                $this->fileUploadService->delete($salesToolkitItem->url);
+            }
+
             $data = $this->attachFile($request, $data);
         }
 
@@ -76,7 +91,10 @@ class SalesToolkitController extends Controller
 
     public function destroy(SalesToolkitItem $salesToolkitItem): RedirectResponse
     {
-        $this->fileUploadService->delete($salesToolkitItem->url);
+        if (! $salesToolkitItem->is_drive_link) {
+            $this->fileUploadService->delete($salesToolkitItem->url);
+        }
+
         $this->fileUploadService->delete($salesToolkitItem->thumbnail);
 
         $salesToolkitItem->delete();
@@ -95,12 +113,16 @@ class SalesToolkitController extends Controller
 
     private function validateItem(Request $request, bool $isCreate): array
     {
+        $linkType = $request->input('link_type', 'upload');
+
         return $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'language' => ['required', 'in:english,hindi,gujarati'],
-            'file' => [$isCreate ? 'required' : 'nullable', 'file', 'max:20480'],
+            'link_type' => ['required', 'in:upload,drive'],
+            'file' => [$isCreate && $linkType === 'upload' ? 'required' : 'nullable', 'file', 'max:20480'],
+            'drive_url' => [$linkType === 'drive' ? 'required' : 'nullable', 'url', 'max:2000'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
@@ -111,11 +133,25 @@ class SalesToolkitController extends Controller
         $file = $request->file('file');
 
         $data['url'] = $this->fileUploadService->store($file, 'sales-toolkit');
+        $data['is_drive_link'] = false;
         $data['original_filename'] = $file->getClientOriginalName();
         $data['mime_type'] = $file->getClientMimeType();
         $data['file_size'] = $file->getSize();
 
-        unset($data['file']);
+        unset($data['file'], $data['link_type'], $data['drive_url']);
+
+        return $data;
+    }
+
+    private function attachDriveLink(Request $request, array $data): array
+    {
+        $data['url'] = $data['drive_url'];
+        $data['is_drive_link'] = true;
+        $data['original_filename'] = null;
+        $data['mime_type'] = null;
+        $data['file_size'] = null;
+
+        unset($data['drive_url'], $data['file'], $data['link_type']);
 
         return $data;
     }

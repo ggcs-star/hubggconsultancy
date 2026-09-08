@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasGoogleDriveLink;
 use App\Traits\HasSortOrder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
-    use HasFactory, HasSortOrder;
+    use HasFactory, HasGoogleDriveLink, HasSortOrder;
 
     protected $fillable = [
         'title',
@@ -36,26 +37,21 @@ class Document extends Model
             return asset('storage/' . $this->thumbnail);
         }
 
-        $fileId = $this->driveFileId();
+        $fileId = $this->extractDriveFileId($this->url);
 
         return $fileId ? "https://drive.google.com/thumbnail?id={$fileId}&sz=w1000" : null;
     }
 
     /**
-     * Extract the file ID from a Google Drive/Docs/Sheets/Slides URL so we
-     * can fall back to Drive's own thumbnail when no thumbnail was uploaded.
-     * Only works if the file is shared as "Anyone with the link".
+     * Drive's own in-page preview URL, embeddable in an iframe so the
+     * document opens inside the app instead of a new browser tab. Null for
+     * non-Drive links, which get opened in a new tab as a fallback since we
+     * can't know whether the target host allows framing.
      */
-    private function driveFileId(): ?string
+    public function embedUrl(): ?string
     {
-        if (preg_match('#/d/([a-zA-Z0-9_-]{10,})#', $this->url, $matches)) {
-            return $matches[1];
-        }
+        $fileId = $this->extractDriveFileId($this->url);
 
-        if (preg_match('/[?&]id=([a-zA-Z0-9_-]{10,})/', $this->url, $matches)) {
-            return $matches[1];
-        }
-
-        return null;
+        return $fileId ? "https://drive.google.com/file/d/{$fileId}/preview" : null;
     }
 }

@@ -1,5 +1,6 @@
 @php
     $isEdit = (bool) $item;
+    $linkType = old('link_type', $isEdit && $item->is_drive_link ? 'drive' : 'upload');
 @endphp
 
 <form method="POST" action="{{ $isEdit ? route('admin.sales-toolkit.update', $item) : route('admin.sales-toolkit.store') }}" enctype="multipart/form-data" class="flex max-h-[85vh] flex-col">
@@ -46,27 +47,47 @@
             <x-input-error :messages="$errors->get('language')" class="mt-1" />
         </div>
 
-        <div x-data="{ fileName: null }">
-            <label class="form-label">File</label>
+        <div x-data="{ linkType: '{{ $linkType }}', fileName: null }">
+            <label class="form-label">Content Source</label>
+            <div class="flex gap-2">
+                <button type="button" x-on:click="linkType = 'upload'" :class="linkType === 'upload' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-500'" class="flex-1 rounded-xl border-2 px-4 py-2.5 text-sm font-semibold transition">Upload File</button>
+                <button type="button" x-on:click="linkType = 'drive'" :class="linkType === 'drive' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-500'" class="flex-1 rounded-xl border-2 px-4 py-2.5 text-sm font-semibold transition">Google Drive Link</button>
+            </div>
+            <input type="hidden" name="link_type" :value="linkType">
 
-            @if ($isEdit && $item->original_filename)
-                <div class="mb-2 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                    <x-icon name="document" class="h-4 w-4 shrink-0 text-slate-400" />
-                    <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener" class="truncate text-brand-700 hover:underline">{{ $item->original_filename }}</a>
-                </div>
-            @endif
+            <div x-show="linkType === 'upload'" x-cloak class="mt-3">
+                @if ($isEdit && $item->original_filename)
+                    <div class="mb-2 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                        <x-icon name="document" class="h-4 w-4 shrink-0 text-slate-400" />
+                        <a href="{{ $item->fileUrl() }}" target="_blank" rel="noopener" class="truncate text-brand-700 hover:underline">{{ $item->original_filename }}</a>
+                    </div>
+                @endif
 
-            <label class="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 px-4 py-3.5 transition hover:border-brand-300 hover:bg-brand-50/40">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
-                    <x-icon name="download" class="h-5 w-5 rotate-180" />
-                </span>
-                <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm font-medium text-slate-700" x-text="fileName || '{{ $isEdit ? 'Choose a new file…' : 'Choose a file…' }}'"></span>
-                    <span class="block text-xs text-slate-400">PDF, Word, PowerPoint, image — up to 20MB</span>
-                </span>
-                <input type="file" name="file" {{ $isEdit ? '' : 'required' }} class="hidden" x-on:change="fileName = $event.target.files[0]?.name ?? null">
-            </label>
-            <x-input-error :messages="$errors->get('file')" class="mt-1" />
+                <label class="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 px-4 py-3.5 transition hover:border-brand-300 hover:bg-brand-50/40">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                        <x-icon name="download" class="h-5 w-5 rotate-180" />
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate text-sm font-medium text-slate-700" x-text="fileName || '{{ $isEdit ? 'Choose a new file…' : 'Choose a file…' }}'"></span>
+                        <span class="block text-xs text-slate-400">PDF, Word, PowerPoint, image — up to 20MB</span>
+                    </span>
+                    <input type="file" name="file" x-bind:required="linkType === 'upload' && {{ $isEdit ? 'false' : 'true' }}" class="hidden" x-on:change="fileName = $event.target.files[0]?.name ?? null">
+                </label>
+                <x-input-error :messages="$errors->get('file')" class="mt-1" />
+            </div>
+
+            <div x-show="linkType === 'drive'" x-cloak class="mt-3">
+                <input
+                    type="url"
+                    name="drive_url"
+                    value="{{ old('drive_url', $isEdit && $item->is_drive_link ? $item->url : '') }}"
+                    placeholder="https://drive.google.com/file/d/..."
+                    class="form-input"
+                    x-bind:required="linkType === 'drive'"
+                >
+                <p class="mt-1 text-xs text-slate-400">Paste a Google Drive share link (shared as "Anyone with the link"). Opens inside the app, same as Documents.</p>
+                <x-input-error :messages="$errors->get('drive_url')" class="mt-1" />
+            </div>
         </div>
 
         <div>
