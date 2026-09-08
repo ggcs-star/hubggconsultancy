@@ -24,7 +24,7 @@ class DocumentController extends Controller
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->when($language !== '', fn ($query) => $query->where('language', $language))
             ->ordered()
-            ->paginate(10)
+            ->paginate(9)
             ->withQueryString();
 
         return view('admin.documents.index', [
