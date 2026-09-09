@@ -16,7 +16,7 @@ class SalesManualController extends Controller
     {
         $visible = fn () => SalesManual::where('status', 'published')->where('is_active', true);
 
-        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+        $availableLanguages = collect(['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'])
             ->filter(fn ($lang) => $visible()->where('language', $lang)->exists())
             ->values()
             ->all();

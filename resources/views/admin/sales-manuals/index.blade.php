@@ -236,6 +236,27 @@
                         Gujarati
                     </option>
 
+                    <option
+                        value="marathi"
+                        @selected(request('language') === 'marathi')
+                    >
+                        Marathi
+                    </option>
+
+                    <option
+                        value="telugu"
+                        @selected(request('language') === 'telugu')
+                    >
+                        Telugu
+                    </option>
+
+                    <option
+                        value="kannada"
+                        @selected(request('language') === 'kannada')
+                    >
+                        Kannada
+                    </option>
+
                 </select>
 
             </div>

@@ -83,7 +83,7 @@ class ScriptItemController extends Controller
         $rules = [
             'type' => ['required', 'in:video,document,audio'],
             'title' => ['required', 'string', 'max:255'],
-            'language' => ['required', 'in:english,hindi,gujarati'],
+            'language' => ['required', 'in:english,hindi,gujarati,marathi,telugu,kannada'],
             'source' => ['required', 'in:upload,link'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],

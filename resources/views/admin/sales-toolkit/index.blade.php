@@ -19,6 +19,9 @@
                 <option value="english" @selected(request('language') === 'english')>English</option>
                 <option value="hindi" @selected(request('language') === 'hindi')>Hindi</option>
                 <option value="gujarati" @selected(request('language') === 'gujarati')>Gujarati</option>
+                <option value="marathi" @selected(request('language') === 'marathi')>Marathi</option>
+                <option value="telugu" @selected(request('language') === 'telugu')>Telugu</option>
+                <option value="kannada" @selected(request('language') === 'kannada')>Kannada</option>
             </select>
 
             @if (request('search') || request('category') || request('language'))

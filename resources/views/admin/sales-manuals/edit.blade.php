@@ -177,6 +177,18 @@
                                 Gujarati
                             </option>
 
+                            <option value="marathi" @selected(old('language', $manual->language) === 'marathi')>
+                                Marathi
+                            </option>
+
+                            <option value="telugu" @selected(old('language', $manual->language) === 'telugu')>
+                                Telugu
+                            </option>
+
+                            <option value="kannada" @selected(old('language', $manual->language) === 'kannada')>
+                                Kannada
+                            </option>
+
                         </select>
 
                     </div>

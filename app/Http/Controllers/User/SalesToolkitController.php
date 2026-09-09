@@ -14,7 +14,7 @@ class SalesToolkitController extends Controller
         $search = trim((string) $request->query('search'));
         $category = trim((string) $request->query('category'));
 
-        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+        $availableLanguages = collect(['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'])
             ->filter(fn ($lang) => SalesToolkitItem::published()->where('language', $lang)->exists())
             ->values()
             ->all();

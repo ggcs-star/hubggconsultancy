@@ -12,7 +12,7 @@ class ScriptController extends Controller
 {
     public function index(Request $request): View
     {
-        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+        $availableLanguages = collect(['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'])
             ->filter(fn ($lang) => ScriptItem::published()->language($lang)->whereHas('topic', fn ($query) => $query->published())->exists())
             ->values()
             ->all();

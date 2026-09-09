@@ -98,7 +98,7 @@ class DocumentController extends Controller
         $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'language' => ['required', 'in:english,hindi,gujarati'],
+            'language' => ['required', 'in:english,hindi,gujarati,marathi,telugu,kannada'],
             'source' => ['required', 'in:upload,link'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
         ];

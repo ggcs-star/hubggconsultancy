@@ -119,7 +119,7 @@ class SalesToolkitController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'language' => ['required', 'in:english,hindi,gujarati'],
+            'language' => ['required', 'in:english,hindi,gujarati,marathi,telugu,kannada'],
             'link_type' => ['required', 'in:upload,drive'],
             'file' => [$isCreate && $linkType === 'upload' ? 'required' : 'nullable', 'file', 'max:20480'],
             'drive_url' => [$linkType === 'drive' ? 'required' : 'nullable', 'url', 'max:2000'],

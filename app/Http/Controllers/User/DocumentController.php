@@ -13,7 +13,7 @@ class DocumentController extends Controller
     {
         $search = trim((string) $request->query('search'));
 
-        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+        $availableLanguages = collect(['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'])
             ->filter(fn ($lang) => Document::published()->where('language', $lang)->exists())
             ->values()
             ->all();

@@ -146,7 +146,7 @@ class SalesManualController extends Controller
 
             'language' => [
                 'required',
-                'in:english,hindi,gujarati',
+                'in:english,hindi,gujarati,marathi,telugu,kannada',
             ],
 
             'description' => [
@@ -401,7 +401,7 @@ class SalesManualController extends Controller
 
             'language' => [
                 'required',
-                'in:english,hindi,gujarati',
+                'in:english,hindi,gujarati,marathi,telugu,kannada',
             ],
 
             'description' => [

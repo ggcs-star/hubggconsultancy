@@ -43,6 +43,9 @@
                 <option value="english" @selected($selectedLanguage === 'english')>English</option>
                 <option value="hindi" @selected($selectedLanguage === 'hindi')>Hindi</option>
                 <option value="gujarati" @selected($selectedLanguage === 'gujarati')>Gujarati</option>
+                <option value="marathi" @selected($selectedLanguage === 'marathi')>Marathi</option>
+                <option value="telugu" @selected($selectedLanguage === 'telugu')>Telugu</option>
+                <option value="kannada" @selected($selectedLanguage === 'kannada')>Kannada</option>
             </select>
             <x-input-error :messages="$errors->get('language')" class="mt-1" />
         </div>
