@@ -98,7 +98,7 @@
                                 <img
                                     src="{{ asset('storage/' . ltrim($manual->cover_image, '/')) }}"
                                     alt="{{ $manual->title }}"
-                                    class="h-full w-full object-contain p-2"
+                                    class="h-full w-full object-cover"
                                     loading="lazy"
                                 >
                             @elseif ($firstAttachment)
@@ -114,7 +114,7 @@
                                     <img
                                         src="{{ $firstFileUrl }}"
                                         alt="{{ $firstAttachment->file_name }}"
-                                        class="h-full w-full object-contain p-2"
+                                        class="h-full w-full object-cover"
                                         loading="lazy"
                                     >
                                 @else
