@@ -11,12 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-screen overflow-hidden font-sans" x-data="{ showPassword: false, showConfirm: false }">
+<body class="font-sans lg:h-screen lg:overflow-hidden" x-data="{ showPassword: false, showConfirm: false }">
 
-    <div class="flex h-screen items-stretch overflow-hidden bg-white">
+    <div class="flex min-h-screen items-stretch bg-white lg:h-screen lg:overflow-hidden">
         @include('partials.auth-side')
 
-        <div class="flex w-full flex-col justify-center overflow-y-auto px-6 py-4 sm:px-12 lg:w-1/2 xl:w-[42%] xl:px-16">
+        <div class="flex w-full flex-col justify-center px-6 py-6 sm:px-12 lg:overflow-y-auto lg:py-4 xl:w-[42%] xl:px-16 lg:w-1/2">
             <div class="mx-auto w-full max-w-sm">
                 <div class="mx-auto mb-1.5 flex h-12 w-12 items-center justify-center rounded-2xl border border-brand-100 bg-white p-1.5 shadow-sm">
                     <img src="{{ asset('favicon.png') }}" alt="Global Garner Hub" class="h-full w-full object-contain" />
