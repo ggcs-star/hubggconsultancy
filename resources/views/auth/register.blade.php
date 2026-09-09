@@ -112,14 +112,19 @@
                     <button type="submit" class="btn-primary w-full">Create Account</button>
                 </form>
 
-                <div class="mt-2 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 sm:flex-row sm:items-center">
+                <p class="mt-2 text-center text-sm text-slate-500">
+                    Already have an account?
+                    <a href="{{ route('login') }}" class="font-semibold text-brand-700 hover:text-brand-800">Log in</a>
+                </p>
+
+                <div class="mt-3 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 sm:flex-row sm:items-center">
                     <div class="flex items-center gap-3">
                         <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
                             <x-brand-icon name="whatsapp" class="h-5 w-5" />
                         </span>
                         <div class="min-w-0 flex-1">
-                            <p class="text-sm font-semibold text-slate-800">Trouble registering?</p>
-                            <p class="text-xs text-brand-700">Chat with our support team on WhatsApp.</p>
+                            <p class="text-sm font-semibold text-slate-800">Need Login Assistance?</p>
+                            <p class="text-xs text-brand-700">Contact our support team on WhatsApp.</p>
                         </div>
                     </div>
                     <a href="https://api.whatsapp.com/send?phone=919662726192&text=Hello%20Team%20GG%2C%0A%0AI%20need%20assistance%20with%20registering%20on%20**GG%20Hub**.%20Kindly%20guide%20me%20through%20the%20registration%20process%20and%20help%20me%20with%20the%20next%20steps.%0A%0AThank%20you%20for%20your%20support."
@@ -128,11 +133,6 @@
                         Chat Now
                     </a>
                 </div>
-
-                <p class="mt-2 text-center text-sm text-slate-500">
-                    Already have an account?
-                    <a href="{{ route('login') }}" class="font-semibold text-brand-700 hover:text-brand-800">Log in</a>
-                </p>
             </div>
         </div>
     </div>
