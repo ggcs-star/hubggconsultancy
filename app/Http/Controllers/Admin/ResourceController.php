@@ -33,19 +33,7 @@ class ResourceController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateResource($request);
-
-        if ($request->hasFile('thumbnail')) {
-            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'resources');
-        }
-        if ($request->hasFile('hindi_thumbnail')) {
-            $data['hindi_thumbnail'] = $this->fileUploadService->store($request->file('hindi_thumbnail'), 'resources');
-        }
-        if ($request->hasFile('english_thumbnail')) {
-            $data['english_thumbnail'] = $this->fileUploadService->store($request->file('english_thumbnail'), 'resources');
-        }
-        if ($request->hasFile('gujarati_thumbnail')) {
-            $data['gujarati_thumbnail'] = $this->fileUploadService->store($request->file('gujarati_thumbnail'), 'resources');
-        }
+        $data = $this->attachThumbnails($request, $data);
 
         $resource = Resource::create($data);
 
@@ -58,11 +46,15 @@ class ResourceController extends Controller
     {
         $resource->load(['checkpoints.questions.options']);
 
+        $checkpointsByLanguage = collect(Resource::LANGUAGES)->mapWithKeys(
+            fn (string $language) => [
+                $language . 'Checkpoints' => $resource->checkpoints->where('language', $language)->sortBy('sort_order')->values(),
+            ]
+        );
+
         return view('admin.resources.show', [
             'resource' => $resource,
-            'englishCheckpoints' => $resource->checkpoints->where('language', 'english')->sortBy('sort_order')->values(),
-            'hindiCheckpoints' => $resource->checkpoints->where('language', 'hindi')->sortBy('sort_order')->values(),
-            'gujaratiCheckpoints' => $resource->checkpoints->where('language', 'gujarati')->sortBy('sort_order')->values(),
+            ...$checkpointsByLanguage->all(),
         ]);
     }
 
@@ -72,20 +64,14 @@ class ResourceController extends Controller
 
         if ($request->hasFile('thumbnail')) {
             $this->fileUploadService->delete($resource->thumbnail);
-            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'resources');
         }
-        if ($request->hasFile('hindi_thumbnail')) {
-            $this->fileUploadService->delete($resource->hindi_thumbnail);
-            $data['hindi_thumbnail'] = $this->fileUploadService->store($request->file('hindi_thumbnail'), 'resources');
+        foreach (Resource::LANGUAGES as $language) {
+            if ($request->hasFile("{$language}_thumbnail")) {
+                $this->fileUploadService->delete($resource->{"{$language}_thumbnail"});
+            }
         }
-        if ($request->hasFile('english_thumbnail')) {
-            $this->fileUploadService->delete($resource->english_thumbnail);
-            $data['english_thumbnail'] = $this->fileUploadService->store($request->file('english_thumbnail'), 'resources');
-        }
-        if ($request->hasFile('gujarati_thumbnail')) {
-            $this->fileUploadService->delete($resource->gujarati_thumbnail);
-            $data['gujarati_thumbnail'] = $this->fileUploadService->store($request->file('gujarati_thumbnail'), 'resources');
-        }
+
+        $data = $this->attachThumbnails($request, $data);
 
         $resource->update($data);
 
@@ -97,12 +83,27 @@ class ResourceController extends Controller
     public function destroy(Resource $resource): RedirectResponse
     {
         $this->fileUploadService->delete($resource->thumbnail);
-        $this->fileUploadService->delete($resource->hindi_thumbnail);
-        $this->fileUploadService->delete($resource->english_thumbnail);
-        $this->fileUploadService->delete($resource->gujarati_thumbnail);
+        foreach (Resource::LANGUAGES as $language) {
+            $this->fileUploadService->delete($resource->{"{$language}_thumbnail"});
+        }
         $resource->delete();
 
         return redirect()->route('admin.resources.index')->with('status', 'Resource deleted.');
+    }
+
+    private function attachThumbnails(Request $request, array $data): array
+    {
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $this->fileUploadService->store($request->file('thumbnail'), 'resources');
+        }
+
+        foreach (Resource::LANGUAGES as $language) {
+            if ($request->hasFile("{$language}_thumbnail")) {
+                $data["{$language}_thumbnail"] = $this->fileUploadService->store($request->file("{$language}_thumbnail"), 'resources');
+            }
+        }
+
+        return $data;
     }
 
     public function togglePublish(Request $request, Resource $resource): RedirectResponse
@@ -116,16 +117,17 @@ class ResourceController extends Controller
 
     private function validateResource(Request $request): array
     {
-        return $request->validate([
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'thumbnail' => ['nullable', 'image', 'max:5120'],
-            'hindi_thumbnail' => ['nullable', 'image', 'max:5120'],
-            'english_thumbnail' => ['nullable', 'image', 'max:5120'],
-            'gujarati_thumbnail' => ['nullable', 'image', 'max:5120'],
-            'hindi_youtube_url' => ['nullable', 'string', 'max:1000'],
-            'english_youtube_url' => ['nullable', 'string', 'max:1000'],
-            'gujarati_youtube_url' => ['nullable', 'string', 'max:1000'],
-        ]);
+        ];
+
+        foreach (Resource::LANGUAGES as $language) {
+            $rules["{$language}_thumbnail"] = ['nullable', 'image', 'max:5120'];
+            $rules["{$language}_youtube_url"] = ['nullable', 'string', 'max:1000'];
+        }
+
+        return $request->validate($rules);
     }
 }

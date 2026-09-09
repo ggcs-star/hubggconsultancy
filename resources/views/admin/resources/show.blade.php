@@ -3,11 +3,22 @@
 
     $formatTimestamp = fn (int $seconds) => sprintf('%d:%02d', intdiv($seconds, 60), $seconds % 60);
 
-    $languages = [
-        'english' => ['label' => 'English', 'url' => $resource->english_youtube_url, 'checkpoints' => $englishCheckpoints],
-        'hindi' => ['label' => 'Hindi', 'url' => $resource->hindi_youtube_url, 'checkpoints' => $hindiCheckpoints],
-        'gujarati' => ['label' => 'Gujarati', 'url' => $resource->gujarati_youtube_url, 'checkpoints' => $gujaratiCheckpoints],
+    $checkpointsByLanguage = [
+        'english' => $englishCheckpoints,
+        'hindi' => $hindiCheckpoints,
+        'gujarati' => $gujaratiCheckpoints,
+        'marathi' => $marathiCheckpoints,
+        'telugu' => $teluguCheckpoints,
+        'kannada' => $kannadaCheckpoints,
     ];
+
+    $languages = collect(\App\Models\Resource::LANGUAGES)->mapWithKeys(fn ($lang) => [
+        $lang => [
+            'label' => ucfirst($lang),
+            'url' => $resource->{"{$lang}_youtube_url"},
+            'checkpoints' => $checkpointsByLanguage[$lang],
+        ],
+    ])->all();
 @endphp
 
 <x-layout title="Manage Checkpoints" title-icon="video" subtitle="{{ $resource->title }}">

@@ -19,12 +19,25 @@ class Resource extends Model
         'hindi_thumbnail',
         'english_thumbnail',
         'gujarati_thumbnail',
+        'marathi_thumbnail',
+        'telugu_thumbnail',
+        'kannada_thumbnail',
         'hindi_youtube_url',
         'english_youtube_url',
         'gujarati_youtube_url',
+        'marathi_youtube_url',
+        'telugu_youtube_url',
+        'kannada_youtube_url',
         'is_published',
         'sort_order',
     ];
+
+    /**
+     * Every language this feature supports, in a stable display order —
+     * shared by the admin form/checkpoint tabs and the user-facing language
+     * switcher so there's one place to add a language in the future.
+     */
+    public const LANGUAGES = ['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'];
 
     protected $casts = [
         'is_published' => 'boolean',
@@ -54,12 +67,15 @@ class Resource extends Model
     // (from before per-language thumbnails existed), when one hasn't been uploaded.
     public function thumbnailFor(string $language): ?string
     {
-        return match ($language) {
-            'hindi' => $this->hindi_thumbnail ?: $this->english_thumbnail ?: $this->gujarati_thumbnail ?: $this->thumbnail,
-            'english' => $this->english_thumbnail ?: $this->hindi_thumbnail ?: $this->gujarati_thumbnail ?: $this->thumbnail,
-            'gujarati' => $this->gujarati_thumbnail ?: $this->english_thumbnail ?: $this->hindi_thumbnail ?: $this->thumbnail,
-            default => $this->thumbnail,
-        };
+        $ordered = collect(self::LANGUAGES)->prepend($language)->unique();
+
+        foreach ($ordered as $candidate) {
+            if ($value = $this->{"{$candidate}_thumbnail"} ?? null) {
+                return $value;
+            }
+        }
+
+        return $this->thumbnail;
     }
 
     public function scopePublished(Builder $query): Builder

@@ -14,7 +14,7 @@ class ResourceController extends Controller
     {
         $resources = Resource::published()->with('checkpoints.questions.options')->ordered()->get();
 
-        $availableLanguages = collect(['english', 'hindi', 'gujarati'])
+        $availableLanguages = collect(Resource::LANGUAGES)
             ->filter(fn ($lang) => $resources->contains(fn (Resource $resource) => filled($resource->{$lang . '_youtube_url'})))
             ->values()
             ->all();

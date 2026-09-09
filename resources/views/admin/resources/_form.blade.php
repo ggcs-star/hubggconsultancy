@@ -16,7 +16,12 @@
         </button>
     </div>
 
-    <div class="mt-6 space-y-5">
+    @php
+        $initialLang = collect(\App\Models\Resource::LANGUAGES)
+            ->first(fn ($lang) => $errors->has("{$lang}_youtube_url") || $errors->has("{$lang}_thumbnail")) ?? 'english';
+    @endphp
+
+    <div class="mt-6 space-y-5" x-data="{ lang: '{{ $initialLang }}' }">
         <div>
             <label class="form-label">Title</label>
             <input type="text" name="title" value="{{ old('title', $isEdit ? $resource->title : '') }}" required placeholder="e.g. ₹5 Lakh Se Kya Hota Hai?" class="form-input">
@@ -27,55 +32,35 @@
             <textarea name="description" rows="3" class="form-input" placeholder="Shown on the resource card, with a See More toggle">{{ old('description', $isEdit ? $resource->description : '') }}</textarea>
         </div>
 
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <div>
-                <label class="form-label">English Thumbnail</label>
-                @if ($isEdit && $resource->english_thumbnail)
-                    <img src="{{ asset('storage/' . $resource->english_thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
-                @endif
-                <input type="file" name="english_thumbnail" accept="image/*" class="form-input">
-                <x-input-error :messages="$errors->get('english_thumbnail')" class="mt-1" />
-            </div>
-
-            <div>
-                <label class="form-label">Hindi Thumbnail</label>
-                @if ($isEdit && $resource->hindi_thumbnail)
-                    <img src="{{ asset('storage/' . $resource->hindi_thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
-                @endif
-                <input type="file" name="hindi_thumbnail" accept="image/*" class="form-input">
-                <x-input-error :messages="$errors->get('hindi_thumbnail')" class="mt-1" />
-            </div>
-
-            <div>
-                <label class="form-label">Gujarati Thumbnail</label>
-                @if ($isEdit && $resource->gujarati_thumbnail)
-                    <img src="{{ asset('storage/' . $resource->gujarati_thumbnail) }}" alt="" class="mb-2 h-24 w-full rounded-lg object-cover">
-                @endif
-                <input type="file" name="gujarati_thumbnail" accept="image/*" class="form-input">
-                <x-input-error :messages="$errors->get('gujarati_thumbnail')" class="mt-1" />
-            </div>
-        </div>
-        <p class="-mt-3 text-xs text-slate-400">Shown on the resource card depending on which language tab a learner has selected. If a language's thumbnail is left blank, another language's is used instead.</p>
-
         <div>
-            <label class="form-label">English YouTube Link</label>
-            <input type="text" name="english_youtube_url" value="{{ old('english_youtube_url', $isEdit ? $resource->english_youtube_url : '') }}" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
-            <x-input-error :messages="$errors->get('english_youtube_url')" class="mt-1" />
+            <label class="form-label">Language</label>
+            <select class="form-input" x-model="lang">
+                @foreach (\App\Models\Resource::LANGUAGES as $language)
+                    <option value="{{ $language }}">{{ ucfirst($language) }}</option>
+                @endforeach
+            </select>
+            <p class="mt-1 text-xs text-slate-400">Switch languages to fill in each one's thumbnail and video link separately. All languages save together when you submit — you don't need to save between switches.</p>
         </div>
 
-        <div>
-            <label class="form-label">Hindi YouTube Link</label>
-            <input type="text" name="hindi_youtube_url" value="{{ old('hindi_youtube_url', $isEdit ? $resource->hindi_youtube_url : '') }}" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
-            <x-input-error :messages="$errors->get('hindi_youtube_url')" class="mt-1" />
-        </div>
+        @foreach (\App\Models\Resource::LANGUAGES as $language)
+            <div x-show="lang === '{{ $language }}'" x-cloak class="space-y-5">
+                <div>
+                    <label class="form-label">{{ ucfirst($language) }} Thumbnail</label>
+                    @if ($isEdit && $resource->{"{$language}_thumbnail"})
+                        <img src="{{ asset('storage/' . $resource->{"{$language}_thumbnail"}) }}" alt="" class="mb-2 h-32 w-full rounded-lg object-cover">
+                    @endif
+                    <input type="file" name="{{ $language }}_thumbnail" accept="image/*" class="form-input">
+                    <x-input-error :messages="$errors->get($language . '_thumbnail')" class="mt-1" />
+                </div>
+                <div>
+                    <label class="form-label">{{ ucfirst($language) }} YouTube Link</label>
+                    <input type="text" name="{{ $language }}_youtube_url" value="{{ old($language . '_youtube_url', $isEdit ? $resource->{"{$language}_youtube_url"} : '') }}" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
+                    <x-input-error :messages="$errors->get($language . '_youtube_url')" class="mt-1" />
+                </div>
+            </div>
+        @endforeach
 
-        <div>
-            <label class="form-label">Gujarati YouTube Link</label>
-            <input type="text" name="gujarati_youtube_url" value="{{ old('gujarati_youtube_url', $isEdit ? $resource->gujarati_youtube_url : '') }}" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
-            <x-input-error :messages="$errors->get('gujarati_youtube_url')" class="mt-1" />
-        </div>
-
-        <p class="text-xs text-slate-400">Playlist links are supported too — they just open on YouTube directly, with no in-page checkpoint quiz (a single video is needed to track watch time).</p>
+        <p class="text-xs text-slate-400">If a language's thumbnail is left blank, another language's is used instead. Playlist links are supported too — they just open on YouTube directly, with no in-page checkpoint quiz (a single video is needed to track watch time).</p>
     </div>
 
     <div class="mt-8 flex justify-end gap-3">
