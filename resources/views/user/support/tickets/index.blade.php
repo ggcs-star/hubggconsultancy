@@ -1,23 +1,10 @@
-<x-layout title="My Support Tickets">
+<x-layout title="My Support Tickets" subtitle="View and manage your support requests.">
 
     {{-- ========================================================= --}}
     {{-- HEADER --}}
     {{-- ========================================================= --}}
 
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-
-        <div>
-
-            <h1 class="text-2xl font-semibold text-secondary-dark">
-                My Support Tickets
-            </h1>
-
-            <p class="mt-1 text-sm text-secondary">
-                View and manage your support requests.
-            </p>
-
-        </div>
-
+    <div class="flex justify-end">
 
         <a
             href="{{ route('user.support.tickets.create') }}"

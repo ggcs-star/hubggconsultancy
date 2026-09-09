@@ -1,10 +1,5 @@
-<x-layout title="Training / LMS">
-    <div>
-        <h1 class="text-2xl font-semibold text-secondary-dark">Training / LMS</h1>
-        <p class="mt-1 text-sm text-secondary">Short videos with quizzes along the way</p>
-    </div>
-
-    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+<x-layout title="Training / LMS" title-icon="academic-cap" subtitle="Short videos with quizzes along the way">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($courses as $course)
             @php $score = $course->score; @endphp
             <a href="{{ route('user.courses.show', $course) }}" class="overflow-hidden rounded-xl border border-app-border bg-white hover:border-primary/40 hover:shadow-sm">

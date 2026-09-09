@@ -112,18 +112,6 @@
                     <button type="submit" class="btn-primary w-full">Create Account</button>
                 </form>
 
-                <div class="my-5 flex items-center gap-3">
-                    <div class="h-px flex-1 bg-slate-200"></div>
-                    <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Or</span>
-                    <div class="h-px flex-1 bg-slate-200"></div>
-                </div>
-
-                <a href="{{ route('auth.google') }}"
-                   class="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                    <x-google-icon class="h-5 w-5" />
-                    Continue with Google
-                </a>
-
                 <p class="mt-6 text-center text-sm text-slate-500">
                     Already have an account?
                     <a href="{{ route('login') }}" class="font-semibold text-brand-700 hover:text-brand-800">Log in</a>

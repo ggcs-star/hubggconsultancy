@@ -132,6 +132,29 @@ class AuthController extends Controller
             }
         }
 
+        // The email-uniqueness rule above only catches a duplicate when the
+        // person registers with email again. Someone who first registered
+        // with email (auto-filling phone from GG Prime) and later registers
+        // again with just their phone number skips that check entirely — GG
+        // Prime resolves the same gg_user_id/phone/email either way, so
+        // check those resolved values against existing accounts too before
+        // creating a second row for the same person.
+        $ggUserId = isset($ggProfile['user_id']) ? (string) $ggProfile['user_id'] : null;
+        $resolvedPhone = $ggProfile['mobile'] ?? $data['phone'] ?? null;
+        $resolvedEmail = $ggProfile['email'] ?? $data['email'] ?? null;
+
+        $alreadyRegistered = User::query()
+            ->when($ggUserId, fn ($query, $value) => $query->orWhere('gg_user_id', $value))
+            ->when($resolvedPhone, fn ($query, $value) => $query->orWhere('phone', $value))
+            ->when($resolvedEmail, fn ($query, $value) => $query->orWhere('email', $value))
+            ->exists();
+
+        if ($alreadyRegistered) {
+            return back()
+                ->withErrors(['email' => 'You already have an account with this email or phone number. Please log in instead.'])
+                ->withInput($request->except('password', 'password_confirmation'));
+        }
+
         $referrer = User::where('referral_code', trim((string) $request->input('referral_code')))->first();
 
         $user = User::create([
@@ -139,11 +162,11 @@ class AuthController extends Controller
             'email' => $ggProfile
                 ? $this->resolveSyncedEmail($ggProfile['email'] ?? null, $data['email'] ?? null)
                 : ($data['email'] ?? null),
-            'phone' => $ggProfile['mobile'] ?? $data['phone'] ?? null,
+            'phone' => $resolvedPhone,
             'password' => Hash::make($data['password']),
             'role' => 'user',
             'referred_by' => $referrer?->id,
-            'gg_user_id' => $ggProfile['user_id'] ?? null,
+            'gg_user_id' => $ggUserId,
         ]);
 
         $request->session()->forget('referral_code');
