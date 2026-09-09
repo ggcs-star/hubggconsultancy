@@ -77,13 +77,22 @@
                     <button type="submit" class="btn-primary w-full">Log In</button>
                 </form>
 
-                <div class="my-5 flex items-center gap-3">
-                    <div class="h-px flex-1 bg-slate-200"></div>
-                    <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Or</span>
-                    <div class="h-px flex-1 bg-slate-200"></div>
+                <div class="mt-5 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3.5 sm:flex-row sm:items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
+                            <x-brand-icon name="whatsapp" class="h-5 w-5" />
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold text-slate-800">Trouble logging in?</p>
+                            <p class="text-xs text-brand-700">Chat with our support team on WhatsApp.</p>
+                        </div>
+                    </div>
+                    <a href="https://api.whatsapp.com/send?phone=919662726192&text=Hello%20Team%20GG%2C%0A%0AI%20need%20assistance%20with%20logging%20in%20to%20**GG%20Hub**.%20Kindly%20guide%20me%20through%20the%20login%20process%20and%20help%20me%20with%20the%20next%20steps.%0A%0AThank%20you%20for%20your%20support."
+                       target="_blank" rel="noopener"
+                       class="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-brand-700 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-800 sm:w-auto">
+                        Chat Now
+                    </a>
                 </div>
-
-             
 
                 <p class="mt-6 text-center text-sm text-slate-500">
                     Don't have an account?

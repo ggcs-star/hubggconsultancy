@@ -16,23 +16,23 @@
     <div class="flex h-screen items-stretch overflow-hidden bg-white">
         @include('partials.auth-side')
 
-        <div class="flex w-full flex-col justify-center overflow-y-auto px-6 py-8 sm:px-12 lg:w-1/2 xl:w-[42%] xl:px-16">
+        <div class="flex w-full flex-col justify-center overflow-y-auto px-6 py-4 sm:px-12 lg:w-1/2 xl:w-[42%] xl:px-16">
             <div class="mx-auto w-full max-w-sm">
-                <div class="mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-2xl border border-brand-100 bg-white p-3 shadow-sm">
+                <div class="mx-auto mb-1.5 flex h-12 w-12 items-center justify-center rounded-2xl border border-brand-100 bg-white p-1.5 shadow-sm">
                     <img src="{{ asset('favicon.png') }}" alt="Global Garner Hub" class="h-full w-full object-contain" />
                 </div>
 
                 <h2 class="text-center text-2xl font-extrabold text-slate-800">Create Your Account</h2>
-                <p class="mt-2 text-center text-sm text-slate-500">Join GG Hub and start your onboarding.</p>
+                <p class="mt-1 text-center text-sm text-slate-500">Join GG Hub and start your onboarding.</p>
 
                 @if (session('status'))
-                    <div class="mt-5 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700">
+                    <div class="mt-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700">
                         {{ session('status') }}
                     </div>
                 @endif
 
                 @if ($errors->any())
-                    <div class="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    <div class="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                         <ul class="list-inside list-disc space-y-1">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -41,7 +41,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('register') }}" class="mt-6 space-y-4">
+                <form method="POST" action="{{ route('register') }}" class="mt-2 space-y-2">
                     @csrf
                     <input type="hidden" name="referral_code" value="{{ old('referral_code', $referralCode ?? '') }}">
 
@@ -52,7 +52,7 @@
                                 <x-icon name="user" class="h-5 w-5" />
                             </span>
                             <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus
-                                   class="form-input pl-11" placeholder="Jane Doe">
+                                   class="form-input py-2.5 pl-11" placeholder="Jane Doe">
                         </div>
                     </div>
 
@@ -63,7 +63,7 @@
                                 <x-icon name="mail" class="h-5 w-5" />
                             </span>
                             <input id="email" type="email" name="email" value="{{ old('email') }}"
-                                   class="form-input pl-11" placeholder="you@example.com">
+                                   class="form-input py-2.5 pl-11" placeholder="you@example.com">
                         </div>
                     </div>
 
@@ -74,9 +74,9 @@
                                 <x-icon name="phone" class="h-5 w-5" />
                             </span>
                             <input id="phone" type="text" name="phone" value="{{ old('phone') }}"
-                                   class="form-input pl-11" placeholder="+91 90000 00000">
+                                   class="form-input py-2.5 pl-11" placeholder="+91 90000 00000">
                         </div>
-                        <p class="mt-1 text-xs text-slate-400">Enter at least one of email or phone number.</p>
+                        <p class="mt-0.5 text-xs text-slate-400">Enter at least one of email or phone number.</p>
                     </div>
 
                     <div>
@@ -86,7 +86,7 @@
                                 <x-icon name="lock" class="h-5 w-5" />
                             </span>
                             <input :type="showPassword ? 'text' : 'password'" id="password" name="password" required
-                                   class="form-input pl-11 pr-11" placeholder="••••••••">
+                                   class="form-input py-2.5 pl-11 pr-11" placeholder="••••••••">
                             <button type="button" @click="showPassword = !showPassword"
                                     class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600">
                                 <x-icon name="eye" class="h-5 w-5" />
@@ -101,7 +101,7 @@
                                 <x-icon name="lock" class="h-5 w-5" />
                             </span>
                             <input :type="showConfirm ? 'text' : 'password'" id="password_confirmation" name="password_confirmation" required
-                                   class="form-input pl-11 pr-11" placeholder="••••••••">
+                                   class="form-input py-2.5 pl-11 pr-11" placeholder="••••••••">
                             <button type="button" @click="showConfirm = !showConfirm"
                                     class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600">
                                 <x-icon name="eye" class="h-5 w-5" />
@@ -112,7 +112,24 @@
                     <button type="submit" class="btn-primary w-full">Create Account</button>
                 </form>
 
-                <p class="mt-6 text-center text-sm text-slate-500">
+                <div class="mt-2 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 sm:flex-row sm:items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
+                            <x-brand-icon name="whatsapp" class="h-5 w-5" />
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold text-slate-800">Trouble registering?</p>
+                            <p class="text-xs text-brand-700">Chat with our support team on WhatsApp.</p>
+                        </div>
+                    </div>
+                    <a href="https://api.whatsapp.com/send?phone=919662726192&text=Hello%20Team%20GG%2C%0A%0AI%20need%20assistance%20with%20registering%20on%20**GG%20Hub**.%20Kindly%20guide%20me%20through%20the%20registration%20process%20and%20help%20me%20with%20the%20next%20steps.%0A%0AThank%20you%20for%20your%20support."
+                       target="_blank" rel="noopener"
+                       class="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-brand-700 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-800 sm:w-auto">
+                        Chat Now
+                    </a>
+                </div>
+
+                <p class="mt-2 text-center text-sm text-slate-500">
                     Already have an account?
                     <a href="{{ route('login') }}" class="font-semibold text-brand-700 hover:text-brand-800">Log in</a>
                 </p>
