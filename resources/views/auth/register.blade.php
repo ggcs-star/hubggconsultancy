@@ -127,7 +127,7 @@
                             <p class="text-xs text-brand-700">Contact our support team on WhatsApp.</p>
                         </div>
                     </div>
-                    <a href="https://api.whatsapp.com/send?phone=919662726192&text=Hello%20Team%20GG%2C%0A%0AI%20need%20assistance%20with%20registering%20on%20**GG%20Hub**.%20Kindly%20guide%20me%20through%20the%20registration%20process%20and%20help%20me%20with%20the%20next%20steps.%0A%0AThank%20you%20for%20your%20support."
+                    <a href="https://wa.link/0iulti"
                        target="_blank" rel="noopener"
                        class="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-brand-700 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-800 sm:w-auto">
                         Chat Now
