@@ -36,8 +36,14 @@
             @endif
 
             @if (session('error'))
-                <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                    {{ session('error') }}
+                <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                    <span>{{ session('error') }}</span>
+                    @if (session('completion_target'))
+                        <a href="{{ session('completion_target')['url'] }}" class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700">
+                            {{ session('completion_target')['label'] }}
+                            <x-icon name="chevron-right" class="h-3.5 w-3.5" />
+                        </a>
+                    @endif
                 </div>
             @endif
 

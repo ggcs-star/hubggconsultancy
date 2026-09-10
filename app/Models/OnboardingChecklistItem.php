@@ -102,6 +102,29 @@ class OnboardingChecklistItem extends Model
         return null;
     }
 
+    /**
+     * Where a user should go to actually finish the thing this item verifies
+     * against, so a blocked self-tick can offer a real button instead of a
+     * dead-end message. Re-runs the same title match as verifyCompletionFor()
+     * — only called in the (rare) blocked-tick path, so the extra lookup is cheap.
+     */
+    public function completionTarget(): ?array
+    {
+        if ($course = $this->matchAgainst(Course::where('is_published', true)->get(['id', 'title']))) {
+            return ['url' => route('user.courses.show', $course), 'label' => 'Go to Training'];
+        }
+
+        if ($this->matchAgainst(Resource::where('is_published', true)->get(['id', 'title']))) {
+            return ['url' => route('user.resources.index'), 'label' => 'Go to Live & Recorded Training'];
+        }
+
+        if ($quiz = $this->matchAgainst(OnboardingAssessmentQuiz::published()->get(['id', 'title']))) {
+            return ['url' => route('user.onboarding-assessment.index', ['quiz' => $quiz->id]), 'label' => 'Go to Assessment'];
+        }
+
+        return null;
+    }
+
     private function matchAgainst(\Illuminate\Support\Collection $candidates): ?Model
     {
         $needle = self::normalizeTitleForMatching($this->title);

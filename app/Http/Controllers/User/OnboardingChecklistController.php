@@ -48,7 +48,9 @@ class OnboardingChecklistController extends Controller
         // yet. A null result (no match found) means there's nothing to
         // verify, so it's still a plain self-reported tick, same as always.
         if ($onboardingChecklistItem->verifyCompletionFor($user) === false) {
-            return back()->with('error', "You haven't completed \"{$onboardingChecklistItem->title}\" yet — finish it first, then check it off here.");
+            return back()
+                ->with('error', "You haven't completed \"{$onboardingChecklistItem->title}\" yet — finish it first, then check it off here.")
+                ->with('completion_target', $onboardingChecklistItem->completionTarget());
         }
 
         $user->onboardingChecklistCompletions()->create([
