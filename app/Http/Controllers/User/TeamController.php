@@ -129,8 +129,16 @@ class TeamController extends Controller
         // can't be reached right now, rather than showing nothing.
         if ($stale) {
             $ownKycVerified = $user->kyc_verified;
+            // No live call while stale — Level 1 (always fully synced) is
+            // the closest available approximation of GG Prime's own count.
+            $directReferralCount = $rows->where('level', 1)->count();
         } else {
-            $ownKycVerified = $this->profileStats($user->gg_user_id)['kyc_verified'];
+            $ownProfileStats = $this->profileStats($user->gg_user_id);
+            $ownKycVerified = $ownProfileStats['kyc_verified'];
+            // Same source as the Profile page's "Direct Referrals" figure —
+            // GG Prime's own /member/profile count, not a local recount from
+            // the tree, so the two pages can never show different numbers.
+            $directReferralCount = $ownProfileStats['direct_referrals'] ?? $rows->where('level', 1)->count();
 
             if (! is_null($ownKycVerified) && $user->kyc_verified !== $ownKycVerified) {
                 $user->update(['kyc_verified' => $ownKycVerified]);
@@ -193,7 +201,6 @@ class TeamController extends Controller
         // synced to team_members so far ($discoveredCount of $totalMembers).
         $totalMembers = $tree['total_team'] ?? $rows->count();
         $discoveredCount = $rows->count();
-        $purchasedCount = $rows->filter(fn ($row) => filled($row->purchase_code))->count();
         $onboardingCompleteCount = $rows->filter(fn ($row) => $row->checklist_complete)->count();
 
         return view('user.team.index', [
@@ -213,8 +220,7 @@ class TeamController extends Controller
             'stats' => [
                 'total_members' => $totalMembers,
                 'discovered_count' => $discoveredCount,
-                'purchased_count' => $purchasedCount,
-                'purchased_percent' => $discoveredCount > 0 ? (int) round($purchasedCount / $discoveredCount * 100) : 0,
+                'direct_referral_count' => $directReferralCount,
                 'onboarding_complete_count' => $onboardingCompleteCount,
                 'onboarding_complete_percent' => $discoveredCount > 0 ? (int) round($onboardingCompleteCount / $discoveredCount * 100) : 0,
             ],
@@ -753,19 +759,20 @@ class TeamController extends Controller
     private function profileStats(?string $ggUserId): array
     {
         if (! $ggUserId) {
-            return ['kyc_verified' => null, 'team_size' => null];
+            return ['kyc_verified' => null, 'team_size' => null, 'direct_referrals' => null];
         }
 
         return Cache::remember("gg_profile_stats_{$ggUserId}", now()->addMinutes(30), function () use ($ggUserId) {
             $result = $this->teamApi->profile(['user_id' => $ggUserId]);
 
             if ($result->status !== 'found') {
-                return ['kyc_verified' => null, 'team_size' => null];
+                return ['kyc_verified' => null, 'team_size' => null, 'direct_referrals' => null];
             }
 
             return [
                 'kyc_verified' => (bool) ($result->data['kyc_verified'] ?? false),
                 'team_size' => isset($result->data['total_team']) ? (int) $result->data['total_team'] : null,
+                'direct_referrals' => isset($result->data['direct_referrals']) ? (int) $result->data['direct_referrals'] : null,
             ];
         });
     }

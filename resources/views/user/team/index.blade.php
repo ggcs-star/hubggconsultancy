@@ -27,7 +27,7 @@
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <x-stat-card icon="users" color="brand" :value="$stats['total_members']" label="Total Members" />
-            <x-stat-card icon="check-circle" color="success" :value="$stats['purchased_count']" label="Purchased" :description="($partial ? 'of ' . $stats['discovered_count'] . ' synced' : $stats['purchased_percent'] . '%')" />
+            <x-stat-card icon="share" color="blue" :value="$stats['direct_referral_count']" label="Direct Referrals" />
             <x-stat-card icon="check-circle" color="chart-4" :value="$stats['onboarding_complete_count']" label="Onboarding Complete" :description="($partial ? 'of ' . $stats['discovered_count'] . ' synced' : $stats['onboarding_complete_percent'] . '%')" />
         </div>
 

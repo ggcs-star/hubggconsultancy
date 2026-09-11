@@ -7,6 +7,7 @@
         'warning' => ['solid' => 'bg-warning', 'stroke' => '#d97706', 'muted' => 'rgba(217, 119, 6, 0.3)'],
         'danger' => ['solid' => 'bg-danger', 'stroke' => '#dc2626', 'muted' => 'rgba(220, 38, 38, 0.3)'],
         'chart-4' => ['solid' => 'bg-chart-4', 'stroke' => '#0ea5e9', 'muted' => 'rgba(14, 165, 233, 0.3)'],
+        'blue' => ['solid' => 'bg-blue-600', 'stroke' => '#2563eb', 'muted' => 'rgba(37, 99, 235, 0.3)'],
         'secondary' => ['solid' => 'bg-secondary', 'stroke' => '#475569', 'muted' => 'rgba(71, 85, 105, 0.3)'],
         'brand' => ['solid' => 'bg-brand-700', 'stroke' => '#6d28d9', 'muted' => 'rgba(109, 40, 217, 0.3)'],
     ];
