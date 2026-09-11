@@ -212,7 +212,171 @@
                 $nextQuiz = $quizzes->first(fn ($candidate) => $candidate->id !== $quiz->id && ! ($scoreByQuizId->get($candidate->id)?->attempted));
             @endphp
             <div class="mt-6 space-y-6">
-                    <div class="card">
+
+                {{-- TRAINING BUTTON --}}
+                @php
+                    $quizTitle = strtolower(trim((string) $quiz->title));
+                @endphp
+
+                @if ($quizTitle === 'gg prime')
+                    <div class="card overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                                    <x-icon name="video" class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-bold text-slate-800">GG Prime Training</p>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                            <x-icon name="lock" class="h-3 w-3" />
+                                            Required
+                                        </span>
+                                    </div>
+                                    <p class="mt-0.5 text-sm text-slate-400">Watch the GG Prime training before attempting this quiz.</p>
+                                </div>
+                            </div>
+                            <a href="{{ url('/resources') }}" class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
+                                <x-icon name="video" class="h-4 w-4" />
+                                Watch GG Prime Training
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </a>
+                        </div>
+                    </div>
+
+                @elseif ($quizTitle === 'upos')
+                    <div class="card overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                                    <x-icon name="video" class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-bold text-slate-800">UPOS Training</p>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                            <x-icon name="lock" class="h-3 w-3" />
+                                            Required
+                                        </span>
+                                    </div>
+                                    <p class="mt-0.5 text-sm text-slate-400">Watch the UPOS training before attempting this quiz.</p>
+                                </div>
+                            </div>
+                            <a href="{{ url('/resources') }}" class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
+                                <x-icon name="video" class="h-4 w-4" />
+                                Watch UPOS Training
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </a>
+                        </div>
+                    </div>
+
+                @elseif ($quizTitle === 'saas')
+                    <div class="card overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                                    <x-icon name="video" class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-bold text-slate-800">SaaS Training</p>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                            <x-icon name="lock" class="h-3 w-3" />
+                                            Required
+                                        </span>
+                                    </div>
+                                    <p class="mt-0.5 text-sm text-slate-400">Watch the SaaS training before attempting this quiz.</p>
+                                </div>
+                            </div>
+                            <a href="{{ url('/training') }}" class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
+                                <x-icon name="video" class="h-4 w-4" />
+                                Watch SaaS Training
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </a>
+                        </div>
+                    </div>
+
+                @elseif ($quizTitle === 'ai')
+                    <div class="card overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                                    <x-icon name="video" class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-bold text-slate-800">AI Training</p>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                            <x-icon name="lock" class="h-3 w-3" />
+                                            Required
+                                        </span>
+                                    </div>
+                                    <p class="mt-0.5 text-sm text-slate-400">Watch the AI training before attempting this quiz.</p>
+                                </div>
+                            </div>
+                            <a href="{{ url('/sales-toolkit?language=english&search=&category=AI') }}" class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
+                                <x-icon name="video" class="h-4 w-4" />
+                                Watch AI Training
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </a>
+                        </div>
+                    </div>
+
+                @elseif (in_array($quizTitle, ['gg pitch desk', 'gg pitch'], true))
+                    <div class="card overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                                    <x-icon name="video" class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-bold text-slate-800">GG Pitch Training</p>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                            <x-icon name="lock" class="h-3 w-3" />
+                                            Required
+                                        </span>
+                                    </div>
+                                    <p class="mt-0.5 text-sm text-slate-400">Watch the GG Pitch training before attempting this quiz.</p>
+                                </div>
+                            </div>
+                            <a href="{{ url('/resources') }}" class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
+                                <x-icon name="video" class="h-4 w-4" />
+                                Watch GG Pitch Training
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </a>
+                        </div>
+                    </div>
+
+                @elseif ($quizTitle === 'acp 3.3')
+                    <div class="card overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                                    <x-icon name="video" class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-bold text-slate-800">ACP 3.3 Training</p>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                            <x-icon name="lock" class="h-3 w-3" />
+                                            Required
+                                        </span>
+                                    </div>
+                                    <p class="mt-0.5 text-sm text-slate-400">Watch the ACP 3.3 training before attempting this quiz.</p>
+                                </div>
+                            </div>
+                            <a href="{{ url('/resources') }}" class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
+                                <x-icon name="video" class="h-4 w-4" />
+                                Watch ACP 3.3 Training
+                                <x-icon name="chevron-right" class="h-4 w-4" />
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- EXISTING QUIZ CARD --}}
+                <div class="card">
                         <div class="border-b border-slate-100 px-6 py-4">
                             <div class="flex flex-wrap items-center justify-between gap-3">
                                 <div class="flex items-center gap-3">
@@ -236,6 +400,7 @@
                                 @endif
                             </div>
                         </div>
+                        
 
                         @if ($quizScore && $quizScore->attempted)
                             {{-- Already submitted — read-only review --}}
