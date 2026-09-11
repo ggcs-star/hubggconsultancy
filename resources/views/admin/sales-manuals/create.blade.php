@@ -220,38 +220,11 @@
                                     class="text-xs font-semibold uppercase tracking-wide"
                                 />
 
-                                <select
+                                <x-language-select
+                                    :selected="old('language', 'english')"
                                     id="language"
-                                    name="language"
-                                    required
                                     class="mt-1.5 w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary"
-                                >
-
-                                    <option value="english" @selected(old('language', 'english') === 'english')>
-                                        English
-                                    </option>
-
-                                    <option value="hindi" @selected(old('language') === 'hindi')>
-                                        Hindi
-                                    </option>
-
-                                    <option value="gujarati" @selected(old('language') === 'gujarati')>
-                                        Gujarati
-                                    </option>
-
-                                    <option value="marathi" @selected(old('language') === 'marathi')>
-                                        Marathi
-                                    </option>
-
-                                    <option value="telugu" @selected(old('language') === 'telugu')>
-                                        Telugu
-                                    </option>
-
-                                    <option value="kannada" @selected(old('language') === 'kannada')>
-                                        Kannada
-                                    </option>
-
-                                </select>
+                                />
 
                             </div>
 

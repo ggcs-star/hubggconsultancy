@@ -1,5 +1,5 @@
 @php
-    $languages = ['english' => 'English', 'hindi' => 'Hindi', 'gujarati' => 'Gujarati', 'marathi' => 'Marathi', 'telugu' => 'Telugu', 'kannada' => 'Kannada'];
+    $languages = \App\Models\Language::ordered()->pluck('name', 'code')->all();
 @endphp
 
 <x-layout title="Manage Items" title-icon="book-open" subtitle="{{ $topic->title }}">

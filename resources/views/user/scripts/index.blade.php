@@ -38,7 +38,7 @@
         <div class="mt-4 flex items-center justify-end gap-2">
             @foreach ($availableLanguages as $value)
                 <a href="{{ route('user.scripts.index', ['language' => $value, 'search' => $search, 'type' => $type]) }}" class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
-                    {{ ucfirst($value) }}
+                    {{ $languageNames[$value] ?? ucfirst($value) }}
                 </a>
             @endforeach
         </div>
@@ -318,7 +318,7 @@
             </div>
         @empty
             <div class="card col-span-full p-10 text-center text-sm text-slate-400">
-                No {{ ucfirst($language) }} scripts or objection-handling topics have been added yet.
+                No {{ $languageNames[$language] ?? ucfirst($language) }} scripts or objection-handling topics have been added yet.
             </div>
         @endforelse
     </div>

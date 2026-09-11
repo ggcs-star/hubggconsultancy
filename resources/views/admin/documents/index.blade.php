@@ -21,7 +21,8 @@
     </div>
 
     <div class="mt-4 flex items-center gap-2">
-        @foreach (['' => 'All', 'english' => 'English', 'hindi' => 'Hindi', 'gujarati' => 'Gujarati', 'marathi' => 'Marathi', 'telugu' => 'Telugu', 'kannada' => 'Kannada'] as $value => $label)
+        @php $languageFilters = ['' => 'All'] + \App\Models\Language::ordered()->pluck('name', 'code')->all(); @endphp
+        @foreach ($languageFilters as $value => $label)
             <a href="{{ route('admin.documents.index', ['language' => $value, 'search' => request('search')]) }}" class="rounded-lg px-4 py-1.5 text-sm font-semibold transition {{ request('language', '') === $value ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
                 {{ $label }}
             </a>

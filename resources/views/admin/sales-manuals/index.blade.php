@@ -215,47 +215,14 @@
                         All Languages
                     </option>
 
-                    <option
-                        value="english"
-                        @selected(request('language') === 'english')
-                    >
-                        English
-                    </option>
-
-                    <option
-                        value="hindi"
-                        @selected(request('language') === 'hindi')
-                    >
-                        Hindi
-                    </option>
-
-                    <option
-                        value="gujarati"
-                        @selected(request('language') === 'gujarati')
-                    >
-                        Gujarati
-                    </option>
-
-                    <option
-                        value="marathi"
-                        @selected(request('language') === 'marathi')
-                    >
-                        Marathi
-                    </option>
-
-                    <option
-                        value="telugu"
-                        @selected(request('language') === 'telugu')
-                    >
-                        Telugu
-                    </option>
-
-                    <option
-                        value="kannada"
-                        @selected(request('language') === 'kannada')
-                    >
-                        Kannada
-                    </option>
+                    @foreach (\App\Models\Language::ordered()->get() as $languageOption)
+                        <option
+                            value="{{ $languageOption->code }}"
+                            @selected(request('language') === $languageOption->code)
+                        >
+                            {{ $languageOption->name }}
+                        </option>
+                    @endforeach
 
                 </select>
 

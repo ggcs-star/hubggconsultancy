@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Language;
 use App\Models\SalesManual;
 use App\Models\SalesManualAttachment;
 use Illuminate\Http\Request;
@@ -146,7 +147,8 @@ class SalesManualController extends Controller
 
             'language' => [
                 'required',
-                'in:english,hindi,gujarati,marathi,telugu,kannada',
+                'string',
+                'max:100',
             ],
 
             'description' => [
@@ -204,6 +206,8 @@ class SalesManualController extends Controller
             ],
 
         ]);
+
+        $validated['language'] = Language::resolveCode($validated['language'], $request->input('new_language_name'));
 
 
         /*
@@ -401,7 +405,8 @@ class SalesManualController extends Controller
 
             'language' => [
                 'required',
-                'in:english,hindi,gujarati,marathi,telugu,kannada',
+                'string',
+                'max:100',
             ],
 
             'description' => [
@@ -459,6 +464,8 @@ class SalesManualController extends Controller
             ],
 
         ]);
+
+        $validated['language'] = Language::resolveCode($validated['language'], $request->input('new_language_name'));
 
 
         /*

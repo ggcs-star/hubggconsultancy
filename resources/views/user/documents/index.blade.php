@@ -19,7 +19,7 @@
             <div class="flex items-center gap-2">
                 @foreach ($availableLanguages as $value)
                     <a href="{{ route('user.documents.index', ['language' => $value, 'search' => request('search')]) }}" class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
-                        {{ ucfirst($value) }}
+                        {{ $languageNames[$value] ?? ucfirst($value) }}
                     </a>
                 @endforeach
             </div>
@@ -83,7 +83,7 @@
                 @if (request('search'))
                     No documents match your search.
                 @else
-                    No {{ ucfirst($language) }} documents have been added yet.
+                    No {{ $languageNames[$language] ?? ucfirst($language) }} documents have been added yet.
                 @endif
             </div>
         @endforelse

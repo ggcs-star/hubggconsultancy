@@ -31,7 +31,7 @@
             <x-stat-card icon="check-circle" color="chart-4" :value="$stats['onboarding_complete_count']" label="Onboarding Complete" :description="($partial ? 'of ' . $stats['discovered_count'] . ' synced' : $stats['onboarding_complete_percent'] . '%')" />
         </div>
 
-        <div class="mt-6 card" x-data="{ tab: '{{ request()->hasAny(['search', 'level']) ? 'members' : 'tree' }}' }" x-on:team-view-all-members.window="tab = 'members'">
+        <div class="mt-6 card" x-data="{ tab: '{{ request()->hasAny(['search', 'level', 'page']) ? 'members' : 'tree' }}' }" x-on:team-view-all-members.window="tab = 'members'">
             <div class="flex items-center gap-1 border-b border-slate-100 px-5 pt-4">
                 <button type="button" x-on:click="tab = 'tree'" class="rounded-t-lg px-3 py-2 text-sm font-semibold transition" :class="tab === 'tree' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-slate-400 hover:text-slate-600'">
                     Team Tree

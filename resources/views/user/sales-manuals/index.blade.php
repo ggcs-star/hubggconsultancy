@@ -47,7 +47,7 @@
                         href="{{ route('user.manuals', ['language' => $value, 'search' => request('search')]) }}"
                         class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-primary text-white shadow-sm' : 'bg-surface-alt text-secondary hover:bg-app-border/40' }}"
                     >
-                        {{ ucfirst($value) }}
+                        {{ $languageNames[$value] ?? ucfirst($value) }}
                     </a>
                 @endforeach
             </div>

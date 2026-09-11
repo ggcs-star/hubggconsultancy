@@ -27,7 +27,7 @@
             <div class="flex items-center gap-2">
                 @foreach ($availableLanguages as $value)
                     <a href="{{ route('user.sales-toolkit.index', ['language' => $value, 'search' => request('search'), 'category' => request('category')]) }}" class="rounded-lg px-5 py-2 text-sm font-semibold transition {{ $language === $value ? 'bg-brand-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
-                        {{ ucfirst($value) }}
+                        {{ $languageNames[$value] ?? ucfirst($value) }}
                     </a>
                 @endforeach
             </div>
@@ -132,7 +132,7 @@
                 @if (request('search') || request('category'))
                     No toolkit items match your search or filter.
                 @else
-                    No {{ ucfirst($language) }} toolkit items have been added yet.
+                    No {{ $languageNames[$language] ?? ucfirst($language) }} toolkit items have been added yet.
                 @endif
             </div>
         @endforelse

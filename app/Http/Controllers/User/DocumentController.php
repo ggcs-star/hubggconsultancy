@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
+use App\Models\Language;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -13,7 +14,7 @@ class DocumentController extends Controller
     {
         $search = trim((string) $request->query('search'));
 
-        $availableLanguages = collect(['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'])
+        $availableLanguages = Language::ordered()->pluck('code')
             ->filter(fn ($lang) => Document::published()->where('language', $lang)->exists())
             ->values()
             ->all();
@@ -35,6 +36,7 @@ class DocumentController extends Controller
             'documents' => $documents,
             'language' => $language,
             'availableLanguages' => $availableLanguages,
+            'languageNames' => Language::pluck('name', 'code'),
         ]);
     }
 }

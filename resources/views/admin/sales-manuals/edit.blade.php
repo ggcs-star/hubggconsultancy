@@ -159,37 +159,11 @@
                             value="Language *"
                             class="uppercase text-xs tracking-wide" />
 
-                        <select
+                        <x-language-select
+                            :selected="old('language', $manual->language)"
                             id="language"
-                            name="language"
-                            required
-                            class="mt-1.5 w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary">
-
-                            <option value="english" @selected(old('language', $manual->language) === 'english')>
-                                English
-                            </option>
-
-                            <option value="hindi" @selected(old('language', $manual->language) === 'hindi')>
-                                Hindi
-                            </option>
-
-                            <option value="gujarati" @selected(old('language', $manual->language) === 'gujarati')>
-                                Gujarati
-                            </option>
-
-                            <option value="marathi" @selected(old('language', $manual->language) === 'marathi')>
-                                Marathi
-                            </option>
-
-                            <option value="telugu" @selected(old('language', $manual->language) === 'telugu')>
-                                Telugu
-                            </option>
-
-                            <option value="kannada" @selected(old('language', $manual->language) === 'kannada')>
-                                Kannada
-                            </option>
-
-                        </select>
+                            class="mt-1.5 w-full rounded-lg border-app-border text-sm shadow-sm focus:border-primary focus:ring-primary"
+                        />
 
                     </div>
 

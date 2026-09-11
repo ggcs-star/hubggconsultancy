@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Language;
 use App\Models\SalesToolkitItem;
 use App\Services\FileUploadService;
 use Illuminate\Http\RedirectResponse;
@@ -115,17 +116,20 @@ class SalesToolkitController extends Controller
     {
         $linkType = $request->input('link_type', 'upload');
 
-        return $request->validate([
+        $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'language' => ['required', 'in:english,hindi,gujarati,marathi,telugu,kannada'],
+            'language' => ['required', 'string', 'max:100'],
             'link_type' => ['required', 'in:upload,drive'],
             'file' => [$isCreate && $linkType === 'upload' ? 'required' : 'nullable', 'file', 'max:20480'],
             'drive_url' => [$linkType === 'drive' ? 'required' : 'nullable', 'url', 'max:2000'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
+        $data['language'] = Language::resolveCode($data['language'], $request->input('new_language_name'));
+
+        return $data;
     }
 
     private function attachFile(Request $request, array $data): array

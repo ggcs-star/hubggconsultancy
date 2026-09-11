@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContentView;
+use App\Models\Language;
 use App\Models\SalesManual;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class SalesManualController extends Controller
     {
         $visible = fn () => SalesManual::where('status', 'published')->where('is_active', true);
 
-        $availableLanguages = collect(['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'])
+        $availableLanguages = Language::ordered()->pluck('code')
             ->filter(fn ($lang) => $visible()->where('language', $lang)->exists())
             ->values()
             ->all();
@@ -112,9 +113,11 @@ class SalesManualController extends Controller
             ->withQueryString();
 
 
+        $languageNames = Language::pluck('name', 'code');
+
         return view(
             'user.sales-manuals.index',
-            compact('manuals', 'language', 'availableLanguages')
+            compact('manuals', 'language', 'availableLanguages', 'languageNames')
         );
     }
 

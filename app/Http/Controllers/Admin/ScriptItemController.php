@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Language;
 use App\Models\ScriptItem;
 use App\Models\ScriptTopic;
 use App\Services\FileUploadService;
@@ -83,7 +84,7 @@ class ScriptItemController extends Controller
         $rules = [
             'type' => ['required', 'in:video,document,audio'],
             'title' => ['required', 'string', 'max:255'],
-            'language' => ['required', 'in:english,hindi,gujarati,marathi,telugu,kannada'],
+            'language' => ['required', 'string', 'max:100'],
             'source' => ['required', 'in:upload,link'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
@@ -100,7 +101,10 @@ class ScriptItemController extends Controller
             $rules['file'] = [$isCreate ? 'required' : 'nullable', 'file', "max:{$maxKb}"];
         }
 
-        return $request->validate($rules);
+        $data = $request->validate($rules);
+        $data['language'] = Language::resolveCode($data['language'], $request->input('new_language_name'));
+
+        return $data;
     }
 
     private function attachSource(Request $request, array $data): array

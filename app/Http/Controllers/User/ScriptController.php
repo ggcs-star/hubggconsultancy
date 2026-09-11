@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Language;
 use App\Models\ScriptItem;
 use App\Models\ScriptTopic;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ class ScriptController extends Controller
 {
     public function index(Request $request): View
     {
-        $availableLanguages = collect(['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'])
+        $availableLanguages = Language::ordered()->pluck('code')
             ->filter(fn ($lang) => ScriptItem::published()->language($lang)->whereHas('topic', fn ($query) => $query->published())->exists())
             ->values()
             ->all();
@@ -40,6 +41,7 @@ class ScriptController extends Controller
             'topics' => $topics,
             'language' => $language,
             'availableLanguages' => $availableLanguages,
+            'languageNames' => Language::pluck('name', 'code'),
             'search' => $search,
             'type' => $type,
         ]);

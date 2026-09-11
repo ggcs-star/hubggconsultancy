@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\CourseQuizQuestionController;
 use App\Http\Controllers\Admin\CourseQuizReviewController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
+use App\Http\Controllers\Admin\LanguageController as AdminLanguageController;
 use App\Http\Controllers\Admin\OnboardingChecklistController as AdminOnboardingChecklistController;
 use App\Http\Controllers\Admin\OnboardingAssessmentAnswerController as AdminOnboardingAssessmentAnswerController;
 use App\Http\Controllers\Admin\OnboardingAssessmentController as AdminOnboardingAssessmentController;
@@ -324,6 +325,8 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::delete('/{document}', [AdminDocumentController::class, 'destroy'])->name('destroy');
             Route::patch('/{document}/publish-toggle', [AdminDocumentController::class, 'togglePublish'])->name('publish.toggle');
         });
+
+        Route::post('/languages', [AdminLanguageController::class, 'store'])->name('languages.store');
 
         Route::prefix('onboarding-checklist')->name('onboarding-checklist.')->group(function () {
             Route::get('/', [AdminOnboardingChecklistController::class, 'index'])->name('index');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Language;
 use App\Models\SalesToolkitItem;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -14,7 +15,7 @@ class SalesToolkitController extends Controller
         $search = trim((string) $request->query('search'));
         $category = trim((string) $request->query('category'));
 
-        $availableLanguages = collect(['english', 'hindi', 'gujarati', 'marathi', 'telugu', 'kannada'])
+        $availableLanguages = Language::ordered()->pluck('code')
             ->filter(fn ($lang) => SalesToolkitItem::published()->where('language', $lang)->exists())
             ->values()
             ->all();
@@ -47,6 +48,7 @@ class SalesToolkitController extends Controller
             'categories' => $categories,
             'language' => $language,
             'availableLanguages' => $availableLanguages,
+            'languageNames' => Language::pluck('name', 'code'),
         ]);
     }
 }

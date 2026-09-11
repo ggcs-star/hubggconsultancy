@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
+use App\Models\Language;
 use App\Services\FileUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -98,7 +99,7 @@ class DocumentController extends Controller
         $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'language' => ['required', 'in:english,hindi,gujarati,marathi,telugu,kannada'],
+            'language' => ['required', 'string', 'max:100'],
             'source' => ['required', 'in:upload,link'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
         ];
@@ -109,7 +110,10 @@ class DocumentController extends Controller
             $rules['file'] = [$isCreate ? 'required' : 'nullable', 'file', 'max:51200'];
         }
 
-        return $request->validate($rules);
+        $data = $request->validate($rules);
+        $data['language'] = Language::resolveCode($data['language'], $request->input('new_language_name'));
+
+        return $data;
     }
 
     private function attachSource(Request $request, array $data): array
