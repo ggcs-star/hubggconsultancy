@@ -71,26 +71,6 @@ class LeadController extends Controller
         ]);
     }
 
-    private function uniqueNameAndPhoneRule(Request $request, ?int $excludeId = null): \Closure
-    {
-        return function ($attribute, $value, $fail) use ($request, $excludeId) {
-            if (! $value) {
-                return;
-            }
-
-            $name = trim((string) $request->input('name'));
-
-            $exists = Lead::where('phone', $value)
-                ->where('name', $name)
-                ->when($excludeId, fn ($query) => $query->where('id', '!=', $excludeId))
-                ->exists();
-
-            if ($exists) {
-                $fail('A lead with this name and phone number already exists.');
-            }
-        };
-    }
-
     private function statWithTrend($leads, callable $matches, string $dateField = 'created_at'): array
     {
         $value = $leads->filter($matches)->count();
@@ -109,84 +89,6 @@ class LeadController extends Controller
             : ($current > 0 ? 100 : 0);
 
         return ['value' => $value, 'trend' => $trend];
-    }
-
-    public function create(): View
-    {
-        return view('user.leads.create', [
-            'campaigns' => Campaign::active()->orderBy('name')->get(),
-        ]);
-    }
-
-    public function store(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30', $this->uniqueNameAndPhoneRule($request)],
-            'company' => ['nullable', 'string', 'max:255'],
-            'source' => ['nullable', 'string', 'max:255'],
-            'campaign_id' => ['nullable', 'exists:campaigns,id'],
-            'product' => ['nullable', 'string', 'max:255'],
-            'priority' => ['required', 'in:low,medium,high'],
-            'next_follow_up_at' => ['nullable', 'date'],
-        ]);
-
-        $data['status'] = 'new';
-        $data['assigned_to'] = $request->user()->id;
-        $data['created_by'] = $request->user()->id;
-
-        $duplicates = ! empty($data['phone']) ? Lead::duplicatesFor($data['phone']) : collect();
-
-        $lead = Lead::create($data);
-
-        $status = 'Lead added.';
-        if ($duplicates->isNotEmpty()) {
-            $status .= ' Note: ' . $duplicates->count() . ' existing lead(s) already share this phone number — check for duplicates.';
-        }
-
-        return redirect()->route('user.leads.index')->with('status', $status);
-    }
-
-    public function edit(Request $request, Lead $lead): View
-    {
-        abort_unless($lead->assigned_to === $request->user()->id, 403);
-
-        return view('user.leads.edit', [
-            'lead' => $lead,
-            'campaigns' => Campaign::active()->orderBy('name')->get(),
-        ]);
-    }
-
-    public function update(Request $request, Lead $lead): RedirectResponse
-    {
-        abort_unless($lead->assigned_to === $request->user()->id, 403);
-
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30', $this->uniqueNameAndPhoneRule($request, $lead->id)],
-            'company' => ['nullable', 'string', 'max:255'],
-            'source' => ['nullable', 'string', 'max:255'],
-            'campaign_id' => ['nullable', 'exists:campaigns,id'],
-            'product' => ['nullable', 'string', 'max:255'],
-            'priority' => ['required', 'in:low,medium,high'],
-            'status' => ['required', 'in:' . implode(',', array_keys(Lead::statusLabels()))],
-            'next_follow_up_at' => ['nullable', 'date'],
-        ]);
-
-        $lead->update($data);
-
-        return redirect()->route('user.leads.index')->with('status', 'Lead updated.');
-    }
-
-    public function destroy(Request $request, Lead $lead): RedirectResponse
-    {
-        abort_unless($lead->assigned_to === $request->user()->id, 403);
-
-        $lead->delete();
-
-        return redirect()->route('user.leads.index')->with('status', 'Lead deleted.');
     }
 
     public function storeCampaign(Request $request): RedirectResponse|JsonResponse

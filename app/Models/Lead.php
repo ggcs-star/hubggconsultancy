@@ -102,6 +102,35 @@ class Lead extends Model
             ->where('next_follow_up_at', '<=', now()->toDateString());
     }
 
+    /**
+     * Shared search/status/assignee/campaign/product/follow-up-date filtering, used identically
+     * by the admin leads index and CSV export so the two never drift out of sync.
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        $search = trim((string) ($filters['search'] ?? ''));
+        $status = trim((string) ($filters['status'] ?? ''));
+        $assignedTo = trim((string) ($filters['assigned_to'] ?? ''));
+        $campaignId = trim((string) ($filters['campaign_id'] ?? ''));
+        $product = trim((string) ($filters['product'] ?? ''));
+        $followUpFrom = trim((string) ($filters['follow_up_from'] ?? ''));
+        $followUpTo = trim((string) ($filters['follow_up_to'] ?? ''));
+
+        return $query
+            ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('company', 'like', "%{$search}%");
+            }))
+            ->when($status !== '', fn ($query) => $query->where('status', $status))
+            ->when($assignedTo !== '', fn ($query) => $query->where('assigned_to', $assignedTo))
+            ->when($campaignId !== '', fn ($query) => $query->where('campaign_id', $campaignId))
+            ->when($product !== '', fn ($query) => $query->where('product', 'like', "%{$product}%"))
+            ->when($followUpFrom !== '', fn ($query) => $query->whereDate('next_follow_up_at', '>=', $followUpFrom))
+            ->when($followUpTo !== '', fn ($query) => $query->whereDate('next_follow_up_at', '<=', $followUpTo));
+    }
+
     public function isOverdue(): bool
     {
         return $this->next_follow_up_at
@@ -124,6 +153,30 @@ class Lead extends Model
             'invalid' => 'Invalid',
             'follow_up_later' => 'Follow-up Later',
         ];
+    }
+
+    /** Accepts either a status key ("follow_up_later") or its label ("Follow-up Later"); falls back to "new". */
+    public static function resolveStatusFromInput(?string $value): string
+    {
+        $value = strtolower(trim((string) $value));
+
+        if ($value === '') {
+            return 'new';
+        }
+
+        $labels = static::statusLabels();
+
+        if (array_key_exists($value, $labels)) {
+            return $value;
+        }
+
+        foreach ($labels as $key => $label) {
+            if (strtolower($label) === $value) {
+                return $key;
+            }
+        }
+
+        return 'new';
     }
 
     public function statusLabel(): string

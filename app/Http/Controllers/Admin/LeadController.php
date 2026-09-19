@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Lead;
-use App\Models\User;
+use App\Services\Leads\LeadCsvService;
+use App\Traits\HasApprovedSalespersons;
 use App\Traits\ResolvesPeriod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,19 +15,18 @@ use Illuminate\View\View;
 class LeadController extends Controller
 {
     use ResolvesPeriod;
+    use HasApprovedSalespersons;
+
+    public function __construct(private readonly LeadCsvService $leadCsvService)
+    {
+    }
 
     public function index(Request $request): View
     {
         $period = in_array($request->query('period'), ['today', 'week', 'month'], true) ? $request->query('period') : 'all';
         [$periodFrom, $periodTo] = $this->resolvePeriodRange($period);
 
-        $search = trim((string) $request->query('search'));
-        $status = trim((string) $request->query('status'));
-        $assignedTo = trim((string) $request->query('assigned_to'));
-        $campaignId = trim((string) $request->query('campaign_id'));
-        $product = trim((string) $request->query('product'));
-        $followUpFrom = trim((string) $request->query('follow_up_from'));
-        $followUpTo = trim((string) $request->query('follow_up_to'));
+        $filters = $request->only(['search', 'status', 'assigned_to', 'campaign_id', 'product', 'follow_up_from', 'follow_up_to']);
 
         $leads = Lead::query()
             ->with(['assignee', 'campaign', 'notes.user'])
@@ -34,18 +34,7 @@ class LeadController extends Controller
                 $query->whereBetween('created_at', [$periodFrom, $periodTo])
                     ->orWhereBetween('next_follow_up_at', [$periodFrom, $periodTo]);
             }))
-            ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('company', 'like', "%{$search}%");
-            }))
-            ->when($status !== '', fn ($query) => $query->where('status', $status))
-            ->when($assignedTo !== '', fn ($query) => $query->where('assigned_to', $assignedTo))
-            ->when($campaignId !== '', fn ($query) => $query->where('campaign_id', $campaignId))
-            ->when($product !== '', fn ($query) => $query->where('product', 'like', "%{$product}%"))
-            ->when($followUpFrom !== '', fn ($query) => $query->whereDate('next_follow_up_at', '>=', $followUpFrom))
-            ->when($followUpTo !== '', fn ($query) => $query->whereDate('next_follow_up_at', '<=', $followUpTo))
+            ->filter($filters)
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -184,9 +173,27 @@ class LeadController extends Controller
         return redirect()->route('admin.leads.index')->with('status', "{$unassigned->count()} unassigned lead(s) distributed round-robin across {$salespersons->count()} salespersons.");
     }
 
-    private function salespersons()
+    public function export(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
     {
-        return User::where('role', 'user')->where('salesperson_status', 'approved')->orderBy('name')->get();
+        $filters = $request->only(['search', 'status', 'assigned_to', 'campaign_id', 'product', 'follow_up_from', 'follow_up_to']);
+
+        return $this->leadCsvService->streamExport($filters);
+    }
+
+    public function importSample(): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        return $this->leadCsvService->streamSample();
+    }
+
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        ]);
+
+        $result = $this->leadCsvService->importFromFile($request->file('file'), auth()->id());
+
+        return redirect()->route('admin.leads.index')->with('status', $result->summary());
     }
 
     private function dashboardStats($leads): array

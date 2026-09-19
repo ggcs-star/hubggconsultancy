@@ -9,6 +9,7 @@ use App\Models\ContestPointRule;
 use App\Models\ContestTargetType;
 use App\Models\Lead;
 use App\Models\User;
+use App\Traits\HasApprovedSalespersons;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ use Illuminate\View\View;
 
 class ContestController extends Controller
 {
+    use HasApprovedSalespersons;
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('search'));
@@ -58,7 +61,7 @@ class ContestController extends Controller
     {
         return view('admin.contests.create', [
             'contest' => null,
-            'eligibleUsers' => $this->eligibleUsers(),
+            'eligibleUsers' => $this->salespersons(),
         ]);
     }
 
@@ -90,7 +93,7 @@ class ContestController extends Controller
     {
         return view('admin.contests.edit', [
             'contest' => $contest,
-            'eligibleUsers' => $this->eligibleUsers(),
+            'eligibleUsers' => $this->salespersons(),
         ]);
     }
 
@@ -228,11 +231,6 @@ class ContestController extends Controller
         }
 
         return back()->with('status', 'Target type added.');
-    }
-
-    private function eligibleUsers()
-    {
-        return User::where('role', 'user')->where('salesperson_status', 'approved')->orderBy('name')->get();
     }
 
     private function validateContest(Request $request): array

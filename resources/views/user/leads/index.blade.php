@@ -86,13 +86,6 @@
         </form>
     </div>
 
-    <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
-        <a href="{{ route('user.leads.create') }}" class="btn-primary">
-            <x-icon name="plus" class="h-4 w-4" />
-            Add Lead
-        </a>
-    </div>
-
     <div class="mt-4 card">
         <div class="border-b border-slate-100 px-5 py-4">
             <h2 class="font-bold text-slate-800">My Leads</h2>
@@ -179,16 +172,6 @@
                                                 <span class="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-sky-600 px-1 text-[10px] font-bold text-white">{{ $lead->notes->count() }}</span>
                                             @endif
                                         </button>
-                                        <a href="{{ route('user.leads.edit', $lead) }}" title="Edit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-violet-200 bg-violet-50 text-violet-600 transition hover:bg-violet-100">
-                                            <x-icon name="pencil" class="h-4 w-4" />
-                                        </a>
-                                        <form method="POST" action="{{ route('user.leads.destroy', $lead) }}" x-data="" x-on:submit.prevent="$dispatch('confirm-action', { message: 'Delete lead \'{{ $lead->name }}\'? This cannot be undone.', target: $el })">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" title="Delete" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100">
-                                                <x-icon name="trash" class="h-4 w-4" />
-                                            </button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -245,7 +228,7 @@
                     @if (request()->anyFilled(['search', 'status', 'campaign_id', 'product', 'follow_up_from', 'follow_up_to']))
                         Try changing your search or filters.
                     @else
-                        Click "Add Lead" to create the first one.
+                        Leads assigned to you will show up here.
                     @endif
                 </p>
             </div>

@@ -392,6 +392,9 @@ Route::get('/settings', [AdminPlaceholderController::class, 'settings'])
             Route::post('/', [AdminLeadController::class, 'store'])->name('store');
             Route::post('/bulk-assign', [AdminLeadController::class, 'bulkAssign'])->name('bulk-assign');
             Route::post('/auto-assign', [AdminLeadController::class, 'autoAssign'])->name('auto-assign');
+            Route::get('/export', [AdminLeadController::class, 'export'])->name('export');
+            Route::get('/import/sample', [AdminLeadController::class, 'importSample'])->name('import.sample');
+            Route::post('/import', [AdminLeadController::class, 'import'])->name('import');
             Route::get('/{lead}', [AdminLeadController::class, 'show'])->name('show');
             Route::get('/{lead}/edit', [AdminLeadController::class, 'edit'])->name('edit');
             Route::put('/{lead}', [AdminLeadController::class, 'update'])->name('update');
@@ -504,11 +507,6 @@ Route::middleware(['auth', 'role:user'])
 
         Route::prefix('leads')->name('leads.')->group(function () {
             Route::get('/', [UserLeadController::class, 'index'])->name('index');
-            Route::get('/create', [UserLeadController::class, 'create'])->name('create');
-            Route::post('/', [UserLeadController::class, 'store'])->name('store');
-            Route::get('/{lead}/edit', [UserLeadController::class, 'edit'])->name('edit');
-            Route::put('/{lead}', [UserLeadController::class, 'update'])->name('update');
-            Route::delete('/{lead}', [UserLeadController::class, 'destroy'])->name('destroy');
             Route::get('/{lead}', [UserLeadController::class, 'show'])->name('show');
             Route::patch('/{lead}/status', [UserLeadController::class, 'updateStatus'])->name('status.update');
             Route::post('/{lead}/notes', [UserLeadController::class, 'storeNote'])->name('notes.store');

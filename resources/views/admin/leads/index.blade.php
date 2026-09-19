@@ -127,29 +127,74 @@
 
     <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
         <a href="{{ route('admin.campaigns.index') }}" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Campaigns</a>
+        <a href="{{ route('admin.leads.export', request()->query()) }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            <x-icon name="download" class="h-4 w-4" />
+            Export
+        </a>
+        <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'import-leads')" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            <x-icon name="upload" class="h-4 w-4" />
+            Import
+        </button>
         <a href="{{ route('admin.leads.create') }}" class="btn-primary">
             <x-icon name="plus" class="h-4 w-4" />
             Add Lead
         </a>
     </div>
 
-    <form method="POST" action="{{ route('admin.leads.bulk-assign') }}" x-data="{ selected: [] }">
-        @csrf
+    <x-modal name="import-leads" :show="false" max-width="md">
+        <div class="p-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-slate-800">Import Leads</h2>
+                <button type="button" x-on:click="$dispatch('close')" class="text-slate-400 hover:text-slate-600">
+                    <x-icon name="x" class="h-5 w-5" />
+                </button>
+            </div>
+            <p class="mt-1 text-sm text-slate-400">Upload a CSV file to bulk add leads. Duplicate name + phone combinations are skipped automatically. "Assigned To" must match a salesperson's name exactly as shown in the Assign To dropdown, else the lead is imported unassigned.</p>
 
-        <div class="mt-4 card">
+            <a href="{{ route('admin.leads.import.sample') }}" class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-800">
+                <x-icon name="download" class="h-3.5 w-3.5" />
+                Download sample CSV
+            </a>
+
+            <form method="POST" action="{{ route('admin.leads.import') }}" enctype="multipart/form-data" class="mt-4 space-y-4">
+                @csrf
+                <div>
+                    <label class="form-label">CSV File</label>
+                    <input type="file" name="file" accept=".csv,text/csv" required class="form-input">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" x-on:click="$dispatch('close')" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </x-modal>
+
+    {{--
+        The bulk-assign form only wraps the header controls — the checkboxes below
+        reference it via form="bulk-assign-form" instead of being nested inside it.
+        Per-row forms (delete, notes) live in the table further down; nesting them
+        inside this form would make browsers silently drop those inner <form> tags.
+    --}}
+    <div class="mt-4" x-data="{ selected: [] }">
+        <form id="bulk-assign-form" method="POST" action="{{ route('admin.leads.bulk-assign') }}">
+            @csrf
+        </form>
+
+        <div class="card">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
                 <div>
                     <h2 class="font-bold text-slate-800">All Leads</h2>
                     <p class="mt-0.5 text-xs text-slate-400">{{ $leads->total() }} total lead{{ $leads->total() === 1 ? '' : 's' }}</p>
                 </div>
                 <div class="flex items-center gap-2" x-show="selected.length > 0" x-cloak>
-                    <select name="assigned_to" required class="form-input w-48">
+                    <select name="assigned_to" form="bulk-assign-form" required class="form-input w-48">
                         <option value="">Assign selected to...</option>
                         @foreach ($salespersons as $salesperson)
                             <option value="{{ $salesperson->id }}">{{ $salesperson->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="btn-primary text-sm">
+                    <button type="submit" form="bulk-assign-form" class="btn-primary text-sm">
                         Assign <span x-text="selected.length"></span> lead(s)
                     </button>
                 </div>
@@ -179,6 +224,7 @@
                                             type="checkbox"
                                             value="{{ $lead->id }}"
                                             name="lead_ids[]"
+                                            form="bulk-assign-form"
                                             class="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                                             x-on:change="$event.target.checked ? selected.push('{{ $lead->id }}') : selected = selected.filter(id => id !== '{{ $lead->id }}')"
                                         >
@@ -328,6 +374,6 @@
                 </div>
             @endif
         </div>
-    </form>
+    </div>
 
 </x-layout>
