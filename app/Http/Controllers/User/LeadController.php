@@ -122,6 +122,7 @@ class LeadController extends Controller
     public function updateStatus(Request $request, Lead $lead): RedirectResponse
     {
         abort_unless($lead->assigned_to === $request->user()->id, 403);
+        abort_if($lead->isFrozen(), 423, 'This lead is frozen. Request an unfreeze from your admin before updating it.');
 
         $data = $request->validate([
             'status' => ['required', 'in:' . implode(',', array_keys(Lead::statusLabels()))],
@@ -136,6 +137,7 @@ class LeadController extends Controller
     public function storeNote(Request $request, Lead $lead): RedirectResponse
     {
         abort_unless($lead->assigned_to === $request->user()->id, 403);
+        abort_if($lead->isFrozen(), 423, 'This lead is frozen. Request an unfreeze from your admin before updating it.');
 
         $data = $request->validate(['note' => ['required', 'string', 'max:2000']]);
 
@@ -145,5 +147,27 @@ class LeadController extends Controller
         ]);
 
         return back()->with('status', 'Note added.');
+    }
+
+    public function requestUnfreeze(Request $request, Lead $lead): RedirectResponse
+    {
+        abort_unless($lead->assigned_to === $request->user()->id, 403);
+        abort_unless($lead->isFrozen(), 423, 'This lead isn\'t frozen.');
+
+        if ($lead->hasPendingUnfreezeRequest()) {
+            return back()->with('status', 'You already have a pending unfreeze request for this lead.');
+        }
+
+        $data = $request->validate(['message' => ['required', 'string', 'max:1000']]);
+
+        $lead->update([
+            'unfreeze_status' => 'pending',
+            'unfreeze_request_message' => $data['message'],
+            'unfreeze_requested_at' => now(),
+            'unfreeze_reviewed_at' => null,
+            'unfreeze_reviewed_by' => null,
+        ]);
+
+        return back()->with('status', 'Your unfreeze request was sent to the admin.');
     }
 }

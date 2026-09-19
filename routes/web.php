@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\ResourceQuizQuestionController;
 use App\Http\Controllers\Admin\SaasProductController;
 use App\Http\Controllers\User\SaasProductController as UserSaasProductController;
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
+use App\Http\Controllers\Admin\LeadUnfreezeRequestController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CourseLessonVideoController;
@@ -155,6 +156,10 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/salesperson-applications', [AdminSalespersonApplicationController::class, 'index'])->name('salesperson-applications');
         Route::post('/salesperson-applications/{user}/approve', [AdminSalespersonApplicationController::class, 'approve'])->name('salesperson-applications.approve');
         Route::post('/salesperson-applications/{user}/reject', [AdminSalespersonApplicationController::class, 'reject'])->name('salesperson-applications.reject');
+
+        Route::get('/lead-unfreeze-requests', [LeadUnfreezeRequestController::class, 'index'])->name('lead-unfreeze-requests');
+        Route::post('/lead-unfreeze-requests/{lead}/approve', [LeadUnfreezeRequestController::class, 'approve'])->name('lead-unfreeze-requests.approve');
+        Route::post('/lead-unfreeze-requests/{lead}/reject', [LeadUnfreezeRequestController::class, 'reject'])->name('lead-unfreeze-requests.reject');
 
         Route::prefix('courses')->name('courses.')->group(function () {
             Route::get('/', [AdminCourseController::class, 'index'])->name('index');
@@ -520,6 +525,7 @@ Route::middleware(['auth', 'role:user'])
             Route::get('/{lead}', [UserLeadController::class, 'show'])->name('show');
             Route::patch('/{lead}/status', [UserLeadController::class, 'updateStatus'])->name('status.update');
             Route::post('/{lead}/notes', [UserLeadController::class, 'storeNote'])->name('notes.store');
+            Route::post('/{lead}/request-unfreeze', [UserLeadController::class, 'requestUnfreeze'])->name('request-unfreeze');
         });
 
         Route::post('/campaigns', [UserLeadController::class, 'storeCampaign'])->name('campaigns.store');

@@ -133,6 +133,12 @@
                 'route' => $isAdmin ? 'admin.leads.index' : 'user.leads.index',
                 'activePattern' => $isAdmin ? 'admin.leads.*' : 'user.leads.*',
             ],
+            ...($isAdmin ? [[
+                'label' => 'Unfreeze Requests',
+                'icon' => 'lock',
+                'route' => 'admin.lead-unfreeze-requests',
+                'activePattern' => 'admin.lead-unfreeze-requests*',
+            ]] : []),
             [
                 'label' => 'Sales Calculators',
                 'icon' => 'grid',

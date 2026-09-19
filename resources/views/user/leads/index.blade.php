@@ -130,21 +130,28 @@
                                     {{ $lead->product ?: '—' }}
                                 </td>
                                 <td class="px-5 py-4">
-                                    <select
-                                        class="badge {{ $lead->statusBadgeClass() }} cursor-pointer border-0 py-1.5 pr-7 focus:outline-none focus:ring-2 focus:ring-brand-400"
-                                        x-data
-                                        x-on:change="
-                                            fetch('{{ route('user.leads.status.update', $lead) }}', {
-                                                method: 'POST',
-                                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                                                body: new URLSearchParams({ _method: 'PATCH', status: $event.target.value }),
-                                            }).then(() => window.location.reload());
-                                        "
-                                    >
-                                        @foreach ($statusLabels as $value => $label)
-                                            <option value="{{ $value }}" @selected($lead->status === $value)>{{ $label }}</option>
-                                        @endforeach
-                                    </select>
+                                    @if ($lead->isFrozen())
+                                        <span class="badge {{ $lead->statusBadgeClass() }} inline-flex cursor-not-allowed items-center gap-1.5 opacity-75" title="Frozen — status hasn't changed in {{ config('leads.freeze_after_days') }}+ days">
+                                            <x-icon name="lock" class="h-3 w-3" />
+                                            {{ $lead->statusLabel() }}
+                                        </span>
+                                    @else
+                                        <select
+                                            class="badge {{ $lead->statusBadgeClass() }} cursor-pointer border-0 py-1.5 pr-7 focus:outline-none focus:ring-2 focus:ring-brand-400"
+                                            x-data
+                                            x-on:change="
+                                                fetch('{{ route('user.leads.status.update', $lead) }}', {
+                                                    method: 'POST',
+                                                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                                                    body: new URLSearchParams({ _method: 'PATCH', status: $event.target.value }),
+                                                }).then(() => window.location.reload());
+                                            "
+                                        >
+                                            @foreach ($statusLabels as $value => $label)
+                                                <option value="{{ $value }}" @selected($lead->status === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
                                 </td>
                                 <td class="px-5 py-4">
                                     @if ($lead->next_follow_up_at)
@@ -172,6 +179,11 @@
                                                 <span class="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-sky-600 px-1 text-[10px] font-bold text-white">{{ $lead->notes->count() }}</span>
                                             @endif
                                         </button>
+                                        @if ($lead->isFrozen())
+                                            <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'lead-unfreeze-{{ $lead->id }}')" title="Request Unfreeze" class="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100">
+                                                <x-icon name="lock" class="h-4 w-4" />
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -189,11 +201,17 @@
                                     </div>
 
                                     <div class="overflow-y-auto">
-                                        <form method="POST" action="{{ route('user.leads.notes.store', $lead) }}" class="space-y-3 border-b border-slate-100 p-5">
-                                            @csrf
-                                            <textarea name="note" rows="2" required placeholder="Add a note — e.g. called on 25 Aug, said call back next week" class="form-input"></textarea>
-                                            <button type="submit" class="btn-primary">Add Note</button>
-                                        </form>
+                                        @if ($lead->isFrozen())
+                                            <div class="border-b border-slate-100 bg-amber-50 px-5 py-3 text-sm text-amber-700">
+                                                This lead is frozen — adding notes is disabled until an admin approves your unfreeze request.
+                                            </div>
+                                        @else
+                                            <form method="POST" action="{{ route('user.leads.notes.store', $lead) }}" class="space-y-3 border-b border-slate-100 p-5">
+                                                @csrf
+                                                <textarea name="note" rows="2" required placeholder="Add a note — e.g. called on 25 Aug, said call back next week" class="form-input"></textarea>
+                                                <button type="submit" class="btn-primary">Add Note</button>
+                                            </form>
+                                        @endif
 
                                         @if ($lead->notes->isEmpty())
                                             <div class="px-6 py-10 text-center text-sm text-slate-400">No notes yet.</div>
@@ -210,6 +228,35 @@
                                     </div>
                                 </div>
                             </x-modal>
+
+                            @if ($lead->isFrozen())
+                                <x-modal name="lead-unfreeze-{{ $lead->id }}" :show="false" max-width="md">
+                                    <div class="p-6">
+                                        <div class="flex items-center justify-between">
+                                            <h2 class="text-lg font-bold text-slate-800">Request Unfreeze</h2>
+                                            <button type="button" x-on:click="$dispatch('close')" class="text-slate-400 hover:text-slate-600">
+                                                <x-icon name="x" class="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                        <p class="mt-1 text-sm text-slate-400">{{ $lead->name }}</p>
+
+                                        @if ($lead->hasPendingUnfreezeRequest())
+                                            <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                                                Your request is pending admin review: "{{ $lead->unfreeze_request_message }}"
+                                            </div>
+                                        @else
+                                            <form method="POST" action="{{ route('user.leads.request-unfreeze', $lead) }}" class="mt-4 space-y-3">
+                                                @csrf
+                                                <div>
+                                                    <label class="form-label">Message to admin</label>
+                                                    <textarea name="message" rows="3" required maxlength="1000" placeholder="Explain why you need this lead unfrozen..." class="form-input"></textarea>
+                                                </div>
+                                                <button type="submit" class="btn-primary w-full">Send Request</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </x-modal>
+                            @endif
                         @endforeach
                     </tbody>
                 </table>

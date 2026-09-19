@@ -24,12 +24,21 @@ class Lead extends Model
         'assigned_to',
         'next_follow_up_at',
         'created_by',
+        'status_changed_at',
+        'unfreeze_status',
+        'unfreeze_request_message',
+        'unfreeze_requested_at',
+        'unfreeze_reviewed_at',
+        'unfreeze_reviewed_by',
     ];
 
     protected $casts = [
         'next_follow_up_at' => 'date',
         'expected_value' => 'decimal:2',
         'won_at' => 'datetime',
+        'status_changed_at' => 'datetime',
+        'unfreeze_requested_at' => 'datetime',
+        'unfreeze_reviewed_at' => 'datetime',
     ];
 
     /** Statuses that no longer count as "in play" — the deal is closed either way. */
@@ -52,6 +61,9 @@ class Lead extends Model
         static::saving(function (self $lead) {
             if ($lead->isDirty('status')) {
                 $lead->won_at = $lead->status === 'won' ? now() : null;
+                // Also restarts the freeze clock (see isFrozen()) — a fresh
+                // status change is exactly what "the salesperson is on it" means.
+                $lead->status_changed_at = now();
             }
         });
 
@@ -73,6 +85,11 @@ class Lead extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function unfreezeReviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'unfreeze_reviewed_by');
     }
 
     public function campaign(): BelongsTo
@@ -136,6 +153,28 @@ class Lead extends Model
         return $this->next_follow_up_at
             && ! in_array($this->status, self::TERMINAL_STATUSES, true)
             && $this->next_follow_up_at->isPast();
+    }
+
+    /**
+     * A lead freezes for its assigned salesperson once its status has sat
+     * unchanged for config('leads.freeze_after_days') — closed deals never
+     * freeze since there's nothing left to act on.
+     */
+    public function isFrozen(): bool
+    {
+        if (in_array($this->status, self::TERMINAL_STATUSES, true)) {
+            return false;
+        }
+
+        $reference = $this->status_changed_at ?? $this->created_at;
+
+        return $reference !== null
+            && $reference->copy()->addDays((int) config('leads.freeze_after_days'))->isPast();
+    }
+
+    public function hasPendingUnfreezeRequest(): bool
+    {
+        return $this->unfreeze_status === 'pending';
     }
 
     public static function statusLabels(): array
