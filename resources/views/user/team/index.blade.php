@@ -31,14 +31,14 @@
             <x-stat-card icon="check-circle" color="chart-4" :value="$stats['onboarding_complete_count']" label="Onboarding Complete" :description="($partial ? 'of ' . $stats['discovered_count'] . ' synced' : $stats['onboarding_complete_percent'] . '%')" />
         </div>
 
-        <div class="mt-6 card" x-data="{ tab: '{{ request()->hasAny(['search', 'level', 'page']) ? 'members' : 'tree' }}' }" x-on:team-view-all-members.window="tab = 'members'">
+        <div class="mt-6 card" x-data="{ tab: 'tree' }" x-on:team-view-all-members.window="tab = 'members'">
             <div class="flex items-center gap-1 border-b border-slate-100 px-5 pt-4">
                 <button type="button" x-on:click="tab = 'tree'" class="rounded-t-lg px-3 py-2 text-sm font-semibold transition" :class="tab === 'tree' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-slate-400 hover:text-slate-600'">
                     Team Tree
                 </button>
-                <button type="button" x-on:click="tab = 'members'" class="rounded-t-lg px-3 py-2 text-sm font-semibold transition" :class="tab === 'members' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-slate-400 hover:text-slate-600'">
+                <!-- <button type="button" x-on:click="tab = 'members'" class="rounded-t-lg px-3 py-2 text-sm font-semibold transition" :class="tab === 'members' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-slate-400 hover:text-slate-600'">
                     Members
-                </button>
+                </button> -->
             </div>
 
             <div x-show="tab === 'tree'" x-cloak class="overflow-x-auto p-6">
@@ -57,7 +57,7 @@
                 @endif
             </div>
 
-            <div x-show="tab === 'members'" x-cloak>
+            <!-- <div x-show="tab === 'members'" x-cloak>
                 <form method="GET" class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="relative w-full sm:max-w-xs">
                         <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -156,7 +156,7 @@
                 <div class="px-5 py-4">
                     {{ $memberRows->links() }}
                 </div>
-            </div>
+            </div> -->
         </div>
     @endif
 
