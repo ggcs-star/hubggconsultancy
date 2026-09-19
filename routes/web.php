@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\SaasProductController;
 use App\Http\Controllers\User\SaasProductController as UserSaasProductController;
 use App\Http\Controllers\Admin\SalespersonApplicationController as AdminSalespersonApplicationController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CourseLessonVideoController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\User\CertificateController as UserCertificateController;
@@ -93,6 +94,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
 
     Route::get('/auth/google', [AuthController::class, 'googleStub'])->name('auth.google');
+
+    Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])
+        ->middleware('throttle:5,1')
+        ->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])
+        ->middleware('throttle:5,1')
+        ->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])

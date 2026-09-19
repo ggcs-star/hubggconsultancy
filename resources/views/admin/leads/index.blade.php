@@ -149,7 +149,7 @@
                     <x-icon name="x" class="h-5 w-5" />
                 </button>
             </div>
-            <p class="mt-1 text-sm text-slate-400">Upload a CSV file to bulk add leads. Duplicate name + phone combinations are skipped automatically. "Assigned To" must match a salesperson's name exactly as shown in the Assign To dropdown, else the lead is imported unassigned.</p>
+            <p class="mt-1 text-sm text-slate-400">Upload a CSV file to bulk add leads. Duplicate name + phone combinations are skipped automatically. "Assigned To" must be the salesperson's phone number (not their name — two salespersons can share a name, but phone numbers are unique), else the lead is imported unassigned.</p>
 
             <a href="{{ route('admin.leads.import.sample') }}" class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-800">
                 <x-icon name="download" class="h-3.5 w-3.5" />

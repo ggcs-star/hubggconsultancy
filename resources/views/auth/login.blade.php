@@ -71,7 +71,7 @@
                             <input type="checkbox" name="remember" class="rounded border-slate-300 text-brand-700 focus:ring-brand-500">
                             Remember me
                         </label>
-                        <a href="#" class="font-semibold text-brand-700 hover:text-brand-800">Forgot password?</a>
+                        <a href="{{ route('password.request') }}" class="font-semibold text-brand-700 hover:text-brand-800">Forgot password?</a>
                     </div>
 
                     <button type="submit" class="btn-primary w-full">Log In</button>

@@ -14,6 +14,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * CSV export/import for leads. Column order mirrors the Add Lead form (see
  * resources/views/admin/leads/_form-fields.blade.php) so an exported file can be
  * edited and re-imported as-is, and so admins recognize the fields immediately.
+ *
+ * "Assigned To" holds the salesperson's phone number, not their name — two
+ * approved salespersons can share a name, but phone numbers are unique, so
+ * matching on phone is the only way to assign to the right one reliably.
  */
 class LeadCsvService
 {
@@ -49,7 +53,7 @@ class LeadCsvService
                     $lead->source,
                     $lead->campaign?->name,
                     $lead->priority,
-                    $lead->assignee?->name,
+                    ExcelSafeCsv::guard($lead->assignee?->phone),
                     $lead->statusLabel(),
                     $lead->next_follow_up_at?->format('Y-m-d'),
                     $lead->created_at->format('Y-m-d'),
@@ -67,7 +71,7 @@ class LeadCsvService
             fputcsv($handle, self::COLUMNS);
             fputcsv($handle, [
                 'Jane Doe', 'Acme Pvt Ltd', 'jane@example.com', '9876543210', 'UPOS', 'Website',
-                'GG Prime August Campaign', 'medium', $this->salespersons()->first()?->name ?? 'Rohit Malhotra', 'New',
+                'GG Prime August Campaign', 'medium', ExcelSafeCsv::guard($this->salespersons()->first()?->phone ?? '9123456780'), 'New',
                 now()->addDays(3)->format('Y-m-d'),
             ]);
             fclose($handle);
@@ -88,10 +92,11 @@ class LeadCsvService
         $header = array_map(fn ($column) => strtolower(trim((string) $column)), $header);
         $columnCount = count($header);
 
-        // Same names as the "Assign To" dropdown on the Add/Edit Lead form — matched by name, not id/email.
-        $salespersonsByName = $this->salespersons()->mapWithKeys(
-            fn ($user) => [$this->normalizeName($user->name) => $user->id]
-        );
+        // Matched by phone, not name — two salespersons can share a name (e.g. "Anuj Singh"),
+        // but phone numbers are unique, so "Assigned To" must contain the salesperson's phone number.
+        $salespersonsByPhone = $this->salespersons()
+            ->filter(fn ($user) => filled($user->phone))
+            ->mapWithKeys(fn ($user) => [$this->normalizePhone($user->phone) => $user->id]);
 
         $imported = 0;
         $skipped = 0;
@@ -137,8 +142,10 @@ class LeadCsvService
             }
 
             // Accept older template headers too ("Assigned To Email", "Assigned_To"), not just the current "Assigned To".
-            $assigneeName = $this->firstPresent($data, ['assigned to', 'assigned to email', 'assigned_to', 'assignedto']);
-            $assignedTo = $assigneeName !== '' ? $salespersonsByName->get($this->normalizeName($assigneeName)) : null;
+            $assigneePhone = $this->firstPresent($data, ['assigned to', 'assigned to email', 'assigned_to', 'assignedto']);
+            $assignedTo = $assigneePhone !== ''
+                ? $salespersonsByPhone->get($this->normalizePhone(ExcelSafeCsv::unwrap($assigneePhone)))
+                : null;
 
             $nextFollowUp = trim((string) ($data['next follow-up (yyyy-mm-dd)'] ?? ''));
             if ($nextFollowUp !== '') {
@@ -177,9 +184,12 @@ class LeadCsvService
         return new LeadImportResult($imported, $skipped, $errors);
     }
 
-    private function normalizeName(string $value): string
+    /** Strips formatting and any country code by keeping only the last 10 digits, so "+91 98765 43210" matches a plain "9876543210". */
+    private function normalizePhone(string $value): string
     {
-        return strtolower(preg_replace('/\s+/', ' ', trim($value)));
+        $digits = preg_replace('/\D+/', '', $value) ?? '';
+
+        return substr($digits, -10);
     }
 
     /** Returns the first non-empty value found in $data for any of the given (already-lowercased) header keys. */
