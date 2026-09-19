@@ -59,6 +59,18 @@
                 $firstVideo = $videos->first();
                 $firstAudio = $audios->first();
 
+                // Default to whichever tab the type filter requests; otherwise the first
+                // tab that actually has content, so we never land on an empty/hidden pane.
+                $defaultTab = match (true) {
+                    $type === 'video' => 'videos',
+                    $type === 'audio' => 'audios',
+                    $type === 'document' => 'documents',
+                    $documents->count() > 0 => 'documents',
+                    $videos->count() > 0 => 'videos',
+                    $audios->count() > 0 => 'audios',
+                    default => 'documents',
+                };
+
                 foreach ($documents as $document) {
                     if (! $document->is_external) {
                         $scriptReaderFiles[$document->id] = [
@@ -70,13 +82,13 @@
                 }
             @endphp
 
-            <div class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600" x-data="{ tab: '{{ $type === 'video' ? 'videos' : ($type === 'audio' ? 'audios' : 'documents') }}' }">
+            <div class="card flex flex-col overflow-hidden border-l-4 border-l-brand-600" x-data="{ tab: '{{ $defaultTab }}' }">
                 <div class="p-5 pb-0">
                     <p class="font-bold text-slate-800">{{ $topic->title }}</p>
                 </div>
 
                 <div class="mt-4 flex items-center gap-1 px-5">
-                    @if (! $type || $type === 'document')
+                    @if ((! $type || $type === 'document') && $documents->count() > 0)
                         <button
                             type="button"
                             x-on:click="tab = 'documents'"
@@ -86,7 +98,7 @@
                             📄 Documents <span class="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px]">{{ $documents->count() }}</span>
                         </button>
                     @endif
-                    @if (! $type || $type === 'video')
+                    @if ((! $type || $type === 'video') && $videos->count() > 0)
                         <button
                             type="button"
                             x-on:click="tab = 'videos'"
@@ -96,7 +108,7 @@
                             🎬 Videos <span class="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px]">{{ $videos->count() }}</span>
                         </button>
                     @endif
-                    @if (! $type || $type === 'audio')
+                    @if ((! $type || $type === 'audio') && $audios->count() > 0)
                         <button
                             type="button"
                             x-on:click="tab = 'audios'"
