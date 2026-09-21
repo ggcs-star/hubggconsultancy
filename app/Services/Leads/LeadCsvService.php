@@ -29,6 +29,10 @@ class LeadCsvService
         'Priority', 'Assigned To', 'Status', 'Next Follow-up (YYYY-MM-DD)',
     ];
 
+    public function __construct(private readonly LeadImportNotifier $notifier)
+    {
+    }
+
     public function streamExport(array $filters): StreamedResponse
     {
         $leads = Lead::query()
@@ -120,6 +124,7 @@ class LeadCsvService
         $imported = 0;
         $skipped = 0;
         $errors = 0;
+        $createdLeads = [];
 
         foreach ($rows as $row) {
             if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) {
@@ -178,7 +183,7 @@ class LeadCsvService
             }
 
             try {
-                Lead::create([
+                $createdLeads[] = Lead::create([
                     'name' => $name,
                     'email' => trim((string) ($data['email'] ?? '')) ?: null,
                     'phone' => $phone ?: null,
@@ -198,7 +203,9 @@ class LeadCsvService
             }
         }
 
-        return new LeadImportResult($imported, $skipped, $errors);
+        $this->notifier->notify($createdLeads);
+
+        return new LeadImportResult($imported, $skipped, $errors, $createdLeads);
     }
 
     /** Strips formatting and any country code by keeping only the last 10 digits, so "+91 98765 43210" matches a plain "9876543210". */

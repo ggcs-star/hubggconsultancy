@@ -2,12 +2,16 @@
 
 namespace App\Services\Leads;
 
+use App\Models\Lead;
+
 final class LeadImportResult
 {
+    /** @param  Lead[]  $createdLeads */
     public function __construct(
         public readonly int $imported = 0,
         public readonly int $skipped = 0,
         public readonly int $errors = 0,
+        public readonly array $createdLeads = [],
     ) {
     }
 
