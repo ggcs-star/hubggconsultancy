@@ -31,6 +31,18 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'google_drive_leads' => [
+        // Path to the Google service-account JSON key (keep it outside public/,
+        // e.g. storage/app/google/drive-service-account.json — never commit it).
+        'credentials_path' => env('GOOGLE_DRIVE_CREDENTIALS_PATH'),
+
+        // The Drive file id of the leads Excel sheet — the {FILE_ID} segment in
+        // https://drive.google.com/file/d/{FILE_ID}/view. The sheet must be
+        // shared (Viewer) with the service account's own email address (found
+        // inside the JSON key as "client_email").
+        'file_id' => env('GOOGLE_DRIVE_LEADS_FILE_ID'),
+    ],
+
     'team_api' => [
         'base_url' => env('TEAM_API_BASE_URL'),
         'id' => env('TEAM_API_ID'),

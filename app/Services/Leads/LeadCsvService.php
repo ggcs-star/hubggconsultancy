@@ -89,6 +89,25 @@ class LeadCsvService
             return new LeadImportResult();
         }
 
+        $rows = [];
+        while (($row = fgetcsv($handle)) !== false) {
+            $rows[] = $row;
+        }
+        fclose($handle);
+
+        return $this->importRows($header, $rows, $importedBy);
+    }
+
+    /**
+     * Same row-processing rules as importFromFile(), for callers that already
+     * have header + row arrays in hand instead of a CSV file on disk — e.g.
+     * DriveLeadSyncService, which reads an .xlsx via PhpSpreadsheet.
+     *
+     * @param  string[]  $header  Raw header row, any case/whitespace (normalized internally).
+     * @param  iterable<array<int, mixed>>  $rows  Each row aligned by position to $header.
+     */
+    public function importRows(array $header, iterable $rows, ?int $importedBy): LeadImportResult
+    {
         $header = array_map(fn ($column) => strtolower(trim((string) $column)), $header);
         $columnCount = count($header);
 
@@ -102,7 +121,7 @@ class LeadCsvService
         $skipped = 0;
         $errors = 0;
 
-        while (($row = fgetcsv($handle)) !== false) {
+        foreach ($rows as $row) {
             if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) {
                 continue;
             }
@@ -178,8 +197,6 @@ class LeadCsvService
                 $errors++;
             }
         }
-
-        fclose($handle);
 
         return new LeadImportResult($imported, $skipped, $errors);
     }

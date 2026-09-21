@@ -10,6 +10,7 @@ use App\Traits\HasApprovedSalespersons;
 use App\Traits\ResolvesPeriod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class LeadController extends Controller
@@ -54,6 +55,7 @@ class LeadController extends Controller
             'statusLabels' => Lead::statusLabels(),
             'stats' => $this->dashboardStats($periodLeads),
             'funnel' => $this->pipelineFunnel($periodLeads),
+            'driveSyncStatus' => Cache::get('leads_drive_sync_status'),
         ]);
     }
 

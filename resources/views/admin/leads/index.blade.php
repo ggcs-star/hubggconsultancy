@@ -125,7 +125,16 @@
         </form>
     </div>
 
-    <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+        @if ($driveSyncStatus)
+            <p class="text-xs {{ $driveSyncStatus['ok'] ? 'text-slate-400' : 'text-red-500' }}">
+                <x-icon name="refresh-cw" class="mr-1 inline h-3.5 w-3.5 align-text-bottom" />
+                Drive sync ({{ \Illuminate\Support\Carbon::parse($driveSyncStatus['at'])->diffForHumans() }}): {{ $driveSyncStatus['message'] }}
+            </p>
+        @else
+            <span></span>
+        @endif
+        <div class="flex flex-wrap items-center gap-2">
         <a href="{{ route('admin.campaigns.index') }}" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Campaigns</a>
         <a href="{{ route('admin.leads.export', request()->query()) }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
             <x-icon name="download" class="h-4 w-4" />
@@ -139,6 +148,7 @@
             <x-icon name="plus" class="h-4 w-4" />
             Add Lead
         </a>
+        </div>
     </div>
 
     <x-modal name="import-leads" :show="false" max-width="md">
