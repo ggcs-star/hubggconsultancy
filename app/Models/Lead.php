@@ -45,7 +45,7 @@ class Lead extends Model
     public const TERMINAL_STATUSES = ['won', 'lost', 'not_interested', 'invalid'];
 
     /** The primary forward pipeline, in order — used for the funnel widget. */
-    public const PIPELINE_STATUSES = ['new', 'contacted', 'interested', 'qualified', 'proposal', 'negotiation', 'won'];
+    public const PIPELINE_STATUSES = ['new', 'contacted', 'active_lead', 'engaged_lead', 'interested', 'qualified', 'proposal', 'negotiation', 'won'];
 
     protected static function booted(): void
     {
@@ -182,6 +182,8 @@ class Lead extends Model
         return [
             'new' => 'New',
             'contacted' => 'Contacted',
+            'active_lead' => 'Active Lead',
+            'engaged_lead' => 'Engaged Lead',
             'interested' => 'Interested',
             'qualified' => 'Qualified',
             'proposal' => 'Proposal / Demo',
@@ -228,7 +230,7 @@ class Lead extends Model
         return match ($this->status) {
             'won' => 'badge-green',
             'lost', 'not_interested', 'invalid' => 'bg-red-50 text-red-600',
-            'interested', 'qualified', 'proposal', 'negotiation', 'follow_up_later' => 'badge-amber',
+            'active_lead', 'engaged_lead', 'interested', 'qualified', 'proposal', 'negotiation', 'follow_up_later' => 'badge-amber',
             default => 'badge-slate',
         };
     }
