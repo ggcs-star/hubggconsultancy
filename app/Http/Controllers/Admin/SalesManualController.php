@@ -21,7 +21,6 @@ class SalesManualController extends Controller
             ->withCount('attachments')
             ->orderByDesc('is_pinned')
             ->orderByDesc('is_featured')
-            ->orderBy('sort_order')
             ->latest();
 
         /*

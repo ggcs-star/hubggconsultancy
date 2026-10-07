@@ -25,7 +25,7 @@ class SaasProductController extends Controller
                     ->orWhere('category', 'like', "%{$search}%");
             });
         })
-            ->ordered()
+            ->latest()
             ->paginate(9)
             ->withQueryString();
 

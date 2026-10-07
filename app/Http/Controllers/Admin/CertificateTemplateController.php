@@ -20,7 +20,7 @@ class CertificateTemplateController extends Controller
         $templates = CertificateTemplate::query()
             ->withCount('courses')
             ->where('is_active', true)
-            ->orderBy('sort_order')
+            ->latest()
             ->get();
 
         return view(

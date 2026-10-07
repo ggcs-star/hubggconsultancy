@@ -21,7 +21,7 @@ class ResourceController extends Controller
 
         $resources = Resource::withCount('checkpoints')
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
-            ->ordered()
+            ->latest()
             ->paginate(10)
             ->withQueryString();
 

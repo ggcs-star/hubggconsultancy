@@ -65,7 +65,7 @@ class OnboardingAssessmentController extends Controller
     {
         $search = trim((string) $request->query('search'));
 
-        $query = OnboardingAssessmentQuiz::withCount('questions')->withSum('questions', 'points')->ordered();
+        $query = OnboardingAssessmentQuiz::withCount('questions')->withSum('questions', 'points')->latest();
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {

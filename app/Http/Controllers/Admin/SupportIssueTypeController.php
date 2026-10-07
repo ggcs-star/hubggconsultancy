@@ -113,8 +113,7 @@ class SupportIssueTypeController extends Controller
         */
 
         $issueTypes = $query
-            ->orderBy('sort_order')
-            ->orderByDesc('id')
+            ->latest()
             ->paginate(10)
             ->withQueryString();
 

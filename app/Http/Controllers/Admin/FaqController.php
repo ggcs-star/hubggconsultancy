@@ -22,7 +22,7 @@ class FaqController extends Controller
                 $query->where('question', 'like', "%{$search}%")
                     ->orWhere('answer', 'like', "%{$search}%");
             }))
-            ->ordered()
+            ->latest()
             ->paginate(10)
             ->withQueryString();
 

@@ -24,7 +24,7 @@ class DocumentController extends Controller
         $documents = Document::query()
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->when($language !== '', fn ($query) => $query->where('language', $language))
-            ->ordered()
+            ->latest()
             ->paginate(9)
             ->withQueryString();
 
