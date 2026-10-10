@@ -26,27 +26,6 @@
 
         ];
 
-        $affiliateUsername = !empty($user->username)
-            ? $user->username
-            : \Illuminate\Support\Str::slug($user->name) . '-' . $user->id;
-
-        // Normalize common Indian mobile number formats.
-        $affiliateDigits = preg_replace('/\D+/', '', (string) ($user->phone ?? ''));
-
-        if (strlen($affiliateDigits) === 10) {
-            $affiliateDigits = '91' . $affiliateDigits;
-        } elseif (strlen($affiliateDigits) === 11 && str_starts_with($affiliateDigits, '0')) {
-            $affiliateDigits = '91' . substr($affiliateDigits, 1);
-        }
-
-        $affiliateMobile = '+' . $affiliateDigits;
-
-        // RFC3986 safely encodes '+' as %2B.
-        $affiliateUrl = 'https://webinar.ggconsultancy.services/?' . http_build_query([
-            'source' => $affiliateUsername,
-            'mobile' => $affiliateMobile,
-        ], '', '&', PHP_QUERY_RFC3986);
-
     @endphp
 
     <div>
@@ -128,15 +107,6 @@
                             </span>
 
                         @endif
-
-                        <button
-                            type="button"
-                            id="copyAffiliateUrl"
-                            class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
-                        >
-                            <x-icon name="copy" class="h-4 w-4" />
-                            <span id="copyAffiliateText">Copy Affiliate Link</span>
-                        </button>
 
                     </div>
 
@@ -514,42 +484,5 @@
 
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const button = document.getElementById('copyAffiliateUrl');
-    const label = document.getElementById('copyAffiliateText');
-
-    if (!button || !label) return;
-
-    const affiliateUrl = @json($affiliateUrl);
-
-    button.addEventListener('click', async () => {
-        try {
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(affiliateUrl);
-            } else {
-                const textarea = document.createElement('textarea');
-                textarea.value = affiliateUrl;
-                textarea.setAttribute('readonly', '');
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.select();
-                const copied = document.execCommand('copy');
-                textarea.remove();
-                if (!copied) throw new Error('Clipboard copy failed');
-            }
-
-            label.textContent = 'Copied!';
-        } catch (error) {
-            label.textContent = 'Copy failed';
-        }
-
-        window.setTimeout(() => {
-            label.textContent = 'Copy Affiliate Link';
-        }, 2000);
-    });
-});
-</script>
 
 </x-layout>

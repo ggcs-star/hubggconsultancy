@@ -29,6 +29,50 @@
             // stacked cluster — automatically follows whatever platforms are added above.
             $distinctPlatforms = collect($socialLinks)->unique('platform')->values();
         @endphp
+{{-- Invite Friends Button --}}
+@php
+    $inviteUser = auth()->user();
+
+    // Same username logic as profile.blade.php
+    $inviteUsername = !empty($inviteUser->username)
+        ? $inviteUser->username
+        : \Illuminate\Support\Str::slug($inviteUser->name) . '-' . $inviteUser->id;
+
+    // Same mobile logic as profile.blade.php
+    $inviteDigits = preg_replace(
+        '/\D+/',
+        '',
+        (string) ($inviteUser->phone ?? '')
+    );
+
+    if (strlen($inviteDigits) === 10) {
+        $inviteDigits = '91' . $inviteDigits;
+    } elseif (
+        strlen($inviteDigits) === 11
+        && str_starts_with($inviteDigits, '0')
+    ) {
+        $inviteDigits = '91' . substr($inviteDigits, 1);
+    }
+
+    $inviteMobile = '+' . $inviteDigits;
+
+    // Exact same URL format as profile.blade.php
+    $inviteAffiliateUrl = 'https://webinar.ggconsultancy.services/?' . http_build_query([
+        'source' => $inviteUsername,
+        'mobile' => $inviteMobile,
+    ], '', '&', PHP_QUERY_RFC3986);
+@endphp
+<button
+    type="button"
+    id="inviteFriendsButton"
+    data-affiliate-url="{{ $inviteAffiliateUrl }}"
+    class="group inline-flex shrink-0 items-center justify-center gap-2.5 rounded-xl border border-violet-500/20 bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-violet-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:from-violet-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-violet-600/30 active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-violet-500/25"
+>
+<x-icon name="share" class="h-5 w-5 shrink-0" />
+    <span id="inviteFriendsText" class="whitespace-nowrap">
+        Invite Friends for Webinar
+    </span>
+</button>
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
             <div class="relative hidden p-2 sm:block">
                 <button type="button" @click="open = !open" title="Join Us To Know More"
@@ -231,8 +275,13 @@
                         <x-icon name="user" class="h-4 w-4" />
                         <span>Profile</span>
                     </a>
-                @endif
 
+                @endif
+<a href="{{ route('user.referrals.index') }}"
+   class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+    <x-icon name="users" class="h-4 w-4" />
+    <span>Referral List</span>
+</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-50">
@@ -244,3 +293,45 @@
         </div>
     </div>
 </header>
+
+<script>
+document.addEventListener('click', async function (event) {
+    const button = event.target.closest('#inviteFriendsButton');
+
+    if (!button) return;
+
+    const label = button.querySelector('#inviteFriendsText');
+    const affiliateUrl = button.dataset.affiliateUrl;
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(affiliateUrl);
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = affiliateUrl;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            const copied = document.execCommand('copy');
+            textarea.remove();
+
+            if (!copied) {
+                throw new Error('Clipboard copy failed');
+            }
+        }
+
+        label.textContent = 'Copied!';
+    } catch (error) {
+        label.textContent = 'Copy failed';
+        window.prompt('Copy your affiliate link:', affiliateUrl);
+    }
+
+    window.setTimeout(function () {
+        label.textContent = 'Invite Friends for Webinar';
+    }, 2000);
+});
+</script>
