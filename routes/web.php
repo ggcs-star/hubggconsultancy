@@ -491,6 +491,62 @@ Route::middleware(['auth', 'role:user'])
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
+Route::get('/referrals', function (\Illuminate\Http\Request $request) {
+    $user = auth()->user();
+
+    $phone = preg_replace('/\D+/', '', (string) ($user->phone ?? ''));
+
+    if (strlen($phone) === 10) {
+        $phone = '91' . $phone;
+    } elseif (strlen($phone) === 11 && str_starts_with($phone, '0')) {
+        $phone = '91' . substr($phone, 1);
+    }
+
+    $mobileVariants = array_values(array_unique(array_filter([
+        $phone !== '' ? '+' . $phone : null,
+        $phone !== '' ? $phone : null,
+        strlen($phone) === 12 && str_starts_with($phone, '91')
+            ? substr($phone, 2)
+            : null,
+    ])));
+
+    $search = trim((string) $request->query('search', ''));
+
+    // Allow only supported page sizes.
+    $perPage = (int) $request->query('per_page', 10);
+
+    if (! in_array($perPage, [10, 15, 25, 50], true)) {
+        $perPage = 10;
+    }
+
+    $query = \Illuminate\Support\Facades\DB::table('applications')
+        ->whereIn('referral_mobile', $mobileVariants);
+
+    if ($search !== '') {
+        $query->where(function ($q) use ($search) {
+            $like = '%' . $search . '%';
+
+            $q->where('full_name', 'like', $like)
+                ->orWhere('mobile_number', 'like', $like)
+                ->orWhere('whatsapp_number', 'like', $like)
+                ->orWhere('profession', 'like', $like)
+                ->orWhere('city', 'like', $like)
+                ->orWhere('state', 'like', $like);
+        });
+    }
+
+    $applications = $query
+        ->orderByDesc('id')
+        ->paginate($perPage)
+        ->withQueryString();
+
+    return view('user.referrals.index', compact(
+        'applications',
+        'search',
+        'perPage'
+    ));
+})->name('referrals.index');
+
         Route::get('/onboarding-assessment', [UserOnboardingAssessmentController::class, 'index'])->name('onboarding-assessment.index');
         Route::post('/onboarding-assessment/quizzes/{quiz}/submit', [UserOnboardingAssessmentController::class, 'submit'])->name('onboarding-assessment.submit');
         Route::get('/my-results', [UserOnboardingAssessmentController::class, 'results'])->name('onboarding-assessment.results');
