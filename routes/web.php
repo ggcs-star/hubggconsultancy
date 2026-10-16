@@ -81,6 +81,7 @@ use App\Http\Controllers\Admin\HallOfFameController as AdminHallOfFameController
 use App\Http\Controllers\User\HallOfFameController as UserHallOfFameController;
 use App\Http\Controllers\Admin\SuccessStoryController as AdminSuccessStoryController;
 use App\Http\Controllers\User\SuccessStoryController as UserSuccessStoryController;
+use App\Http\Controllers\Admin\ReferralController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -115,6 +116,8 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/referrals', [ReferralController::class, 'index'])
+    ->name('referrals.index');
         Route::get('/clients', [ClientController::class, 'index'])->name('clients');
         Route::get('/clients/{client}', [ClientController::class, 'show'])->name('clients.show');
         Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');

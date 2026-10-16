@@ -265,23 +265,33 @@
             </div>
 
             <div class="py-1">
-                @if (auth()->user()->isAdmin())
-                    <a href="{{ route('admin.settings') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
-                        <x-icon name="cog" class="h-4 w-4" />
-                        <span>Settings</span>
-                    </a>
-                @else
-                    <a href="{{ route('user.profile') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
-                        <x-icon name="user" class="h-4 w-4" />
-                        <span>Profile</span>
-                    </a>
+              
+@if (auth()->user()->isAdmin())
+    <a href="{{ route('admin.settings') }}"
+       class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+        <x-icon name="cog" class="h-4 w-4" />
+        <span>Settings</span>
+    </a>
 
-                @endif
-<a href="{{ route('user.referrals.index') }}"
-   class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
-    <x-icon name="users" class="h-4 w-4" />
-    <span>Referral List</span>
-</a>
+    <a href="{{ route('admin.referrals.index') }}"
+       class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+        <x-icon name="users" class="h-4 w-4" />
+        <span>Referral List</span>
+    </a>
+@else
+    <a href="{{ route('user.profile') }}"
+       class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+        <x-icon name="user" class="h-4 w-4" />
+        <span>Profile</span>
+    </a>
+
+    <a href="{{ route('user.referrals.index') }}"
+       class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+        <x-icon name="users" class="h-4 w-4" />
+        <span>Referral List</span>
+    </a>
+@endif
+
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-50">
