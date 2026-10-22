@@ -118,6 +118,11 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/referrals', [ReferralController::class, 'index'])
     ->name('referrals.index');
+
+Route::get('/referrals/export', [
+    \App\Http\Controllers\Admin\ReferralController::class,
+    'export',
+])->name('referrals.export');
         Route::get('/clients', [ClientController::class, 'index'])->name('clients');
         Route::get('/clients/{client}', [ClientController::class, 'show'])->name('clients.show');
         Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
