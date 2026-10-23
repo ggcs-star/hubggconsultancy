@@ -27,12 +27,15 @@ class ClientController extends Controller
         $maxPoints = $request->query('max_points');
 
         $clients = User::where('role', 'user')
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
+         
+->when($search !== '', function ($query) use ($search) {
+    $query->where(function ($q) use ($search) {
+        $q->where('name', 'like', "%{$search}%")
+            ->orWhere('email', 'like', "%{$search}%")
+            ->orWhere('phone', 'like', "%{$search}%");
+    });
+})
+
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->when($profileStatus !== '', fn ($query) => $query->where('profile_completed', $profileStatus === 'complete'))
             ->when($salespersonStatus !== '', fn ($query) => $query->where('salesperson_status', $salespersonStatus))

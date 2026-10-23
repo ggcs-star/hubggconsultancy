@@ -21,10 +21,24 @@
             <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Priority</dt>
             <dd class="mt-1.5"><span class="badge {{ $lead->priorityBadgeClass() }}">{{ ucfirst($lead->priority) }}</span></dd>
         </div>
-        <div>
-            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Assigned To</dt>
-            <dd class="mt-1.5 font-semibold text-slate-800">{{ $lead->assignee?->name ?? 'Unassigned' }}</dd>
-        </div>
+    
+<div>
+    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        Assigned To
+    </dt>
+
+    <dd class="mt-1.5 font-semibold text-slate-800">
+        {{ $lead->assignee?->name ?? 'Unassigned' }}
+    </dd>
+
+    @if ($lead->assignee?->phone)
+        <dd class="mt-1 flex items-center gap-1.5 text-sm font-normal text-slate-500">
+            <x-icon name="phone" class="h-3.5 w-3.5" />
+            {{ $lead->assignee->phone }}
+        </dd>
+    @endif
+</div>
+
         <div>
             <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Source</dt>
             <dd class="mt-1.5 font-semibold text-slate-800">{{ $lead->source ?: '—' }}</dd>
