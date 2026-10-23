@@ -18,10 +18,20 @@
         <form method="GET" class="flex flex-wrap items-end gap-4">
         <div class="w-full sm:w-52">
             <label class="form-label">Searchh</label>
-            <div class="relative">
-                <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Name or email..." class="form-input pl-10">
-            </div>
+         
+<div class="relative">
+    <x-icon name="search"
+        class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+    <input
+        type="text"
+        name="search"
+        value="{{ request('search') }}"
+        placeholder="Name, email or mobile number..."
+        class="form-input pl-10"
+    >
+</div>
+
         </div>
 
         <div class="w-full sm:w-36">

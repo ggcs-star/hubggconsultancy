@@ -93,6 +93,7 @@
                         </svg>
                         Reset
                     </a>
+                    
 
                     <button type="submit"
                             class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/20">
@@ -104,7 +105,34 @@
                         </svg>
                         Apply Filters
                     </button>
+                    {{-- Export Buttons --}}
+
+<a
+    href="{{ route('admin.referrals.export', request()->only([
+        'search',
+        'from_date',
+        'to_date'
+    ])) }}"
+    class="inline-flex items-center justify-center gap-2 rounded-xl
+           bg-emerald-600 px-5 py-3 text-sm font-semibold text-white
+           shadow-sm transition hover:bg-emerald-700
+           focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
+>
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-4 w-4"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke="currentColor"
+         stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3"/>
+    </svg>
+
+    Export CSV
+</a>
+
                 </div>
+                
             </form>
         </div>
 
@@ -120,7 +148,6 @@
                         Applicant details, profession, interests and referral contacts
                     </p>
                 </div>
-
                 <div class="inline-flex w-fit items-center gap-2 rounded-full bg-indigo-50 px-3.5 py-2 text-sm font-semibold text-indigo-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor"
